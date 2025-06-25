@@ -1,0 +1,20 @@
+Django>=5.2
+boto3
+celery
+celery-progress
+celery[redis]
+django-allauth[socialaccount,mfa]
+django-anymail[mailgun]  # email services
+django-celery-beat
+django-cors-headers
+django-environ
+django-htmx
+django-storages
+django-template-partials
+django-vite>=3.1.0
+django-waffle
+djangorestframework
+drf-spectacular
+psycopg2-binary
+redis
+whitenoise[brotli]
