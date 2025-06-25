@@ -1,0 +1,57 @@
+{% if form.non_field_errors %}
+<div class="alert alert-error mb-4">
+  {{ form.non_field_errors }}
+</div>
+{% endif %}
+
+<div class="space-y-4">
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Brand <span class="text-error">*</span></span>
+    </label>
+    {{ form.brand }}
+    {% if form.brand.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.brand.errors.0 }}</span>
+      </label>
+    {% endif %}
+  </div>
+
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Model</span>
+      <span class="label-text-alt">Optional</span>
+    </label>
+    {{ form.model }}
+    {% if form.model.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.model.errors.0 }}</span>
+      </label>
+    {% endif %}
+  </div>
+
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Serial Number <span class="text-error">*</span></span>
+    </label>
+    {{ form.serial_number }}
+    {% if form.serial_number.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.serial_number.errors.0 }}</span>
+      </label>
+    {% endif %}
+  </div>
+
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Notes</span>
+      <span class="label-text-alt">Optional</span>
+    </label>
+    {{ form.notes }}
+    {% if form.notes.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.notes.errors.0 }}</span>
+      </label>
+    {% endif %}
+  </div>
+</div>

@@ -64,5 +64,11 @@
       {% translate "Barangays" %}
     </a>
   </li>
+  <li>
+    <a href="{% url 'routers:list' %}" {% if active_tab == 'routers' %}class="menu-active"{% endif %}>
+      <i class="fa fa-wifi h-4 w-4"></i>
+      {% translate "Routers" %}
+    </a>
+  </li>
 </ul>
 {% endif %}

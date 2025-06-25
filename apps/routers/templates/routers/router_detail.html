@@ -1,0 +1,70 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block title %}{{ router }} - Routers - {{ block.super }}{% endblock %}
+
+{% block app %}
+<div class="app-card">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <div class="text-sm breadcrumbs">
+        <ul>
+          <li><a href="{% url 'routers:list' %}">Routers</a></li>
+          <li>{{ router.brand }} {{ router.model|default:"" }}</li>
+        </ul>
+      </div>
+      <h1 class="text-3xl font-bold">{{ router }}</h1>
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'routers:update' router.pk %}" 
+         class="btn btn-primary">
+        <i class="fas fa-edit mr-2"></i>Edit
+      </a>
+      <button class="btn btn-error"
+              hx-delete="{% url 'routers:delete' router.pk %}"
+              hx-confirm="Are you sure you want to delete this router?">
+        <i class="fas fa-trash mr-2"></i>Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- Router Information -->
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Router Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <span class="font-semibold">Brand:</span>
+          <span class="ml-2">{{ router.brand }}</span>
+        </div>
+        <div>
+          <span class="font-semibold">Model:</span>
+          <span class="ml-2">{{ router.model|default:"-" }}</span>
+        </div>
+        <div>
+          <span class="font-semibold">Serial Number:</span>
+          <span class="ml-2 font-mono">{{ router.serial_number }}</span>
+        </div>
+        <div>
+          <span class="font-semibold">Created:</span>
+          <span class="ml-2">{{ router.created_at|date:"M d, Y" }}</span>
+        </div>
+        <div>
+          <span class="font-semibold">Last Updated:</span>
+          <span class="ml-2">{{ router.updated_at|date:"M d, Y" }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  {% if router.notes %}
+  <div class="card bg-base-100 shadow-xl mt-6">
+    <div class="card-body">
+      <h2 class="card-title">Notes</h2>
+      <p>{{ router.notes|linebreaks }}</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

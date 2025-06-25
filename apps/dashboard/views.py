@@ -15,6 +15,7 @@ from apps.dashboard.services import get_user_signups
 from apps.users.models import CustomUser
 from apps.customers.models import Customer
 from apps.barangays.models import Barangay
+from apps.routers.models import Router
 
 
 def _string_to_date(date_str: str) -> datetime.date:
@@ -48,6 +49,11 @@ def dashboard(request):
         "with_customers": Barangay.objects.filter(customers__isnull=False).distinct().count(),
     }
     
+    # Get router statistics
+    router_stats = {
+        "total": Router.objects.count(),
+    }
+    
     return TemplateResponse(
         request,
         "dashboard/user_dashboard.html",
@@ -60,6 +66,7 @@ def dashboard(request):
             "start_value": start_value,
             "customer_stats": customer_stats,
             "barangay_stats": barangay_stats,
+            "router_stats": router_stats,
         },
     )
 

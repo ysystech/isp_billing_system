@@ -1,0 +1,28 @@
+<div class="modal modal-open">
+  <div class="modal-box max-w-4xl">
+    <h3 class="font-bold text-lg mb-4">
+      {% if router %}Edit Router{% else %}Create New Router{% endif %}
+    </h3>
+    
+    <form method="post" 
+          {% if router %}
+            hx-post="{% url 'routers:update' router.pk %}"
+          {% else %}
+            hx-post="{% url 'routers:create' %}"
+          {% endif %}>
+      {% csrf_token %}
+      {% include "routers/partials/router_form_fields.html" %}
+      
+      <div class="modal-action">
+        <button type="button" 
+                class="btn btn-ghost"
+                onclick="document.getElementById('modal-container').innerHTML = ''">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          {% if router %}Update{% else %}Create{% endif %} Router
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

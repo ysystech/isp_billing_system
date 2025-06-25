@@ -73,6 +73,7 @@ PROJECT_APPS = [
     "apps.users.apps.UserConfig",
     "apps.dashboard.apps.DashboardConfig",
     "apps.barangays.apps.BarangaysConfig",
+    "apps.routers.apps.RoutersConfig",
     "apps.customers.apps.CustomersConfig",
     "apps.web",
 ]

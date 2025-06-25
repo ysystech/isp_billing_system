@@ -23,6 +23,14 @@
     </div>
     {% endif %}
     
+    <!-- Router Statistics -->
+    {% if router_stats %}
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">Router Inventory</h2>
+      {% include 'routers/partials/router_stats.html' with stats=router_stats %}
+    </div>
+    {% endif %}
+    
     <form>
       <div class="pg-columns">
         <div class="pg-column">

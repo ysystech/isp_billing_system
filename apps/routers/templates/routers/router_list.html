@@ -1,0 +1,44 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block title %}Routers - {{ block.super }}{% endblock %}
+
+{% block app %}
+<div class="app-card">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Routers</h1>
+    <a href="{% url 'routers:create' %}" 
+       class="btn btn-primary"
+       hx-get="{% url 'routers:create' %}"
+       hx-target="#modal-container"
+       hx-trigger="click">
+      <i class="fas fa-plus mr-2"></i>Add New Router
+    </a>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+      <form hx-get="{% url 'routers:list' %}" 
+            hx-target="#router-list"
+            hx-trigger="submit, input from:input[name='search'] delay:500ms">
+        <div class="flex gap-4">
+          <input type="text" 
+                 name="search" 
+                 value="{{ search }}"
+                 placeholder="Search by brand, model, or serial number..." 
+                 class="input input-bordered flex-1">
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Router List -->
+  <div id="router-list">
+    {% include "routers/partials/router_list.html" %}
+  </div>
+</div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
+{% endblock %}

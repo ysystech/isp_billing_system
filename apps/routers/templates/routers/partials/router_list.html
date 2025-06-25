@@ -1,0 +1,81 @@
+<div class="overflow-x-auto">
+  <table class="table table-zebra">
+    <thead>
+      <tr>
+        <th>Brand</th>
+        <th>Model</th>
+        <th>Serial Number</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for router in routers %}
+      <tr>
+        <td>{{ router.brand }}</td>
+        <td>
+          <a href="{% url 'routers:detail' router.pk %}" 
+             class="link link-primary font-medium">
+            {{ router.model|default:"-" }}
+          </a>
+        </td>
+        <td class="font-mono text-sm">{{ router.serial_number }}</td>
+        <td>{{ router.created_at|date:"M d, Y" }}</td>
+        <td>
+          <div class="flex gap-2">
+            <a href="{% url 'routers:update' router.pk %}"
+               class="btn btn-sm btn-ghost"
+               hx-get="{% url 'routers:update' router.pk %}"
+               hx-target="#modal-container"
+               hx-trigger="click">
+              <i class="fas fa-edit"></i>
+            </a>
+            <button class="btn btn-sm btn-ghost text-error"
+                    hx-delete="{% url 'routers:delete' router.pk %}"
+                    hx-confirm="Are you sure you want to delete this router?">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="text-center py-8">
+          <p class="text-gray-500">No routers found.</p>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if routers.has_other_pages %}
+<div class="flex justify-center mt-6">
+  <div class="join">
+    {% if routers.has_previous %}
+    <a href="?page={{ routers.previous_page_number }}&search={{ search }}"
+       class="join-item btn"
+       hx-get="{% url 'routers:list' %}?page={{ routers.previous_page_number }}&search={{ search }}"
+       hx-target="#router-list"
+       hx-swap="outerHTML">
+      «
+    </a>
+    {% endif %}
+    
+    <button class="join-item btn">
+      Page {{ routers.number }} of {{ routers.paginator.num_pages }}
+    </button>
+    
+    {% if routers.has_next %}
+    <a href="?page={{ routers.next_page_number }}&search={{ search }}"
+       class="join-item btn"
+       hx-get="{% url 'routers:list' %}?page={{ routers.next_page_number }}&search={{ search }}"
+       hx-target="#router-list"
+       hx-swap="outerHTML">
+      »
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
