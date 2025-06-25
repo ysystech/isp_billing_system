@@ -5,8 +5,16 @@
 {% load django_vite %}
 {% block app %}
 <section class="app-card">
-
     <h1 class="pg-title">{% translate "Project Dashboard" %}</h1>
+    
+    <!-- Customer Statistics -->
+    {% if customer_stats %}
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">Customer Overview</h2>
+      {% include 'customers/partials/quick_stats.html' with stats=customer_stats %}
+    </div>
+    {% endif %}
+    
     <form>
       <div class="pg-columns">
         <div class="pg-column">

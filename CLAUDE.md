@@ -1,5 +1,8 @@
 # Codebase Guidelines
 
+# Codebase path
+/Users/aldesabido/pers/isp_billing_system/
+
 ## Architecture
 
 - This is a Django project built on Python 3.12.

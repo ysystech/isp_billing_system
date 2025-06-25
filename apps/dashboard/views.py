@@ -13,6 +13,7 @@ from apps.dashboard.forms import DateRangeForm
 from apps.dashboard.serializers import UserSignupStatsSerializer
 from apps.dashboard.services import get_user_signups
 from apps.users.models import CustomUser
+from apps.customers.models import Customer
 
 
 def _string_to_date(date_str: str) -> datetime.date:
@@ -30,6 +31,15 @@ def dashboard(request):
     serializer = UserSignupStatsSerializer(get_user_signups(start, end), many=True)
     form = DateRangeForm(initial={"start": start, "end": end})
     start_value = CustomUser.objects.filter(date_joined__lt=start).count()
+    
+    # Get customer statistics
+    customer_stats = {
+        "total": Customer.objects.count(),
+        "active": Customer.objects.filter(status=Customer.ACTIVE).count(),
+        "inactive": Customer.objects.filter(status=Customer.INACTIVE).count(),
+        "suspended": Customer.objects.filter(status=Customer.SUSPENDED).count(),
+    }
+    
     return TemplateResponse(
         request,
         "dashboard/user_dashboard.html",
@@ -40,6 +50,7 @@ def dashboard(request):
             "start": start.isoformat(),
             "end": end.isoformat(),
             "start_value": start_value,
+            "customer_stats": customer_stats,
         },
     )
 

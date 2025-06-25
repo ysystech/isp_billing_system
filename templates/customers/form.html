@@ -1,0 +1,110 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+{% load form_tags %}
+{% block app %}
+<section class="app-card max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="breadcrumbs text-sm mb-2">
+      <ul>
+        <li><a href="{% url 'customers:customer_list' %}">Customers</a></li>
+        <li>{{ title }}</li>
+      </ul>
+    </div>
+    <h1 class="pg-title">{{ title }}</h1>
+  </div>
+
+  <!-- Form -->
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+    <div class="alert alert-error">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <!-- Personal Information -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Personal Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {% render_field form.first_name %}
+          </div>
+          <div>
+            {% render_field form.last_name %}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            {% render_field form.email %}
+          </div>
+          <div>
+            {% render_field form.phone_primary %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service Address -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Service Address</h2>
+        <div class="space-y-4">
+          <div>
+            {% render_field form.street_address %}
+          </div>
+          <div>
+            {% render_field form.barangay %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Installation Details -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Installation Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {% render_field form.installation_date %}
+          </div>
+          <div>
+            {% render_field form.installation_technician %}
+          </div>
+        </div>
+        <div class="mt-4">
+          {% render_field form.installation_notes %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Settings -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Account Settings</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {% render_field form.status %}
+          </div>
+        </div>
+        <div class="mt-4">
+          {% render_field form.notes %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-3">
+      <a href="{% if customer %}{% url 'customers:customer_detail' customer.pk %}{% else %}{% url 'customers:customer_list' %}{% endif %}" 
+         class="btn btn-ghost">
+        Cancel
+      </a>
+      <button type="submit" class="btn btn-primary">
+        {% if customer %}Update Customer{% else %}Create Customer{% endif %}
+      </button>
+    </div>
+  </form>
+</section>
+{% endblock %}
