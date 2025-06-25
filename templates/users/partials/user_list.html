@@ -1,0 +1,77 @@
+{% if users %}
+<div class="overflow-x-auto">
+  <table class="table table-zebra">
+    <thead>
+      <tr>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>User Type</th>
+        <th>Status</th>
+        <th>Joined</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr id="user-{{ user.id }}">
+        <td>
+          <div class="font-medium">{{ user.get_full_name|default:"No name" }}</div>
+        </td>
+        <td>
+          <div class="text-sm">{{ user.email }}</div>
+        </td>
+        <td>
+          {% if user.user_type == 'CASHIER' %}
+          <span class="badge badge-success">Cashier</span>
+          {% elif user.user_type == 'TECHNICIAN' %}
+          <span class="badge badge-info">Technician</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if user.is_active %}
+          <span class="badge badge-success">Active</span>
+          {% else %}
+          <span class="badge badge-ghost">Inactive</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="text-sm">{{ user.date_joined|date:"M d, Y" }}</div>
+        </td>
+        <td>
+          <div class="flex space-x-2" x-data="userActions">
+            <a href="{% url 'users:user_management_detail' user.id %}" 
+               class="btn btn-ghost btn-xs">
+              View
+            </a>
+            <a href="{% url 'users:user_management_update' user.id %}"
+               class="btn btn-ghost btn-xs"
+               hx-get="{% url 'users:user_management_update' user.id %}"
+               hx-target="#modal-content"
+               hx-trigger="click"
+               @click="document.getElementById('user-modal').showModal()">
+              Edit
+            </a>
+            {% if user.is_active %}
+            <button class="btn btn-ghost btn-xs text-error"
+                    @click="confirmDelete({{ user.id }}, '{{ user.get_full_name|escapejs }}')">
+              Deactivate
+            </button>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="text-center py-12">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+  </svg>
+  <p class="text-gray-500 mb-4">No users found.</p>
+  <a href="{% url 'users:user_management_create' %}" class="btn btn-primary btn-sm">
+    Create First User
+  </a>
+</div>
+{% endif %}

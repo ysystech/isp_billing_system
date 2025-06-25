@@ -1,0 +1,126 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block app %}
+<section class="app-card">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+      <li><a href="{% url 'subscriptions:subscription_plan_list' %}">Subscription Plans</a></li>
+      <li>{{ plan.name }}</li>
+    </ul>
+  </div>
+
+  <!-- Header with Actions -->
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="pg-title">{{ plan.name }}</h1>
+      <div class="mt-2">
+        {% if plan.is_active %}
+        <span class="badge badge-success">Active</span>
+        {% else %}
+        <span class="badge badge-ghost">Inactive</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="flex space-x-2">
+      <a href="{% url 'subscriptions:subscription_plan_update' plan.id %}" class="btn btn-primary btn-sm">
+        Edit Plan
+      </a>
+      <button class="btn btn-error btn-sm" onclick="confirmDelete()">
+        Delete Plan
+      </button>
+    </div>
+  </div>
+
+  <!-- Plan Details -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Basic Information -->
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title">Plan Details</h2>
+        
+        <div class="space-y-3">
+          <div>
+            <p class="text-sm text-gray-500">Speed</p>
+            <p class="text-lg font-medium">{{ plan.display_speed }}</p>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-500">Monthly Price</p>
+            <p class="text-2xl font-bold text-primary">{{ plan.display_price }}</p>
+          </div>
+          
+          {% if plan.description %}
+          <div>
+            <p class="text-sm text-gray-500">Description</p>
+            <p class="mt-1">{{ plan.description|linebreaks }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Timestamps -->
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title">System Information</h2>
+        
+        <div class="space-y-3">
+          <div>
+            <p class="text-sm text-gray-500">Created</p>
+            <p class="font-medium">{{ plan.created_at|date:"F d, Y g:i A" }}</p>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-500">Last Updated</p>
+            <p class="font-medium">{{ plan.updated_at|date:"F d, Y g:i A" }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Future: Subscribers using this plan -->
+  <div class="mt-6">
+    <div class="alert alert-info">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span>Customer subscriptions will be displayed here once the subscription management feature is implemented.</span>
+    </div>
+  </div>
+</section>
+
+<script>
+function confirmDelete() {
+  if (confirm('Are you sure you want to delete "{{ plan.name|escapejs }}"? This action cannot be undone.')) {
+    // Create a form and submit it as DELETE
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "subscriptions:subscription_plan_delete" plan.id %}';
+    
+    const csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = 'csrfmiddlewaretoken';
+    csrfToken.value = '{{ csrf_token }}';
+    form.appendChild(csrfToken);
+    
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'DELETE';
+    form.appendChild(methodInput);
+    
+    document.body.appendChild(form);
+    
+    // Use HTMX to submit if available
+    if (typeof htmx !== 'undefined') {
+      // HTMX will automatically include the CSRF token from body hx-headers
+      htmx.ajax('DELETE', '{% url "subscriptions:subscription_plan_delete" plan.id %}');
+    } else {
+      form.submit();
+    }
+  }
+}
+</script>
+{% endblock %}

@@ -16,6 +16,8 @@ from apps.users.models import CustomUser
 from apps.customers.models import Customer
 from apps.barangays.models import Barangay
 from apps.routers.models import Router
+from apps.subscriptions.models import SubscriptionPlan
+from apps.subscriptions.models import SubscriptionPlan
 
 
 def _string_to_date(date_str: str) -> datetime.date:
@@ -54,6 +56,21 @@ def dashboard(request):
         "total": Router.objects.count(),
     }
     
+    # Get subscription plan statistics
+    subscription_plan_stats = {
+        "total": SubscriptionPlan.objects.count(),
+        "active": SubscriptionPlan.objects.filter(is_active=True).count(),
+        "inactive": SubscriptionPlan.objects.filter(is_active=False).count(),
+    }
+    
+    # Get user statistics (excluding superusers)
+    user_stats = {
+        "total": CustomUser.objects.filter(is_superuser=False).count(),
+        "cashiers": CustomUser.objects.filter(user_type=CustomUser.CASHIER, is_superuser=False).count(),
+        "technicians": CustomUser.objects.filter(user_type=CustomUser.TECHNICIAN, is_superuser=False).count(),
+        "active": CustomUser.objects.filter(is_active=True, is_superuser=False).count(),
+    }
+    
     return TemplateResponse(
         request,
         "dashboard/user_dashboard.html",
@@ -67,6 +84,8 @@ def dashboard(request):
             "customer_stats": customer_stats,
             "barangay_stats": barangay_stats,
             "router_stats": router_stats,
+            "subscription_plan_stats": subscription_plan_stats,
+            "user_stats": user_stats,
         },
     )
 

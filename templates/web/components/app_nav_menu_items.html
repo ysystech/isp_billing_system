@@ -70,5 +70,17 @@
       {% translate "Routers" %}
     </a>
   </li>
+  <li>
+    <a href="{% url 'subscriptions:subscription_plan_list' %}" {% if active_tab == 'subscription-plans' %}class="menu-active"{% endif %}>
+      <i class="fa fa-list-alt h-4 w-4"></i>
+      {% translate "Subscription Plans" %}
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'users:user_management_list' %}" {% if active_tab == 'user-management' %}class="menu-active"{% endif %}>
+      <i class="fa fa-users-cog h-4 w-4"></i>
+      {% translate "User Management" %}
+    </a>
+  </li>
 </ul>
 {% endif %}

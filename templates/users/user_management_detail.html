@@ -1,0 +1,133 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block app %}
+<section class="app-card">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+      <li><a href="{% url 'users:user_management_list' %}">User Management</a></li>
+      <li>{{ user_obj.get_full_name|default:"User" }}</li>
+    </ul>
+  </div>
+
+  <!-- Header with Actions -->
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="pg-title">{{ user_obj.get_full_name|default:"No name" }}</h1>
+      <div class="mt-2 flex items-center space-x-2">
+        {% if user_obj.user_type == 'CASHIER' %}
+        <span class="badge badge-success">Cashier</span>
+        {% elif user_obj.user_type == 'TECHNICIAN' %}
+        <span class="badge badge-info">Technician</span>
+        {% endif %}
+        
+        {% if user_obj.is_active %}
+        <span class="badge badge-success">Active</span>
+        {% else %}
+        <span class="badge badge-ghost">Inactive</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="flex space-x-2">
+      <a href="{% url 'users:user_management_update' user_obj.id %}" class="btn btn-primary btn-sm">
+        Edit User
+      </a>
+      {% if user_obj.is_active %}
+      <button class="btn btn-error btn-sm" onclick="confirmDeactivate()">
+        Deactivate User
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- User Details -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Basic Information -->
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title">User Information</h2>
+        
+        <div class="space-y-3">
+          <div>
+            <p class="text-sm text-gray-500">Full Name</p>
+            <p class="text-lg font-medium">{{ user_obj.get_full_name|default:"Not set" }}</p>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-500">Email</p>
+            <p class="font-medium">{{ user_obj.email }}</p>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-500">Username</p>
+            <p class="font-medium">{{ user_obj.username }}</p>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-500">User Type</p>
+            <p class="font-medium">{{ user_obj.get_user_type_display }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Status -->
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title">Account Status</h2>
+        
+        <div class="space-y-3">
+          <div>
+            <p class="text-sm text-gray-500">Status</p>
+            <p class="font-medium">
+              {% if user_obj.is_active %}
+              <span class="text-success">Active - Can log in</span>
+              {% else %}
+              <span class="text-error">Inactive - Cannot log in</span>
+              {% endif %}
+            </p>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-500">Date Joined</p>
+            <p class="font-medium">{{ user_obj.date_joined|date:"F d, Y g:i A" }}</p>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-500">Last Login</p>
+            <p class="font-medium">
+              {% if user_obj.last_login %}
+              {{ user_obj.last_login|date:"F d, Y g:i A" }}
+              {% else %}
+              Never logged in
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Future Activity Log -->
+  <div class="mt-6">
+    <div class="alert alert-info">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span>User activity log and assignments will be displayed here in future updates.</span>
+    </div>
+  </div>
+</section>
+
+<script>
+function confirmDeactivate() {
+  if (confirm('Are you sure you want to deactivate "{{ user_obj.get_full_name|escapejs }}"? The user will no longer be able to log in.')) {
+    // Use HTMX to submit if available
+    if (typeof htmx !== 'undefined') {
+      // HTMX will automatically include the CSRF token from body hx-headers
+      htmx.ajax('DELETE', '{% url "users:user_management_delete" user_obj.id %}');
+    }
+  }
+}
+</script>
+{% endblock %}

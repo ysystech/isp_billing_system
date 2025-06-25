@@ -75,6 +75,7 @@ PROJECT_APPS = [
     "apps.barangays.apps.BarangaysConfig",
     "apps.routers.apps.RoutersConfig",
     "apps.customers.apps.CustomersConfig",
+    "apps.subscriptions.apps.SubscriptionsConfig",
     "apps.web",
 ]
 

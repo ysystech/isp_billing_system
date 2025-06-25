@@ -1,0 +1,67 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+{% block app %}
+<section class="app-card">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+    <h1 class="pg-title mb-4 sm:mb-0">Subscription Plans</h1>
+    <a href="{% url 'subscriptions:subscription_plan_create' %}" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Add New Plan
+    </a>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+      <li>Subscription Plans</li>
+    </ul>
+  </div>
+
+  <!-- Search and Filter Form -->
+  <form method="get" class="mb-6" hx-get="{% url 'subscriptions:subscription_plan_list' %}" hx-target="#subscription-plan-list" hx-indicator="#search-indicator">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="md:col-span-2">
+        {{ form.search }}
+      </div>
+      <div>
+        {{ form.is_active }}
+      </div>
+    </div>
+    <span id="search-indicator" class="htmx-indicator">
+      <div class="flex items-center mt-2">
+        <span class="loading loading-spinner loading-sm mr-2"></span>
+        Searching...
+      </div>
+    </span>
+  </form>
+
+  <!-- Subscription Plan List -->
+  <div id="subscription-plan-list">
+    {% include 'subscriptions/partials/subscription_plan_list.html' %}
+  </div>
+</section>
+
+<!-- Modal for create/edit forms -->
+<dialog id="plan-modal" class="modal">
+  <div class="modal-box" id="modal-content">
+    <!-- Form content will be loaded here -->
+  </div>
+</dialog>
+
+<!-- Alpine.js for interactions -->
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('planActions', () => ({
+      confirmDelete(planId, planName) {
+        if (confirm(`Are you sure you want to delete "${planName}"?`)) {
+          // HTMX will automatically include the CSRF token from body hx-headers
+          htmx.ajax('DELETE', `/subscriptions/plans/${planId}/delete/`);
+        }
+      }
+    }))
+  });
+</script>
+{% endblock %}

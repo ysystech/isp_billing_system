@@ -31,6 +31,22 @@
     </div>
     {% endif %}
     
+    <!-- Subscription Plan Statistics -->
+    {% if subscription_plan_stats %}
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">Subscription Plans</h2>
+      {% include 'subscriptions/partials/subscription_plan_stats.html' with stats=subscription_plan_stats %}
+    </div>
+    {% endif %}
+    
+    <!-- User Statistics -->
+    {% if user_stats %}
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">System Users</h2>
+      {% include 'users/partials/user_stats.html' with stats=user_stats %}
+    </div>
+    {% endif %}
+    
     <form>
       <div class="pg-columns">
         <div class="pg-column">

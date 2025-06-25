@@ -18,7 +18,22 @@ class CustomUser(AbstractUser):
     """
     Add additional fields to the user model here.
     """
-
+    
+    # User type choices
+    CASHIER = 'CASHIER'
+    TECHNICIAN = 'TECHNICIAN'
+    
+    USER_TYPE_CHOICES = [
+        (CASHIER, 'Cashier'),
+        (TECHNICIAN, 'Installer/Technician'),
+    ]
+    
+    user_type = models.CharField(
+        max_length=20,
+        choices=USER_TYPE_CHOICES,
+        default=CASHIER,
+        help_text="Type of user in the system"
+    )
     avatar = models.FileField(upload_to=_get_avatar_filename, blank=True, validators=[validate_profile_picture])
 
     def __str__(self):

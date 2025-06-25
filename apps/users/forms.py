@@ -70,3 +70,195 @@ class TermsSignupForm(TurnstileSignupForm):
             _("Terms and Conditions"),
         )
         self.fields["terms_agreement"].label = mark_safe(_("I agree to the {terms_link}").format(terms_link=link))
+
+class UserManagementCreateForm(forms.ModelForm):
+    """Form for creating new users in the admin panel."""
+    
+    full_name = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'input input-bordered w-full',
+            'placeholder': 'e.g., Juan Dela Cruz',
+            'x-model': 'fullName',
+            '@input': 'updateEmail()'
+        })
+    )
+    
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'input input-bordered w-full',
+            'placeholder': 'e.g., juan.delacruz@example.com',
+            'x-model': 'email'
+        })
+    )
+    
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'input input-bordered w-full',
+            'placeholder': 'Enter password'
+        }),
+        help_text="Password must be at least 8 characters long."
+    )
+    
+    password_confirm = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'input input-bordered w-full',
+            'placeholder': 'Confirm password'
+        }),
+        label="Confirm Password"
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ['full_name', 'email', 'user_type']
+        widgets = {
+            'user_type': forms.Select(attrs={
+                'class': 'select select-bordered w-full'
+            })
+        }
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if CustomUser.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        password_confirm = cleaned_data.get('password_confirm')
+        
+        if password and password_confirm:
+            if password != password_confirm:
+                raise forms.ValidationError("Passwords do not match.")
+            if len(password) < 8:
+                raise forms.ValidationError("Password must be at least 8 characters long.")
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        
+        # Split full name into first and last name
+        full_name = self.cleaned_data.get('full_name', '').strip()
+        name_parts = full_name.split(' ', 1)
+        user.first_name = name_parts[0]
+        user.last_name = name_parts[1] if len(name_parts) > 1 else ''
+        
+        # Set username as email
+        user.username = self.cleaned_data['email']
+        
+        # Set password
+        user.set_password(self.cleaned_data['password'])
+        
+        if commit:
+            user.save()
+        return user
+
+
+class UserManagementUpdateForm(forms.ModelForm):
+    """Form for updating existing users."""
+    
+    full_name = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'input input-bordered w-full',
+            'placeholder': 'e.g., Juan Dela Cruz'
+        })
+    )
+    
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'input input-bordered w-full',
+            'placeholder': 'e.g., juan.delacruz@example.com'
+        })
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ['full_name', 'email', 'user_type', 'is_active']
+        widgets = {
+            'user_type': forms.Select(attrs={
+                'class': 'select select-bordered w-full'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'checkbox checkbox-primary'
+            })
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            # Set full name from first and last name
+            self.fields['full_name'].initial = self.instance.get_full_name()
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        # Check if email exists for other users
+        if CustomUser.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        
+        # Split full name into first and last name
+        full_name = self.cleaned_data.get('full_name', '').strip()
+        name_parts = full_name.split(' ', 1)
+        user.first_name = name_parts[0]
+        user.last_name = name_parts[1] if len(name_parts) > 1 else ''
+        
+        # Update username to match email
+        user.username = self.cleaned_data['email']
+        
+        if commit:
+            user.save()
+        return user
+
+
+class UserSearchForm(forms.Form):
+    """Form for searching and filtering users."""
+    
+    search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'input input-bordered input-sm w-full max-w-xs',
+            'placeholder': 'Search users...',
+            'hx-get': '',
+            'hx-target': '#user-list',
+            'hx-trigger': 'keyup changed delay:500ms',
+            'hx-indicator': '#search-indicator'
+        })
+    )
+    
+    user_type = forms.ChoiceField(
+        required=False,
+        choices=[('', 'All Types')] + CustomUser.USER_TYPE_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'select select-bordered select-sm',
+            'hx-get': '',
+            'hx-target': '#user-list',
+            'hx-trigger': 'change',
+            'hx-indicator': '#search-indicator'
+        })
+    )
+    
+    is_active = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('', 'All Users'),
+            ('true', 'Active Only'),
+            ('false', 'Inactive Only')
+        ],
+        widget=forms.Select(attrs={
+            'class': 'select select-bordered select-sm',
+            'hx-get': '',
+            'hx-target': '#user-list',
+            'hx-trigger': 'change',
+            'hx-indicator': '#search-indicator'
+        })
+    )

@@ -1,0 +1,120 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block app %}
+<section class="app-card">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+      <li><a href="{% url 'subscriptions:subscription_plan_list' %}">Subscription Plans</a></li>
+      <li>{{ title }}</li>
+    </ul>
+  </div>
+  
+  <div class="p-6">
+    <h2 class="text-2xl font-bold mb-6">{{ title }}</h2>
+    
+    <form method="post" {% if request.htmx %}hx-post="{{ request.path }}"{% endif %}>
+      {% csrf_token %}
+      
+      <div class="space-y-4">
+        <!-- Plan Name -->
+        <div class="form-control">
+          <label for="{{ form.name.id_for_label }}" class="label">
+            <span class="label-text">{{ form.name.label }}</span>
+          </label>
+          {{ form.name }}
+          {% if form.name.errors %}
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.name.errors.0 }}</span>
+          </label>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="form-control">
+          <label for="{{ form.description.id_for_label }}" class="label">
+            <span class="label-text">{{ form.description.label }}</span>
+          </label>
+          {{ form.description }}
+          {% if form.description.help_text %}
+          <label class="label">
+            <span class="label-text-alt">{{ form.description.help_text }}</span>
+          </label>
+          {% endif %}
+          {% if form.description.errors %}
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+          </label>
+          {% endif %}
+        </div>
+
+        <!-- Speed and Price Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Speed -->
+          <div class="form-control">
+            <label for="{{ form.speed.id_for_label }}" class="label">
+              <span class="label-text">{{ form.speed.label }}</span>
+            </label>
+            {{ form.speed }}
+            {% if form.speed.help_text %}
+            <label class="label">
+              <span class="label-text-alt">{{ form.speed.help_text }}</span>
+            </label>
+            {% endif %}
+            {% if form.speed.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.speed.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+
+          <!-- Price -->
+          <div class="form-control">
+            <label for="{{ form.price.id_for_label }}" class="label">
+              <span class="label-text">{{ form.price.label }}</span>
+            </label>
+            {{ form.price }}
+            {% if form.price.help_text %}
+            <label class="label">
+              <span class="label-text-alt">{{ form.price.help_text }}</span>
+            </label>
+            {% endif %}
+            {% if form.price.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.price.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Is Active -->
+        <div class="form-control">
+          <label class="label cursor-pointer justify-start">
+            {{ form.is_active }}
+            <span class="label-text ml-3">{{ form.is_active.label }}</span>
+          </label>
+          {% if form.is_active.errors %}
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.is_active.errors.0 }}</span>
+          </label>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="mt-6 flex justify-end space-x-2">
+        {% if request.htmx %}
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('plan-modal').close()">
+          Cancel
+        </button>
+        {% else %}
+        <a href="{% url 'subscriptions:subscription_plan_list' %}" class="btn btn-ghost">Cancel</a>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">{{ submit_text }}</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

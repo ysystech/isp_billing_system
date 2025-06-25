@@ -1,0 +1,71 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+{% block app %}
+<section class="app-card">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+    <h1 class="pg-title mb-4 sm:mb-0">User Management</h1>
+    <a href="{% url 'users:user_management_create' %}" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Add New User
+    </a>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+      <li>User Management</li>
+    </ul>
+  </div>
+
+  <!-- Search and Filter Form -->
+  <form method="get" class="mb-6" hx-get="{% url 'users:user_management_list' %}" hx-target="#user-list" hx-indicator="#search-indicator">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="md:col-span-2">
+        {{ form.search }}
+      </div>
+      <div>
+        {{ form.user_type }}
+      </div>
+      <div>
+        {{ form.is_active }}
+      </div>
+    </div>
+    <span id="search-indicator" class="htmx-indicator">
+      <div class="flex items-center mt-2">
+        <span class="loading loading-spinner loading-sm mr-2"></span>
+        Searching...
+      </div>
+    </span>
+  </form>
+
+  <!-- User List -->
+  <div id="user-list">
+    {% include 'users/partials/user_list.html' %}
+  </div>
+</section>
+
+<!-- Modal for create/edit forms -->
+<dialog id="user-modal" class="modal">
+  <div class="modal-box" id="modal-content">
+    <!-- Form content will be loaded here -->
+  </div>
+</dialog>
+
+<!-- Alpine.js for interactions -->
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('userActions', () => ({
+      confirmDelete(userId, userName) {
+        if (confirm(`Are you sure you want to deactivate "${userName}"?`)) {
+          // HTMX will automatically include the CSRF token from body hx-headers
+          htmx.ajax('DELETE', `/users/management/${userId}/delete/`);
+        }
+      }
+    }))
+  });
+</script>
+{% endblock %}

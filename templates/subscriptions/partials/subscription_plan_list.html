@@ -1,0 +1,70 @@
+{% if plans %}
+<div class="overflow-x-auto">
+  <table class="table table-zebra">
+    <thead>
+      <tr>
+        <th>Plan Name</th>
+        <th>Speed</th>
+        <th>Monthly Price</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for plan in plans %}
+      <tr id="plan-{{ plan.id }}">
+        <td>
+          <div class="font-medium">{{ plan.name }}</div>
+          {% if plan.description %}
+          <div class="text-sm text-gray-500 max-w-xs truncate">{{ plan.description }}</div>
+          {% endif %}
+        </td>
+        <td>
+          <div class="badge badge-info">{{ plan.display_speed }}</div>
+        </td>
+        <td>
+          <div class="font-medium">{{ plan.display_price }}</div>
+        </td>
+        <td>
+          {% if plan.is_active %}
+          <span class="badge badge-success">Active</span>
+          {% else %}
+          <span class="badge badge-ghost">Inactive</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="flex space-x-2" x-data="planActions">
+            <a href="{% url 'subscriptions:subscription_plan_detail' plan.id %}" 
+               class="btn btn-ghost btn-xs">
+              View
+            </a>
+            <a href="{% url 'subscriptions:subscription_plan_update' plan.id %}"
+               class="btn btn-ghost btn-xs"
+               hx-get="{% url 'subscriptions:subscription_plan_update' plan.id %}"
+               hx-target="#modal-content"
+               hx-trigger="click"
+               @click="document.getElementById('plan-modal').showModal()">
+              Edit
+            </a>
+            <button class="btn btn-ghost btn-xs text-error"
+                    @click="confirmDelete({{ plan.id }}, '{{ plan.name|escapejs }}')">
+              Delete
+            </button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="text-center py-12">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+  </svg>
+  <p class="text-gray-500 mb-4">No subscription plans found.</p>
+  <a href="{% url 'subscriptions:subscription_plan_create' %}" class="btn btn-primary btn-sm">
+    Create First Plan
+  </a>
+</div>
+{% endif %}

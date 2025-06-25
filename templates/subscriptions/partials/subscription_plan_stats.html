@@ -1,0 +1,39 @@
+{% load i18n %}
+<div class="stats shadow w-full">
+  <div class="stat">
+    <div class="stat-figure text-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    </div>
+    <div class="stat-title">{% trans "Total Plans" %}</div>
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-desc">
+      <a href="{% url 'subscriptions:subscription_plan_list' %}" class="link link-primary">
+        {% trans "View all plans" %}
+      </a>
+    </div>
+  </div>
+  
+  <div class="stat">
+    <div class="stat-figure text-success">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <div class="stat-title">{% trans "Active Plans" %}</div>
+    <div class="stat-value text-success">{{ stats.active }}</div>
+    <div class="stat-desc">{% trans "Available for subscription" %}</div>
+  </div>
+  
+  <div class="stat">
+    <div class="stat-figure text-warning">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <div class="stat-title">{% trans "Inactive Plans" %}</div>
+    <div class="stat-value text-warning">{{ stats.inactive }}</div>
+    <div class="stat-desc">{% trans "Not available" %}</div>
+  </div>
+</div>

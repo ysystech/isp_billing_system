@@ -1,0 +1,142 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block app %}
+<section class="app-card" x-data="{
+  fullName: '{{ form.full_name.value|default:'' }}',
+  email: '{{ form.email.value|default:'' }}',
+  updateEmail() {
+    if (!this.email || this.email.includes('@')) return;
+    const nameParts = this.fullName.toLowerCase().split(' ');
+    if (nameParts.length >= 2) {
+      this.email = nameParts[0] + '.' + nameParts.slice(1).join('') + '@example.com';
+    }
+  }
+}">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+      <li><a href="{% url 'users:user_management_list' %}">User Management</a></li>
+      <li>{{ title }}</li>
+    </ul>
+  </div>
+  
+  <div class="p-6">
+    <h2 class="text-2xl font-bold mb-6">{{ title }}</h2>
+    
+    <form method="post" {% if request.htmx %}hx-post="{{ request.path }}"{% endif %}>
+      {% csrf_token %}
+      
+      <div class="space-y-4">
+        <!-- Full Name -->
+        <div class="form-control">
+          <label for="{{ form.full_name.id_for_label }}" class="label">
+            <span class="label-text">Full Name</span>
+          </label>
+          {{ form.full_name }}
+          {% if form.full_name.errors %}
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.full_name.errors.0 }}</span>
+          </label>
+          {% endif %}
+        </div>
+
+        <!-- Email -->
+        <div class="form-control">
+          <label for="{{ form.email.id_for_label }}" class="label">
+            <span class="label-text">Email</span>
+          </label>
+          {{ form.email }}
+          <label class="label">
+            <span class="label-text-alt">This will also be used as the username</span>
+          </label>
+          {% if form.email.errors %}
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.email.errors.0 }}</span>
+          </label>
+          {% endif %}
+        </div>
+
+        <!-- User Type -->
+        <div class="form-control">
+          <label for="{{ form.user_type.id_for_label }}" class="label">
+            <span class="label-text">User Type</span>
+          </label>
+          {{ form.user_type }}
+          {% if form.user_type.errors %}
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.user_type.errors.0 }}</span>
+          </label>
+          {% endif %}
+        </div>
+
+        {% if form.password %}
+        <!-- Password fields for create form -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Password -->
+          <div class="form-control">
+            <label for="{{ form.password.id_for_label }}" class="label">
+              <span class="label-text">Password</span>
+            </label>
+            {{ form.password }}
+            {% if form.password.help_text %}
+            <label class="label">
+              <span class="label-text-alt">{{ form.password.help_text }}</span>
+            </label>
+            {% endif %}
+            {% if form.password.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.password.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-control">
+            <label for="{{ form.password_confirm.id_for_label }}" class="label">
+              <span class="label-text">{{ form.password_confirm.label }}</span>
+            </label>
+            {{ form.password_confirm }}
+            {% if form.password_confirm.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.password_confirm.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if form.is_active %}
+        <!-- Is Active (for update form) -->
+        <div class="form-control">
+          <label class="label cursor-pointer justify-start">
+            {{ form.is_active }}
+            <span class="label-text ml-3">Active (User can log in)</span>
+          </label>
+          {% if form.is_active.errors %}
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.is_active.errors.0 }}</span>
+          </label>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Non-field errors -->
+      {% if form.non_field_errors %}
+      <div class="alert alert-error mt-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <span>{{ form.non_field_errors.0 }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Form Actions -->
+      <div class="mt-6 flex justify-end space-x-2">
+        <a href="{% url 'users:user_management_list' %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary">{{ submit_text }}</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
