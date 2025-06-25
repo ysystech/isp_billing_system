@@ -15,6 +15,14 @@
     </div>
     {% endif %}
     
+    <!-- Barangay Statistics -->
+    {% if barangay_stats %}
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">Barangay Overview</h2>
+      {% include 'barangays/partials/barangay_stats.html' with stats=barangay_stats %}
+    </div>
+    {% endif %}
+    
     <form>
       <div class="pg-columns">
         <div class="pg-column">

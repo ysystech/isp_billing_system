@@ -14,7 +14,7 @@ from .models import Customer
 def customer_list(request):
     """List all customers with search and filtering"""
     form = CustomerSearchForm(request.GET or None)
-    customers = Customer.objects.select_related("user").all()
+    customers = Customer.objects.select_related("user", "barangay").all()
     
     # Apply search filter
     search_query = request.GET.get("search", "")
@@ -25,6 +25,11 @@ def customer_list(request):
             Q(email__icontains=search_query) |
             Q(phone_primary__icontains=search_query)
         )
+    
+    # Apply barangay filter
+    barangay_id = request.GET.get("barangay", "")
+    if barangay_id:
+        customers = customers.filter(barangay_id=barangay_id)
     
     # Apply status filter
     status = request.GET.get("status", "")
@@ -52,7 +57,7 @@ def customer_list(request):
 @login_required
 def customer_detail(request, pk):
     """Display customer details"""
-    customer = get_object_or_404(Customer.objects.select_related("user"), pk=pk)
+    customer = get_object_or_404(Customer.objects.select_related("user", "barangay"), pk=pk)
     return render(request, "customers/detail.html", {
         "customer": customer,
         "active_tab": "customers",

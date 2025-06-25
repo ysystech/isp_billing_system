@@ -1,0 +1,86 @@
+<div class="overflow-x-auto">
+  <table class="table table-zebra">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Code</th>
+        <th>Status</th>
+        <th>Active Customers</th>
+        <th>Total Customers</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for barangay in barangays %}
+      <tr>
+        <td>
+          <a href="{% url 'barangays:detail' barangay.pk %}" 
+             class="link link-primary font-medium">
+            {{ barangay.name }}
+          </a>
+        </td>
+        <td>{{ barangay.code|default:"-" }}</td>
+        <td>
+          {% if barangay.is_active %}
+            <span class="badge badge-success">Active</span>
+          {% else %}
+            <span class="badge badge-ghost">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="text-center">{{ barangay.active_customers }}</td>
+        <td class="text-center">{{ barangay.total_customers }}</td>
+        <td>{{ barangay.created_at|date:"M d, Y" }}</td>
+        <td>
+          <div class="flex gap-2">
+            <a href="{% url 'barangays:update' barangay.pk %}"
+               class="btn btn-sm btn-ghost"
+               hx-get="{% url 'barangays:update' barangay.pk %}"
+               hx-target="#modal-container"
+               hx-trigger="click">
+              <i class="fas fa-edit"></i>
+            </a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="text-center py-8">
+          <p class="text-gray-500">No barangays found.</p>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if barangays.has_other_pages %}
+<div class="flex justify-center mt-6">
+  <div class="join">
+    {% if barangays.has_previous %}
+    <a href="?page={{ barangays.previous_page_number }}&search={{ search }}&is_active={{ is_active }}"
+       class="join-item btn"
+       hx-get="{% url 'barangays:list' %}?page={{ barangays.previous_page_number }}&search={{ search }}&is_active={{ is_active }}"
+       hx-target="#barangay-list"
+       hx-swap="outerHTML">
+      «
+    </a>
+    {% endif %}
+    
+    <button class="join-item btn">
+      Page {{ barangays.number }} of {{ barangays.paginator.num_pages }}
+    </button>
+    
+    {% if barangays.has_next %}
+    <a href="?page={{ barangays.next_page_number }}&search={{ search }}&is_active={{ is_active }}"
+       class="join-item btn"
+       hx-get="{% url 'barangays:list' %}?page={{ barangays.next_page_number }}&search={{ search }}&is_active={{ is_active }}"
+       hx-target="#barangay-list"
+       hx-swap="outerHTML">
+      »
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

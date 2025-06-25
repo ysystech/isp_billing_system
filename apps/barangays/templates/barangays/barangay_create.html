@@ -1,0 +1,33 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block title %}Create Barangay - {{ block.super }}{% endblock %}
+
+{% block app %}
+<div class="app-card">
+  <div class="max-w-2xl mx-auto">
+    <div class="text-sm breadcrumbs mb-4">
+      <ul>
+        <li><a href="{% url 'barangays:list' %}">Barangays</a></li>
+        <li>Create New</li>
+      </ul>
+    </div>
+    
+    <h1 class="text-3xl font-bold mb-6">Create New Barangay</h1>
+    
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <form method="post" action="{% url 'barangays:create' %}">
+          {% csrf_token %}
+          {% include "barangays/partials/barangay_form_fields.html" %}
+          
+          <div class="card-actions justify-end mt-6">
+            <a href="{% url 'barangays:list' %}" class="btn btn-ghost">Cancel</a>
+            <button type="submit" class="btn btn-primary">Create Barangay</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block title %}Barangays - {{ block.super }}{% endblock %}
+
+{% block app %}
+<div class="app-card">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">Barangays</h1>
+    <a href="{% url 'barangays:create' %}" 
+       class="btn btn-primary"
+       hx-get="{% url 'barangays:create' %}"
+       hx-target="#modal-container"
+       hx-trigger="click">
+      <i class="fas fa-plus mr-2"></i>Add New Barangay
+    </a>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+      <form hx-get="{% url 'barangays:list' %}" 
+            hx-target="#barangay-list"
+            hx-trigger="submit, input from:input[name='search'] delay:500ms">
+        <div class="flex flex-wrap gap-4">
+          <input type="text" 
+                 name="search" 
+                 value="{{ search }}"
+                 placeholder="Search by name or code..." 
+                 class="input input-bordered flex-1">
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Filter by Status -->
+  <div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">Filter by Status</span>
+        </label>
+        <select name="is_active" 
+                class="select select-bordered"
+                hx-get="{% url 'barangays:list' %}"
+                hx-target="#barangay-list"
+                hx-include="[name='search']">
+          <option value="">All</option>
+          <option value="true" {% if is_active == 'true' %}selected{% endif %}>Active</option>
+          <option value="false" {% if is_active == 'false' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barangay List -->
+  <div id="barangay-list">
+    {% include "barangays/partials/barangay_list.html" %}
+  </div>
+</div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
+{% endblock %}

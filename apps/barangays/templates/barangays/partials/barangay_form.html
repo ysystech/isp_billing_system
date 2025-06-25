@@ -1,0 +1,28 @@
+<div class="modal modal-open">
+  <div class="modal-box max-w-2xl">
+    <h3 class="font-bold text-lg mb-4">
+      {% if barangay %}Edit Barangay{% else %}Create New Barangay{% endif %}
+    </h3>
+    
+    <form method="post" 
+          {% if barangay %}
+            hx-post="{% url 'barangays:update' barangay.pk %}"
+          {% else %}
+            hx-post="{% url 'barangays:create' %}"
+          {% endif %}>
+      {% csrf_token %}
+      {% include "barangays/partials/barangay_form_fields.html" %}
+      
+      <div class="modal-action">
+        <button type="button" 
+                class="btn btn-ghost"
+                onclick="document.getElementById('modal-container').innerHTML = ''">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          {% if barangay %}Update{% else %}Create{% endif %} Barangay
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

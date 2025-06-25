@@ -58,5 +58,11 @@
       {% translate "Customers" %}
     </a>
   </li>
+  <li>
+    <a href="{% url 'barangays:list' %}" {% if active_tab == 'barangays' %}class="menu-active"{% endif %}>
+      <i class="fa fa-map-marker-alt h-4 w-4"></i>
+      {% translate "Barangays" %}
+    </a>
+  </li>
 </ul>
 {% endif %}

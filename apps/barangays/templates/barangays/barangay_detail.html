@@ -1,0 +1,145 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block title %}{{ barangay.name }} - Barangays - {{ block.super }}{% endblock %}
+
+{% block app %}
+<div class="app-card">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <div class="text-sm breadcrumbs">
+        <ul>
+          <li><a href="{% url 'barangays:list' %}">Barangays</a></li>
+          <li>{{ barangay.name }}</li>
+        </ul>
+      </div>
+      <h1 class="text-3xl font-bold">{{ barangay.name }}</h1>
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'barangays:update' barangay.pk %}" 
+         class="btn btn-primary">
+        <i class="fas fa-edit mr-2"></i>Edit
+      </a>
+      {% if barangay.total_customers == 0 %}
+      <button class="btn btn-error"
+              hx-delete="{% url 'barangays:delete' barangay.pk %}"
+              hx-confirm="Are you sure you want to delete this barangay?">
+        <i class="fas fa-trash mr-2"></i>Delete
+      </button>
+      {% else %}
+      <button class="btn btn-warning"
+              hx-delete="{% url 'barangays:delete' barangay.pk %}"
+              hx-confirm="This barangay has customers. It will be deactivated instead of deleted. Continue?">
+        <i class="fas fa-ban mr-2"></i>Deactivate
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Barangay Info -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Basic Information</h2>
+        <div class="space-y-2">
+          <div>
+            <span class="font-semibold">Name:</span>
+            <span>{{ barangay.name }}</span>
+          </div>
+          <div>
+            <span class="font-semibold">Code:</span>
+            <span>{{ barangay.code|default:"-" }}</span>
+          </div>
+          <div>
+            <span class="font-semibold">Status:</span>
+            {% if barangay.is_active %}
+              <span class="badge badge-success">Active</span>
+            {% else %}
+              <span class="badge badge-ghost">Inactive</span>
+            {% endif %}
+          </div>
+          <div>
+            <span class="font-semibold">Created:</span>
+            <span>{{ barangay.created_at|date:"M d, Y" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Statistics</h2>
+        <div class="stats stats-vertical shadow">
+          <div class="stat">
+            <div class="stat-title">Active Customers</div>
+            <div class="stat-value text-primary">{{ barangay.active_customers }}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-title">Total Customers</div>
+            <div class="stat-value">{{ barangay.total_customers }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if barangay.description %}
+  <div class="card bg-base-100 shadow-xl mb-8">
+    <div class="card-body">
+      <h2 class="card-title">Description</h2>
+      <p>{{ barangay.description|linebreaks }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recent Customers -->
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Recent Customers</h2>
+      {% if recent_customers %}
+      <div class="overflow-x-auto">
+        <table class="table table-compact">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Status</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for customer in recent_customers %}
+            <tr>
+              <td>
+                <a href="{% url 'customers:detail' customer.pk %}" 
+                   class="link link-primary">
+                  {{ customer.get_full_name }}
+                </a>
+              </td>
+              <td>{{ customer.email }}</td>
+              <td>{{ customer.phone }}</td>
+              <td>
+                <span class="badge badge-sm {% if customer.status == 'active' %}badge-success{% else %}badge-ghost{% endif %}">
+                  {{ customer.get_status_display }}
+                </span>
+              </td>
+              <td>{{ customer.created_at|date:"M d, Y" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4">
+        <a href="{% url 'customers:list' %}?barangay={{ barangay.pk }}" 
+           class="btn btn-sm btn-ghost">
+          View all customers in {{ barangay.name }} →
+        </a>
+      </div>
+      {% else %}
+      <p class="text-gray-500">No customers in this barangay yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

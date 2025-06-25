@@ -14,6 +14,7 @@ from apps.dashboard.serializers import UserSignupStatsSerializer
 from apps.dashboard.services import get_user_signups
 from apps.users.models import CustomUser
 from apps.customers.models import Customer
+from apps.barangays.models import Barangay
 
 
 def _string_to_date(date_str: str) -> datetime.date:
@@ -40,6 +41,13 @@ def dashboard(request):
         "suspended": Customer.objects.filter(status=Customer.SUSPENDED).count(),
     }
     
+    # Get barangay statistics
+    barangay_stats = {
+        "total": Barangay.objects.count(),
+        "active": Barangay.objects.filter(is_active=True).count(),
+        "with_customers": Barangay.objects.filter(customers__isnull=False).distinct().count(),
+    }
+    
     return TemplateResponse(
         request,
         "dashboard/user_dashboard.html",
@@ -51,6 +59,7 @@ def dashboard(request):
             "end": end.isoformat(),
             "start_value": start_value,
             "customer_stats": customer_stats,
+            "barangay_stats": barangay_stats,
         },
     )
 

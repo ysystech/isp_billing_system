@@ -72,6 +72,7 @@ THIRD_PARTY_APPS = [
 PROJECT_APPS = [
     "apps.users.apps.UserConfig",
     "apps.dashboard.apps.DashboardConfig",
+    "apps.barangays.apps.BarangaysConfig",
     "apps.customers.apps.CustomersConfig",
     "apps.web",
 ]

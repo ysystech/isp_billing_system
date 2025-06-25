@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from .models import Customer
+from apps.barangays.models import Barangay
 
 
 class CustomerForm(forms.ModelForm):
@@ -36,6 +37,11 @@ class CustomerForm(forms.ModelForm):
             "notes": forms.Textarea(attrs={"class": "textarea textarea-bordered w-full", "rows": 3}),
         }
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only show active barangays in the dropdown
+        self.fields["barangay"].queryset = Barangay.objects.filter(is_active=True)
+    
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if email:
@@ -61,9 +67,10 @@ class CustomerSearchForm(forms.Form):
             "hx-indicator": "#search-indicator"
         })
     )
-    barangay = forms.ChoiceField(
+    barangay = forms.ModelChoiceField(
         required=False,
-        choices=[("", "All Barangays")] + Customer.BARANGAY_CHOICES,
+        queryset=Barangay.objects.filter(is_active=True),
+        empty_label="All Barangays",
         widget=forms.Select(attrs={
             "class": "select select-bordered",
             "hx-get": "",

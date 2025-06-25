@@ -1,0 +1,56 @@
+{% if form.non_field_errors %}
+<div class="alert alert-error mb-4">
+  {{ form.non_field_errors }}
+</div>
+{% endif %}
+
+<div class="space-y-4">
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Name <span class="text-error">*</span></span>
+    </label>
+    {{ form.name }}
+    {% if form.name.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.name.errors.0 }}</span>
+      </label>
+    {% endif %}
+  </div>
+
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Code</span>
+      <span class="label-text-alt">Optional</span>
+    </label>
+    {{ form.code }}
+    {% if form.code.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.code.errors.0 }}</span>
+      </label>
+    {% endif %}
+  </div>
+
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Description</span>
+    </label>
+    {{ form.description }}
+    {% if form.description.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+      </label>
+    {% endif %}
+  </div>
+
+  <div class="form-control">
+    <label class="label cursor-pointer">
+      {{ form.is_active }}
+      <span class="label-text ml-2">Is Active</span>
+    </label>
+    {% if form.is_active.errors %}
+      <label class="label">
+        <span class="label-text-alt text-error">{{ form.is_active.errors.0 }}</span>
+      </label>
+    {% endif %}
+  </div>
+</div>
