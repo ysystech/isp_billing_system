@@ -1,0 +1,108 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Subscription Details{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-6">
+    <a href="{% url 'customer_subscriptions:subscription_list' %}" class="btn btn-sm btn-ghost">
+      ← Back to Subscriptions
+    </a>
+  </div>
+
+  <div class="max-w-4xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-start">
+          <h2 class="card-title text-2xl">Subscription Details</h2>
+          {% if is_active %}
+            <span class="badge badge-success badge-lg">Active</span>
+          {% else %}
+            <span class="badge badge-ghost badge-lg">Expired</span>
+          {% endif %}
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <!-- Customer Information -->
+          <div>
+            <h3 class="font-semibold text-gray-600 mb-3">Customer Information</h3>
+            <div class="space-y-2">
+              <p><span class="font-medium">Name:</span> {{ subscription.installation.customer.full_name }}</p>
+              <p><span class="font-medium">Email:</span> {{ subscription.installation.customer.email }}</p>
+              <p><span class="font-medium">Phone:</span> {{ subscription.installation.customer.phone_primary }}</p>
+              <p><span class="font-medium">Address:</span> {{ subscription.installation.customer.get_complete_address }}</p>
+            </div>
+          </div>
+          
+          <!-- Subscription Plan -->
+          <div>
+            <h3 class="font-semibold text-gray-600 mb-3">Subscription Plan</h3>
+            <div class="space-y-2">
+              <p><span class="font-medium">Plan:</span> {{ subscription.plan.name }}</p>
+              <p><span class="font-medium">Speed:</span> {{ subscription.plan.speed }} Mbps</p>
+              <p><span class="font-medium">Duration:</span> {{ subscription.plan.day_count }} days</p>
+              <p><span class="font-medium">Plan Price:</span> ₱{{ subscription.plan.price|floatformat:2|intcomma }}</p>
+            </div>
+          </div>
+          
+          <!-- Subscription Period -->
+          <div>
+            <h3 class="font-semibold text-gray-600 mb-3">Subscription Period</h3>
+            <div class="space-y-2">
+              <p><span class="font-medium">Start Date:</span> {{ subscription.start_date|date:"F d, Y g:i A" }}</p>
+              <p><span class="font-medium">End Date:</span> {{ subscription.end_date|date:"F d, Y g:i A" }}</p>
+              {% if is_active %}
+                <p><span class="font-medium">Days Remaining:</span> 
+                  <span class="badge {% if days_remaining <= 3 %}badge-warning{% else %}badge-primary{% endif %}">
+                    {{ days_remaining }} days
+                  </span>
+                </p>
+              {% endif %}
+            </div>
+          </div>
+          
+          <!-- Payment Information -->
+          <div>
+            <h3 class="font-semibold text-gray-600 mb-3">Payment Information</h3>
+            <div class="space-y-2">
+              <p><span class="font-medium">Amount Paid:</span> ₱{{ subscription.amount_paid|floatformat:2|intcomma }}</p>
+              <p><span class="font-medium">Payment Method:</span> {{ subscription.get_payment_method_display }}</p>
+              {% if subscription.reference_number %}
+                <p><span class="font-medium">Reference Number:</span> {{ subscription.reference_number }}</p>
+              {% endif %}
+              <p><span class="font-medium">Payment Date:</span> {{ subscription.payment_date|date:"F d, Y g:i A" }}</p>
+              <p><span class="font-medium">Collected By:</span> {{ subscription.collected_by.get_full_name }}</p>
+            </div>
+          </div>
+        </div>
+        
+        {% if subscription.notes %}
+        <div class="mt-6">
+          <h3 class="font-semibold text-gray-600 mb-3">Notes</h3>
+          <div class="bg-base-200 p-4 rounded-lg">
+            {{ subscription.notes|linebreaks }}
+          </div>
+        </div>
+        {% endif %}
+        
+        <div class="divider"></div>
+        
+        <!-- Actions -->
+        <div class="card-actions justify-between">
+          <a href="{% url 'customer_installations:installation_detail' subscription.installation.pk %}" 
+             class="btn btn-outline">
+            View Installation
+          </a>
+          {% if is_active %}
+            <a href="{% url 'customer_subscriptions:subscription_create' %}?installation_id={{ subscription.installation.pk }}" 
+               class="btn btn-primary">
+              Renew Subscription
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

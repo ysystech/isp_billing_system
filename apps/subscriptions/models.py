@@ -23,7 +23,12 @@ class SubscriptionPlan(BaseModel):
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        help_text="Monthly price in PHP"
+        help_text="Price in PHP"
+    )
+    day_count = models.IntegerField(
+        validators=[MinValueValidator(1)],
+        default=30,
+        help_text="Number of days this plan is valid for"
     )
     is_active = models.BooleanField(
         default=True,
@@ -36,7 +41,7 @@ class SubscriptionPlan(BaseModel):
         verbose_name_plural = "Subscription Plans"
     
     def __str__(self):
-        return f"{self.name} - {self.speed}Mbps (₱{self.price}/month)"
+        return f"{self.name} - {self.speed}Mbps ({self.day_count} days, ₱{self.price})"
     
     @property
     def display_price(self):

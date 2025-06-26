@@ -1,0 +1,137 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block app %}
+<section class="app-card">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'dashboard:dashboard' %}">Dashboard</a></li>
+      <li><a href="{% url 'customer_installations:installation_list' %}">Installations</a></li>
+      <li>{{ title }}</li>
+    </ul>
+  </div>
+  
+  <div class="p-6">
+    <h2 class="text-2xl font-bold mb-6">{{ title }}</h2>
+    
+    <form method="post">
+      {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <div class="alert alert-error mb-4">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+      
+      <div class="space-y-4">
+        <!-- Customer -->
+        <div class="form-control">
+          <label for="{{ form.customer.id_for_label }}" class="label">
+            <span class="label-text">{{ form.customer.label }}</span>
+            {% if form.customer.field.required %}
+              <span class="label-text-alt text-error">*</span>
+            {% endif %}
+          </label>
+          {{ form.customer }}
+          {% if form.customer.help_text %}
+          <label class="label">
+            <span class="label-text-alt">{{ form.customer.help_text }}</span>
+          </label>
+          {% endif %}
+          {% if form.customer.errors %}
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.customer.errors.0 }}</span>
+          </label>
+          {% endif %}
+        </div>
+
+        <!-- Router and Technician Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Router -->
+          <div class="form-control">
+            <label for="{{ form.router.id_for_label }}" class="label">
+              <span class="label-text">{{ form.router.label }}</span>
+            </label>
+            {{ form.router }}
+            {% if form.router.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.router.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+
+          <!-- Installation Technician -->
+          <div class="form-control">
+            <label for="{{ form.installation_technician.id_for_label }}" class="label">
+              <span class="label-text">{{ form.installation_technician.label }}</span>
+              {% if form.installation_technician.field.required %}
+                <span class="label-text-alt text-error">*</span>
+              {% endif %}
+            </label>
+            {{ form.installation_technician }}
+            {% if form.installation_technician.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.installation_technician.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Installation Date and Status Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Installation Date -->
+          <div class="form-control">
+            <label for="{{ form.installation_date.id_for_label }}" class="label">
+              <span class="label-text">{{ form.installation_date.label }}</span>
+              {% if form.installation_date.field.required %}
+                <span class="label-text-alt text-error">*</span>
+              {% endif %}
+            </label>
+            {{ form.installation_date }}
+            {% if form.installation_date.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.installation_date.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+
+          <!-- Status -->
+          <div class="form-control">
+            <label for="{{ form.status.id_for_label }}" class="label">
+              <span class="label-text">{{ form.status.label }}</span>
+            </label>
+            {{ form.status }}
+            {% if form.status.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.status.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Installation Notes -->
+        <div class="form-control">
+          <label for="{{ form.installation_notes.id_for_label }}" class="label">
+            <span class="label-text">{{ form.installation_notes.label }}</span>
+          </label>
+          {{ form.installation_notes }}
+          {% if form.installation_notes.errors %}
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.installation_notes.errors.0 }}</span>
+          </label>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="mt-6 flex justify-end space-x-2">
+        <a href="{% url 'customer_installations:installation_list' %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary">{{ submit_text }}</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

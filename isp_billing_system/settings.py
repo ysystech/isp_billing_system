@@ -45,6 +45,7 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "django.contrib.humanize",
     "django.forms",
 ]
 
@@ -76,6 +77,8 @@ PROJECT_APPS = [
     "apps.routers.apps.RoutersConfig",
     "apps.customers.apps.CustomersConfig",
     "apps.subscriptions.apps.SubscriptionsConfig",
+    "apps.customer_installations.apps.CustomerInstallationsConfig",
+    "apps.customer_subscriptions.apps.CustomerSubscriptionsConfig",
     "apps.web",
 ]
 

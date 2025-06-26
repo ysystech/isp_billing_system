@@ -47,6 +47,22 @@
     </div>
     {% endif %}
     
+    <!-- Installation Statistics -->
+    {% if installation_stats %}
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">Installations</h2>
+      {% include 'dashboard/widgets/installations_widget.html' with total_installations=installation_stats.total_installations active_installations=installation_stats.active_installations %}
+    </div>
+    {% endif %}
+    
+    <!-- Subscription Statistics -->
+    {% if subscription_stats %}
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">Subscriptions</h2>
+      {% include 'dashboard/widgets/subscriptions_widget.html' with active_subscriptions=subscription_stats.active_subscriptions expiring_soon=subscription_stats.expiring_soon todays_revenue=subscription_stats.todays_revenue %}
+    </div>
+    {% endif %}
+    
     <form>
       <div class="pg-columns">
         <div class="pg-column">

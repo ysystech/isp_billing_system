@@ -93,3 +93,8 @@ class Customer(BaseModel):
     def is_active(self):
         """Check if customer account is active"""
         return self.status == self.ACTIVE
+    
+    @property
+    def full_name(self):
+        """Return customer's full name (property for compatibility)"""
+        return self.get_full_name()

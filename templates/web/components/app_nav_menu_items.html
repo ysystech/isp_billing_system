@@ -77,6 +77,18 @@
     </a>
   </li>
   <li>
+    <a href="{% url 'customer_installations:installation_list' %}" {% if active_tab == 'installations' %}class="menu-active"{% endif %}>
+      <i class="fa fa-tools h-4 w-4"></i>
+      {% translate "Installations" %}
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'customer_subscriptions:subscription_list' %}" {% if active_tab == 'subscriptions' %}class="menu-active"{% endif %}>
+      <i class="fa fa-credit-card h-4 w-4"></i>
+      {% translate "Subscriptions" %}
+    </a>
+  </li>
+  <li>
     <a href="{% url 'users:user_management_list' %}" {% if active_tab == 'user-management' %}class="menu-active"{% endif %}>
       <i class="fa fa-users-cog h-4 w-4"></i>
       {% translate "User Management" %}

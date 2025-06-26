@@ -1,0 +1,183 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Installation - {{ installation.customer.full_name }}{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-6">
+    <a href="{% url 'customer_installations:installation_list' %}" class="btn btn-sm btn-ghost">
+      ← Back to Installations
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Installation Details Card -->
+    <div class="lg:col-span-2">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="flex justify-between items-start">
+            <h2 class="card-title text-2xl">Installation Details</h2>
+            <div class="dropdown dropdown-end">
+              <label tabindex="0" class="btn btn-sm btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </label>
+              <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                <li><a href="{% url 'customer_installations:installation_update' installation.pk %}">Edit</a></li>
+                {% if not installation.current_subscription %}
+                <li>
+                  <form method="post" action="{% url 'customer_installations:installation_delete' installation.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" onclick="return confirm('Are you sure?')">Terminate</button>
+                  </form>
+                </li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div>
+              <h3 class="font-semibold text-gray-600 mb-2">Customer Information</h3>
+              <p class="text-lg font-medium">{{ installation.customer.full_name }}</p>
+              <p class="text-gray-600">{{ installation.customer.email }}</p>
+              <p class="text-gray-600">{{ installation.customer.phone_primary }}</p>
+              <p class="text-gray-600">{{ installation.customer.get_complete_address }}</p>
+            </div>
+            
+            <div>
+              <h3 class="font-semibold text-gray-600 mb-2">Installation Info</h3>
+              <p><span class="font-medium">Date:</span> {{ installation.installation_date|date:"F d, Y" }}</p>
+              <p><span class="font-medium">Technician:</span> {{ installation.installation_technician.get_full_name }}</p>
+              <p><span class="font-medium">Router:</span> 
+                {% if installation.router %}
+                  {{ installation.router.brand }} - {{ installation.router.serial_number }}
+                {% else %}
+                  <span class="text-gray-400">No router assigned</span>
+                {% endif %}
+              </p>
+              <p><span class="font-medium">Status:</span> 
+                <span class="badge {% if installation.status == 'ACTIVE' %}badge-success{% elif installation.status == 'SUSPENDED' %}badge-warning{% else %}badge-error{% endif %}">
+                  {{ installation.get_status_display }}
+                </span>
+              </p>
+            </div>
+          </div>
+          
+          {% if installation.installation_notes %}
+          <div class="mt-4">
+            <h3 class="font-semibold text-gray-600 mb-2">Installation Notes</h3>
+            <p class="text-gray-700">{{ installation.installation_notes|linebreaks }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Subscription Status -->
+    <div>
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h3 class="card-title">Subscription Status</h3>
+          
+          {% if current_subscription %}
+            <div class="alert alert-success">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Active Subscription</span>
+            </div>
+            
+            <div class="mt-4">
+              <p><span class="font-medium">Plan:</span> {{ current_subscription.plan.name }}</p>
+              <p><span class="font-medium">Speed:</span> {{ current_subscription.plan.speed }} Mbps</p>
+              <p><span class="font-medium">Expires:</span> {{ current_subscription.end_date|date:"M d, Y g:i A" }}</p>
+              <p><span class="font-medium">Days Remaining:</span> 
+                <span class="badge {% if current_subscription.days_remaining <= 3 %}badge-warning{% else %}badge-primary{% endif %}">
+                  {{ current_subscription.days_remaining }} days
+                </span>
+              </p>
+            </div>
+          {% else %}
+            <div class="alert alert-warning">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>No Active Subscription</span>
+            </div>
+          {% endif %}
+          
+          <div class="card-actions justify-end mt-4">
+            <a href="{% url 'customer_subscriptions:subscription_create' %}?installation_id={{ installation.pk }}" 
+               class="btn btn-primary btn-block">
+              Add New Payment
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subscription History -->
+  <div class="mt-6">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h3 class="card-title mb-4">Subscription History</h3>
+        
+        {% if subscriptions %}
+          <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>Plan</th>
+                  <th>Period</th>
+                  <th>Amount Paid</th>
+                  <th>Payment Method</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sub in subscriptions %}
+                <tr>
+                  <td>
+                    <div class="font-bold">{{ sub.plan.name }}</div>
+                    <div class="text-sm text-gray-500">{{ sub.plan.speed }} Mbps</div>
+                  </td>
+                  <td>
+                    <div class="text-sm">{{ sub.start_date|date:"M d, Y" }} - {{ sub.end_date|date:"M d, Y" }}</div>
+                    <div class="text-xs text-gray-500">{{ sub.plan.day_count }} days</div>
+                  </td>
+                  <td>₱{{ sub.amount_paid|floatformat:2|intcomma }}</td>
+                  <td>
+                    <span class="badge badge-sm">{{ sub.get_payment_method_display }}</span>
+                    {% if sub.reference_number %}
+                      <div class="text-xs">{{ sub.reference_number }}</div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if sub.is_active %}
+                      <span class="badge badge-success">Active</span>
+                    {% else %}
+                      <span class="badge badge-ghost">Expired</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{% url 'customer_subscriptions:subscription_detail' sub.pk %}" 
+                       class="btn btn-sm btn-ghost">View</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-gray-500 text-center py-4">No subscription history yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
