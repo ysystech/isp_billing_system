@@ -1,27 +1,130 @@
 {% extends "web/app/app_base.html" %}
+{% load form_tags %}
 {% load i18n %}
 {% load static %}
+{% load django_vite %}
 {% block app %}
 <section class="app-card">
-    <div class="pg-columns pg-columns-reversed pg-align-items-center">
-        <div class="pg-column-one-third">
-            <img class="img-fluid" src="{% static 'images/web/rocket-laptop.svg' %}" alt="{% translate "Fly Away!" %}">
+    <h1 class="pg-title">{% translate "Dashboard" %}</h1>
+    
+    {% if user.is_superuser %}
+        <!-- Customer Statistics -->
+        {% if customer_stats %}
+        <div class="mb-6">
+          <h2 class="text-xl font-semibold mb-4">Customer Overview</h2>
+          {% include 'customers/partials/quick_stats.html' with stats=customer_stats %}
         </div>
-        <div class="pg-column">
-            <h1 class="pg-title">{% translate "You're Signed In!" %}</h1>
-            <h2 class="pg-subtitle">
-                {% translate "This is your application's logged in home page." %}
-            </h2>
-            <p>
-                Now go make something great!
-            </p>
+        {% endif %}
+        
+        <!-- Barangay Statistics -->
+        {% if barangay_stats %}
+        <div class="mb-6">
+          <h2 class="text-xl font-semibold mb-4">Barangay Overview</h2>
+          {% include 'barangays/partials/barangay_stats.html' with stats=barangay_stats %}
         </div>
-    </div>
+        {% endif %}
+        
+        <!-- Router Statistics -->
+        {% if router_stats %}
+        <div class="mb-6">
+          <h2 class="text-xl font-semibold mb-4">Router Inventory</h2>
+          {% include 'routers/partials/router_stats.html' with stats=router_stats %}
+        </div>
+        {% endif %}
+        
+        <!-- Subscription Plan Statistics -->
+        {% if subscription_plan_stats %}
+        <div class="mb-6">
+          <h2 class="text-xl font-semibold mb-4">Subscription Plans</h2>
+          {% include 'subscriptions/partials/subscription_plan_stats.html' with stats=subscription_plan_stats %}
+        </div>
+        {% endif %}
+        
+        <!-- User Statistics -->
+        {% if user_stats %}
+        <div class="mb-6">
+          <h2 class="text-xl font-semibold mb-4">System Users</h2>
+          {% include 'users/partials/user_stats.html' with stats=user_stats %}
+        </div>
+        {% endif %}
+        
+        <!-- Installation Statistics -->
+        {% if installation_stats %}
+        <div class="mb-6">
+          <h2 class="text-xl font-semibold mb-4">Installations</h2>
+          {% include 'dashboard/widgets/installations_widget.html' with total_installations=installation_stats.total_installations active_installations=installation_stats.active_installations %}
+        </div>
+        {% endif %}
+        
+        <!-- Subscription Statistics -->
+        {% if subscription_stats %}
+        <div class="mb-6">
+          <h2 class="text-xl font-semibold mb-4">Subscriptions</h2>
+          {% include 'dashboard/widgets/subscriptions_widget.html' with active_subscriptions=subscription_stats.active_subscriptions expiring_soon=subscription_stats.expiring_soon todays_revenue=subscription_stats.todays_revenue %}
+        </div>
+        {% endif %}
+        
+        <form>
+          <div class="pg-columns">
+            <div class="pg-column">
+              {% render_field form.start %}
+            </div>
+            <div class="pg-column">
+              {% render_field form.end %}
+            </div>
+          </div>
+          <div class="pg-text-right mt-2">
+            <input type="submit" class="pg-button-primary" value="Update">
+          </div>
+        </form>
+        <div class="mt-2">
+          <div class="pg-subtitle">{% translate "User Signups (Daily)" %}
+            <canvas id="signup-chart" class="mt-2"></canvas>
+          </div>
+          <div class="mt-2">
+            <div class="pg-subtitle">{% translate "Registered Users (Total)" %}
+              <canvas id="user-chart" class="mt-2"></canvas>
+            </div>
+          </div>
+        </div>
+    {% else %}
+        <!-- Non-superuser view -->
+        <div class="pg-columns pg-columns-reversed pg-align-items-center">
+            <div class="pg-column-one-third">
+                <img class="img-fluid" src="{% static 'images/web/rocket-laptop.svg' %}" alt="{% translate "Welcome!" %}">
+            </div>
+            <div class="pg-column">
+                <h2 class="pg-subtitle">
+                    {% translate "Welcome to ISP Billing System" %}
+                </h2>
+                <p>
+                    {% translate "You're signed in as" %} <strong>{{ user.get_full_name|default:user.email }}</strong>
+                </p>
+                <p>
+                    {% translate "Please contact your administrator for access to specific features." %}
+                </p>
+            </div>
+        </div>
+    {% endif %}
 </section>
-<section class="app-card">
-    <div class="pg-content">
-        <p>To add more to this page you can make new sections like this one.</p>
-        <p>Tip: the source of this page can be found at <code>templates/web/app_home.html</code></p>
-    </div>
-</section>
+{% endblock %}
+
+{% block page_js %}
+{% if user.is_superuser and signup_data %}
+{{ signup_data|json_script:'signup-data' }}
+{% vite_asset 'assets/javascript/app.js' %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const start = new Date("{{ start }}");
+    const end = new Date("{{ end }}");
+    const startValue = {{ start_value }};
+
+    const signupChartCtx = document.getElementById('signup-chart').getContext('2d');
+    const userChartCtx = document.getElementById('user-chart').getContext('2d');
+    const signupData = JSON.parse(document.getElementById('signup-data').textContent);
+    SiteJS.app.DashboardCharts.barChartWithDates(signupChartCtx, start, end, signupData, "User Signups");
+    SiteJS.app.DashboardCharts.cumulativeChartWithDates(userChartCtx, start, end, signupData, "Registered Users", startValue);
+  });
+</script>
+{% endif %}
 {% endblock %}

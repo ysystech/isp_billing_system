@@ -14,12 +14,6 @@
 </li>
 <ul class="menu-list">
   <li>
-    <a href="{% url 'dashboard:dashboard' %}" {% if active_tab == 'project-dashboard' %}class="menu-active"{% endif %}>
-      <i class="fa fa-bar-chart-o h-4 w-4"></i>
-      {% translate "Project Dashboard" %}
-    </a>
-  </li>
-  <li>
     <a href="{% url 'customers:customer_list' %}" {% if active_tab == 'customers' %}class="menu-active"{% endif %}>
       <i class="fa fa-users h-4 w-4"></i>
       {% translate "Customers" %}
