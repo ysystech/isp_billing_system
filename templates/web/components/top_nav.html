@@ -27,6 +27,38 @@
   </div>
   <div class="navbar-end">
     {% if user.is_authenticated %}
+    <div class="dropdown dropdown-end">
+      <label tabindex="0" class="btn btn-ghost">
+        <i class="fa fa-user-circle h-5 w-5"></i>
+        <span class="ml-2">{% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.email }}{% endif %}</span>
+        <svg class="fill-current h-4 w-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+        </svg>
+      </label>
+      <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-10">
+        <li>
+          <a href="{% url 'users:user_profile' %}" {% if active_tab == 'profile' %}class="active"{% endif %}>
+            <i class="fa fa-user h-4 w-4"></i>
+            {% translate "Profile" %}
+          </a>
+        </li>
+        {% if user.has_usable_password %}
+        <li>
+          <a href="{% url 'account_change_password' %}" {% if 'accounts/password/change' in request.path %}class="active"{% endif %}>
+            <i class="fa fa-unlock-alt h-4 w-4"></i>
+            {% translate "Change Password" %}
+          </a>
+        </li>
+        {% endif %}
+        <li class="divider my-0"></li>
+        <li>
+          <a href="{% url 'account_logout' %}" {% if 'accounts/logout' in request.path %}class="active"{% endif %}>
+            <i class="fa fa-sign-out h-4 w-4"></i>
+            {% translate "Sign out" %}
+          </a>
+        </li>
+      </ul>
+    </div>
     {% else %}
     <a href="{% url 'account_signup' %}" class="btn btn-primary">
       {% translate "Sign Up" %}

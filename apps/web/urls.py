@@ -15,11 +15,4 @@ urlpatterns = [
     path("404/", TemplateView.as_view(template_name="404.html"), name="404"),
     path("500/", TemplateView.as_view(template_name="500.html"), name="500"),
     path("simulate_error/", views.simulate_error),
-    path(
-        "ui/flowbite/",
-        TemplateView.as_view(
-            template_name="web/ui_demos/flowbite/flowbite_demo.html", extra_context={"active_tab": "flowbite-demo"}
-        ),
-        name="flowbite",
-    ),
 ]

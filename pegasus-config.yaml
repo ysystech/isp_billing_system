@@ -49,7 +49,7 @@ default_context:
   use_docker: y
   use_ecommerce_example: n
   use_examples: n
-  use_flowbite: y
+  use_flowbite: n
   use_health_checks: n
   use_impersonation: n
   use_sentry: n
