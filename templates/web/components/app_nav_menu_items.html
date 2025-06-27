@@ -10,7 +10,7 @@
 </li>
 {% if user.is_superuser %}
 <li class="menu-title">
-  <span>{% translate "Admin" %}</span>
+  <span>{% translate "Admin Setup" %}</span>
 </li>
 <ul class="menu-list">
   <li>
@@ -38,21 +38,45 @@
     </a>
   </li>
   <li>
+    <a href="#" class="opacity-50 cursor-not-allowed">
+      <i class="fa fa-broadcast-tower h-4 w-4"></i>
+      {% translate "LCP" %}
+      <span class="badge badge-xs">{% translate "Soon" %}</span>
+    </a>
+  </li>
+</ul>
+<li class="menu-title">
+  <span>{% translate "User Management" %}</span>
+</li>
+<ul class="menu-list">
+  <li>
+    <a href="{% url 'users:user_management_list' %}" {% if active_tab == 'user-management' %}class="menu-active"{% endif %}>
+      <i class="fa fa-users-cog h-4 w-4"></i>
+      {% translate "User Lists" %}
+    </a>
+  </li>
+  <li>
+    <a href="#" class="opacity-50 cursor-not-allowed">
+      <i class="fa fa-shield-alt h-4 w-4"></i>
+      {% translate "User Roles" %}
+      <span class="badge badge-xs">{% translate "Soon" %}</span>
+    </a>
+  </li>
+</ul>
+<li class="menu-title">
+  <span>{% translate "Installation" %}</span>
+</li>
+<ul class="menu-list">
+  <li>
     <a href="{% url 'customer_installations:installation_list' %}" {% if active_tab == 'installations' %}class="menu-active"{% endif %}>
       <i class="fa fa-tools h-4 w-4"></i>
-      {% translate "Installations" %}
+      {% translate "Setup Customer" %}
     </a>
   </li>
   <li>
     <a href="{% url 'customer_subscriptions:subscription_list' %}" {% if active_tab == 'subscriptions' %}class="menu-active"{% endif %}>
-      <i class="fa fa-credit-card h-4 w-4"></i>
-      {% translate "Subscriptions" %}
-    </a>
-  </li>
-  <li>
-    <a href="{% url 'users:user_management_list' %}" {% if active_tab == 'user-management' %}class="menu-active"{% endif %}>
-      <i class="fa fa-users-cog h-4 w-4"></i>
-      {% translate "User Management" %}
+      <i class="fa fa-ticket-alt h-4 w-4"></i>
+      {% translate "Tickets" %}
     </a>
   </li>
 </ul>
