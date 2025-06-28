@@ -38,10 +38,9 @@
     </a>
   </li>
   <li>
-    <a href="#" class="opacity-50 cursor-not-allowed">
+    <a href="{% url 'lcp:lcp_list' %}" {% if active_tab == 'lcp' %}class="menu-active"{% endif %}>
       <i class="fa fa-broadcast-tower h-4 w-4"></i>
       {% translate "LCP" %}
-      <span class="badge badge-xs">{% translate "Soon" %}</span>
     </a>
   </li>
 </ul>
@@ -64,19 +63,38 @@
   </li>
 </ul>
 <li class="menu-title">
-  <span>{% translate "Installation" %}</span>
+  <span>{% translate "Technician/Installer" %}</span>
 </li>
 <ul class="menu-list">
   <li>
     <a href="{% url 'customer_installations:installation_list' %}" {% if active_tab == 'installations' %}class="menu-active"{% endif %}>
       <i class="fa fa-tools h-4 w-4"></i>
-      {% translate "Setup Customer" %}
+      {% translate "New Installation" %}
     </a>
   </li>
   <li>
-    <a href="{% url 'customer_subscriptions:subscription_list' %}" {% if active_tab == 'subscriptions' %}class="menu-active"{% endif %}>
+    <a href="#" class="opacity-50 cursor-not-allowed">
       <i class="fa fa-ticket-alt h-4 w-4"></i>
       {% translate "Tickets" %}
+      <span class="badge badge-xs">{% translate "Soon" %}</span>
+    </a>
+  </li>
+</ul>
+<li class="menu-title">
+  <span>{% translate "Subscription" %}</span>
+</li>
+<ul class="menu-list">
+  <li>
+    <a href="{% url 'customer_subscriptions:subscription_list' %}" {% if active_tab == 'subscriptions' %}class="menu-active"{% endif %}>
+      <i class="fa fa-credit-card h-4 w-4"></i>
+      {% translate "Active Subscriptions" %}
+    </a>
+  </li>
+  <li>
+    <a href="#" class="opacity-50 cursor-not-allowed">
+      <i class="fa fa-money-bill-wave h-4 w-4"></i>
+      {% translate "Payment" %}
+      <span class="badge badge-xs">{% translate "Soon" %}</span>
     </a>
   </li>
 </ul>

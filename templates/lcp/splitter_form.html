@@ -1,0 +1,49 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+{% load form_tags %}
+
+{% block app %}
+<section class="app-card">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'web:home' %}">Dashboard</a></li>
+      <li><a href="{% url 'lcp:lcp_list' %}">LCP Management</a></li>
+      {% if splitter %}
+        <li><a href="{% url 'lcp:lcp_detail' splitter.lcp.pk %}">{{ splitter.lcp.code }}</a></li>
+      {% else %}
+        <li><a href="{% url 'lcp:lcp_detail' lcp.pk %}">{{ lcp.code }}</a></li>
+      {% endif %}
+      <li>{% if splitter %}Edit Splitter{% else %}Add Splitter{% endif %}</li>
+    </ul>
+  </div>
+
+  <h1 class="text-2xl font-bold mb-6">
+    {% if splitter %}
+      Edit Splitter: {{ splitter.code }}
+    {% else %}
+      Add New Splitter to {{ lcp.code }}
+    {% endif %}
+  </h1>
+
+  <form method="post" class="max-w-xl">
+    {% csrf_token %}
+    
+    <div class="space-y-4">
+      {% render_field form.code %}
+      {% render_field form.type %}
+      {% render_field form.location %}
+      {% render_field form.is_active %}
+    </div>
+
+    <div class="flex gap-4 mt-6">
+      <button type="submit" class="btn btn-primary">
+        <i class="fa fa-save mr-2"></i> Save
+      </button>
+      <a href="{% url 'lcp:lcp_detail' splitter.lcp.pk|default:lcp.pk %}" class="btn btn-outline">
+        Cancel
+      </a>
+    </div>
+  </form>
+</section>
+{% endblock %}

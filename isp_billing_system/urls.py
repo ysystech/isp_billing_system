@@ -37,6 +37,7 @@ urlpatterns = [
     path("routers/", include("apps.routers.urls")),
     path("customers/", include("apps.customers.urls")),
     path("subscriptions/", include("apps.subscriptions.urls")),
+    path("lcp/", include("apps.lcp.urls")),
     path("installations/", include("apps.customer_installations.urls")),
     path("customer-subscriptions/", include("apps.customer_subscriptions.urls")),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),

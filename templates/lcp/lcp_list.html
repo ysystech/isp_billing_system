@@ -1,0 +1,110 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block app %}
+<section class="app-card">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">LCP Management</h1>
+    <a href="{% url 'lcp:lcp_create' %}" class="btn btn-primary">
+      <i class="fa fa-plus mr-2"></i> Add LCP
+    </a>
+  </div>
+
+  <!-- Search and Filter -->
+  <form method="get" class="mb-6">
+    <div class="flex gap-4">
+      <div class="form-control flex-1">
+        <input type="text" name="search" value="{{ search_query }}" 
+               placeholder="Search by code, name, location, or barangay..." 
+               class="input input-bordered">
+      </div>
+      <div class="form-control">
+        <select name="status" class="select select-bordered">
+          <option value="">All Status</option>
+          <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-outline">
+        <i class="fa fa-search mr-2"></i> Search
+      </button>
+    </div>
+  </form>
+
+  <!-- LCP Table -->
+  <div class="overflow-x-auto">
+    <table class="table table-zebra">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Barangay</th>
+          <th>Splitters</th>
+          <th>NAPs</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lcp in page_obj %}
+        <tr>
+          <td class="font-mono">{{ lcp.code }}</td>
+          <td>{{ lcp.name }}</td>
+          <td>{{ lcp.barangay.name }}</td>
+          <td>
+            <span class="badge badge-info">{{ lcp.splitter_count }}</span>
+          </td>
+          <td>
+            <span class="badge badge-info">{{ lcp.nap_count }}</span>
+          </td>
+          <td>
+            {% if lcp.is_active %}
+              <span class="badge badge-success">Active</span>
+            {% else %}
+              <span class="badge badge-error">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="btn-group">
+              <a href="{% url 'lcp:lcp_detail' lcp.pk %}" class="btn btn-sm btn-info">
+                <i class="fa fa-eye"></i>
+              </a>
+              <a href="{% url 'lcp:lcp_edit' lcp.pk %}" class="btn btn-sm btn-warning">
+                <i class="fa fa-edit"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center">No LCPs found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="flex justify-center mt-6">
+    <div class="btn-group">
+      {% if page_obj.has_previous %}
+        <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+           class="btn btn-sm">«</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+           class="btn btn-sm">‹</a>
+      {% endif %}
+      
+      <span class="btn btn-sm btn-active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+           class="btn btn-sm">›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status %}&status={{ status }}{% endif %}" 
+           class="btn btn-sm">»</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

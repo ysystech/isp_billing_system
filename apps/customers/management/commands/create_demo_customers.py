@@ -37,9 +37,6 @@ class Command(BaseCommand):
                         phone_primary=f"+639{fake.numerify('#########')}",
                         street_address=fake.street_address(),
                         barangay=fake.random_element(elements=("Carmen", "Nazareth", "Kauswagan", "Lapasan", "Macasandig", "Camaman-an")),
-                        installation_date=fake.date_between(start_date="-2y", end_date="today") if fake.boolean(chance_of_getting_true=80) else None,
-                        installation_technician=fake.name() if fake.boolean(chance_of_getting_true=60) else "",
-                        installation_notes=fake.text(max_nb_chars=200) if fake.boolean(chance_of_getting_true=30) else "",
                         status=fake.random_element(elements=[Customer.ACTIVE, Customer.ACTIVE, Customer.ACTIVE, Customer.INACTIVE, Customer.SUSPENDED]),
                         notes=fake.text(max_nb_chars=150) if fake.boolean(chance_of_getting_true=20) else "",
                     )

@@ -1,0 +1,184 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block app %}
+<section class="app-card">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'web:home' %}">Dashboard</a></li>
+      <li><a href="{% url 'lcp:lcp_list' %}">LCP Management</a></li>
+      <li>{{ lcp.code }}</li>
+    </ul>
+  </div>
+
+  <!-- Header -->
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">{{ lcp.name }}</h1>
+      <p class="text-gray-600">{{ lcp.code }}</p>
+    </div>
+    <div class="btn-group">
+      <a href="{% url 'lcp:lcp_edit' lcp.pk %}" class="btn btn-warning">
+        <i class="fa fa-edit mr-2"></i> Edit
+      </a>
+      <a href="{% url 'lcp:lcp_delete' lcp.pk %}" class="btn btn-error">
+        <i class="fa fa-trash mr-2"></i> Delete
+      </a>
+    </div>
+  </div>
+
+  <!-- LCP Details -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Basic Information</h2>
+        <dl class="space-y-2">
+          <div>
+            <dt class="font-semibold">Location:</dt>
+            <dd>{{ lcp.location }}</dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Barangay:</dt>
+            <dd>{{ lcp.barangay.name }}</dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Status:</dt>
+            <dd>
+              {% if lcp.is_active %}
+                <span class="badge badge-success">Active</span>
+              {% else %}
+                <span class="badge badge-error">Inactive</span>
+              {% endif %}
+            </dd>
+          </div>
+          {% if lcp.notes %}
+          <div>
+            <dt class="font-semibold">Notes:</dt>
+            <dd>{{ lcp.notes }}</dd>
+          </div>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    <div class="card bg-base-200">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Statistics</h2>
+        <div class="stats stats-vertical shadow">
+          <div class="stat">
+            <div class="stat-title">Total Splitters</div>
+            <div class="stat-value">{{ splitters.count }}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-title">Total NAPs</div>
+            <div class="stat-value">{{ lcp.splitters.naps.count }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Splitters Section -->
+  <div class="mb-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold">Splitters</h2>
+      <a href="{% url 'lcp:splitter_create' lcp.pk %}" class="btn btn-primary btn-sm">
+        <i class="fa fa-plus mr-2"></i> Add Splitter
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {% for splitter in splitters %}
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h3 class="card-title">
+            {{ splitter.code }}
+            <span class="badge badge-primary">{{ splitter.type }}</span>
+          </h3>
+          
+          <p class="text-sm text-gray-600">Location: {{ splitter.location|default:"Not specified" }}</p>
+          
+          <div class="stats shadow mt-2">
+            <div class="stat">
+              <div class="stat-title">Port Usage</div>
+              <div class="stat-value text-2xl">{{ splitter.used_ports }}/{{ splitter.port_capacity }}</div>
+              <div class="stat-desc">{{ splitter.available_ports }} available</div>
+            </div>
+            <div class="stat">
+              <div class="stat-title">NAPs</div>
+              <div class="stat-value text-2xl">{{ splitter.nap_count }}</div>
+            </div>
+          </div>
+
+          {% if splitter.available_ports > 0 %}
+          <div class="card-actions justify-end mt-4">
+            <a href="{% url 'lcp:nap_create' splitter.pk %}" class="btn btn-success btn-sm">
+              <i class="fa fa-plus"></i> Add NAP
+            </a>
+            <a href="{% url 'lcp:splitter_edit' splitter.pk %}" class="btn btn-warning btn-sm">
+              <i class="fa fa-edit"></i> Edit
+            </a>
+          </div>
+          {% else %}
+          <div class="alert alert-warning mt-4">
+            <i class="fa fa-info-circle"></i>
+            <span>All ports are in use. No more NAPs can be added to this splitter.</span>
+          </div>
+          <div class="card-actions justify-end mt-4">
+            <a href="{% url 'lcp:splitter_edit' splitter.pk %}" class="btn btn-warning btn-sm">
+              <i class="fa fa-edit"></i> Edit
+            </a>
+          </div>
+          {% endif %}
+
+          <!-- NAPs List -->
+          {% if splitter.naps.exists %}
+          <div class="mt-4">
+            <h4 class="font-semibold mb-2">NAPs:</h4>
+            <div class="overflow-x-auto">
+              <table class="table table-compact table-zebra">
+                <thead>
+                  <tr>
+                    <th>Port</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Capacity</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for nap in splitter.naps.all %}
+                  <tr>
+                    <td>{{ nap.splitter_port }}</td>
+                    <td>{{ nap.code }}</td>
+                    <td>{{ nap.name }}</td>
+                    <td>{{ nap.port_capacity }}</td>
+                    <td>
+                      <div class="btn-group">
+                        <a href="{% url 'lcp:nap_edit' nap.pk %}" class="btn btn-xs btn-warning">
+                          <i class="fa fa-edit"></i>
+                        </a>
+                        <a href="{% url 'lcp:nap_delete' nap.pk %}" class="btn btn-xs btn-error">
+                          <i class="fa fa-trash"></i>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-2 text-center py-8">
+        <p class="text-gray-500">No splitters added yet.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

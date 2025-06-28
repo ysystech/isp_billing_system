@@ -11,10 +11,9 @@ class CustomerAdmin(admin.ModelAdmin):
         "email",
         "phone_primary",
         "status_badge",
-        "installation_date",
         "created_at"
     ]
-    list_filter = ["status", "barangay", "created_at", "installation_date"]
+    list_filter = ["status", "barangay", "created_at"]
     search_fields = [
         "first_name",
         "last_name",
@@ -36,13 +35,6 @@ class CustomerAdmin(admin.ModelAdmin):
             "fields": (
                 "street_address",
                 "barangay",
-            )
-        }),
-        ("Installation Details", {
-            "fields": (
-                "installation_date",
-                "installation_technician",
-                "installation_notes",
             )
         }),
         ("Account Information", {

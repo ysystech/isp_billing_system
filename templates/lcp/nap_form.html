@@ -1,0 +1,74 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+{% load form_tags %}
+
+{% block app %}
+<section class="app-card">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'web:home' %}">Dashboard</a></li>
+      <li><a href="{% url 'lcp:lcp_list' %}">LCP Management</a></li>
+      {% if nap %}
+        <li><a href="{% url 'lcp:lcp_detail' nap.splitter.lcp.pk %}">{{ nap.splitter.lcp.code }}</a></li>
+        <li>{{ nap.splitter.code }}</li>
+      {% else %}
+        <li><a href="{% url 'lcp:lcp_detail' splitter.lcp.pk %}">{{ splitter.lcp.code }}</a></li>
+        <li>{{ splitter.code }}</li>
+      {% endif %}
+      <li>{% if nap %}Edit NAP{% else %}Add NAP{% endif %}</li>
+    </ul>
+  </div>
+
+  <h1 class="text-2xl font-bold mb-6">
+    {% if nap %}
+      Edit NAP: {{ nap.code }}
+    {% else %}
+      Add New NAP to {{ splitter.code }}
+    {% endif %}
+  </h1>
+
+  <div class="alert alert-info mb-4">
+    <i class="fa fa-info-circle"></i>
+    <span>Splitter <strong>{{ splitter.code }}</strong> ({{ splitter.type }}) - 
+    {{ splitter.used_ports }}/{{ splitter.port_capacity }} ports used</span>
+  </div>
+
+  {% if splitter.naps.exists %}
+  <div class="card bg-base-200 mb-4">
+    <div class="card-body">
+      <h3 class="font-semibold mb-2">Port Assignments:</h3>
+      <div class="text-sm text-gray-600 mb-2">Multiple NAPs can share the same port (e.g., for cascaded splitting)</div>
+      <div class="flex flex-wrap gap-2">
+        {% for nap in splitter.naps.all|dictsort:"splitter_port" %}
+          <span class="badge badge-neutral">Port {{ nap.splitter_port }}: {{ nap.code }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" class="max-w-2xl">
+    {% csrf_token %}
+    
+    <div class="space-y-4">
+      {% render_field form.code %}
+      {% render_field form.name %}
+      {% render_field form.splitter_port %}
+      {% render_field form.location %}
+      {% render_field form.port_capacity %}
+      {% render_field form.is_active %}
+      {% render_field form.notes %}
+    </div>
+
+    <div class="flex gap-4 mt-6">
+      <button type="submit" class="btn btn-primary">
+        <i class="fa fa-save mr-2"></i> Save
+      </button>
+      <a href="{% url 'lcp:lcp_detail' nap.splitter.lcp.pk|default:splitter.lcp.pk %}" class="btn btn-outline">
+        Cancel
+      </a>
+    </div>
+  </form>
+</section>
+{% endblock %}

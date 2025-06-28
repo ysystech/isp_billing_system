@@ -51,11 +51,6 @@ class Customer(BaseModel):
         help_text="Customer's barangay"
     )
     
-    # Installation Details
-    installation_date = models.DateField(null=True, blank=True)
-    installation_notes = models.TextField(blank=True)
-    installation_technician = models.CharField(max_length=100, blank=True)
-    
     # Account Status
     status = models.CharField(
         max_length=20,

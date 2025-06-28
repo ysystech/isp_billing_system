@@ -47,8 +47,7 @@ class Command(BaseCommand):
                     phone_primary=f"09{random.randint(100000000, 999999999)}",
                     barangay=random.choice(barangays),
                     street_address=f"{random.randint(1, 999)} {random.choice(['Main St', 'Rizal St', 'Bonifacio St', 'Mabini St'])}",
-                    status=random.choice(statuses),
-                    installation_date=None  # No installation yet
+                    status=random.choice(statuses)
                 )
                 created_count += 1
                 self.stdout.write(f"Created customer: {customer.full_name}")

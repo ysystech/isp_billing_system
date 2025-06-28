@@ -73,35 +73,6 @@
     </div>
 
     <!-- Installation Details -->
-    <div class="card bg-base-100 shadow-sm">
-      <div class="card-body">
-        <h2 class="card-title text-lg">Installation Details</h2>
-        <div class="space-y-3">
-          {% if customer.installation_date %}
-          <div>
-            <span class="text-sm text-gray-500">Installation Date</span>
-            <p class="font-medium">{{ customer.installation_date|date:"F d, Y" }}</p>
-          </div>
-          {% endif %}
-          {% if customer.installation_technician %}
-          <div>
-            <span class="text-sm text-gray-500">Installed By</span>
-            <p class="font-medium">{{ customer.installation_technician }}</p>
-          </div>
-          {% endif %}
-          {% if customer.installation_notes %}
-          <div>
-            <span class="text-sm text-gray-500">Installation Notes</span>
-            <p class="font-medium">{{ customer.installation_notes|linebreaks }}</p>
-          </div>
-          {% endif %}
-          {% if not customer.installation_date %}
-          <p class="text-gray-500 italic">No installation details recorded</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
     <!-- Account Information -->
     <div class="card bg-base-100 shadow-sm">
       <div class="card-body">

@@ -1,0 +1,43 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+{% load form_tags %}
+
+{% block app %}
+<section class="app-card">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'web:home' %}">Dashboard</a></li>
+      <li><a href="{% url 'lcp:lcp_list' %}">LCP Management</a></li>
+      <li>{% if lcp %}Edit LCP{% else %}Add LCP{% endif %}</li>
+    </ul>
+  </div>
+
+  <h1 class="text-2xl font-bold mb-6">
+    {% if lcp %}Edit LCP: {{ lcp.code }}{% else %}Add New LCP{% endif %}
+  </h1>
+
+  <form method="post" class="max-w-2xl">
+    {% csrf_token %}
+    
+    <div class="space-y-4">
+      {% render_field form.name %}
+      {% render_field form.code %}
+      {% render_field form.location %}
+      {% render_field form.barangay %}
+      {% render_field form.is_active %}
+      {% render_field form.notes %}
+    </div>
+
+    <div class="flex gap-4 mt-6">
+      <button type="submit" class="btn btn-primary">
+        <i class="fa fa-save mr-2"></i> Save
+      </button>
+      <a href="{% if lcp %}{% url 'lcp:lcp_detail' lcp.pk %}{% else %}{% url 'lcp:lcp_list' %}{% endif %}" 
+         class="btn btn-outline">
+        Cancel
+      </a>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -17,9 +17,6 @@ class CustomerForm(forms.ModelForm):
             "phone_primary",
             "street_address",
             "barangay",
-            "installation_date",
-            "installation_technician",
-            "installation_notes",
             "status",
             "notes",
         ]
@@ -30,9 +27,6 @@ class CustomerForm(forms.ModelForm):
             "phone_primary": forms.TextInput(attrs={"class": "input input-bordered w-full", "placeholder": "+63 XXX XXX XXXX"}),
             "street_address": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "barangay": forms.Select(attrs={"class": "select select-bordered w-full"}),
-            "installation_date": forms.DateInput(attrs={"class": "input input-bordered w-full", "type": "date"}),
-            "installation_technician": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
-            "installation_notes": forms.Textarea(attrs={"class": "textarea textarea-bordered w-full", "rows": 3}),
             "status": forms.Select(attrs={"class": "select select-bordered w-full"}),
             "notes": forms.Textarea(attrs={"class": "textarea textarea-bordered w-full", "rows": 3}),
         }
