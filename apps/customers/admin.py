@@ -37,6 +37,13 @@ class CustomerAdmin(admin.ModelAdmin):
                 "barangay",
             )
         }),
+        ("Location Information", {
+            "fields": (
+                ("latitude", "longitude"),
+                "location_accuracy",
+                "location_notes",
+            )
+        }),
         ("Account Information", {
             "fields": (
                 "user",

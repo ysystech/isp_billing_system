@@ -1,0 +1,76 @@
+{% extends "web/app/app_base.html" %}
+
+{% block app %}
+<div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-6">Geo-Location Test Page</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Customers Section -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Customers</h2>
+                <div class="stats stats-vertical">
+                    <div class="stat">
+                        <div class="stat-title">With Coordinates</div>
+                        <div class="stat-value">{{ customers_with_coords.count }}</div>
+                        {% for customer in customers_with_coords|slice:":3" %}
+                        <div class="text-sm mt-1">
+                            {{ customer.get_full_name }}: {{ customer.coordinates_display }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="stat">
+                        <div class="stat-title">Without Coordinates</div>
+                        <div class="stat-value">{{ customers_without_coords.count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Infrastructure Section -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Infrastructure</h2>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-semibold">LCPs with Coordinates: {{ lcps_with_coords.count }}</h3>
+                        {% for lcp in lcps_with_coords %}
+                        <div class="text-sm mt-1">
+                            {{ lcp }}: {{ lcp.coordinates_display }}
+                            <span class="badge badge-sm">{{ lcp.coverage_radius_meters }}m coverage</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold">NAPs with Coordinates: {{ naps_with_coords.count }}</h3>
+                        {% for nap in naps_with_coords|slice:":3" %}
+                        <div class="text-sm mt-1">
+                            {{ nap }}: {{ nap.coordinates_display }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold">Splitters with Coordinates: {{ splitters_with_coords.count }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Test Distance Calculation -->
+    {% if customers_with_coords and lcps_with_coords %}
+    <div class="card bg-base-100 shadow-xl mt-6">
+        <div class="card-body">
+            <h2 class="card-title">Distance Calculation Test</h2>
+            {% with customer=customers_with_coords.first lcp=lcps_with_coords.first %}
+            <p>Distance from {{ customer.get_full_name }} to {{ lcp }}: 
+                <span class="font-bold">{{ customer.distance_to.lcp|floatformat:2 }} meters</span>
+            </p>
+            {% endwith %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

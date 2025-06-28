@@ -63,6 +63,32 @@
       </div>
     </div>
 
+    <!-- Location Information -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Location Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {% render_field form.latitude %}
+          </div>
+          <div>
+            {% render_field form.longitude %}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            {% render_field form.location_accuracy %}
+          </div>
+          <div>
+            {% render_field form.location_notes %}
+          </div>
+        </div>
+        <p class="text-sm text-gray-500 mt-2">
+          Tip: You can use GPS coordinates from Google Maps or your phone's location sharing.
+        </p>
+      </div>
+    </div>
+
     <!-- Account Settings -->
     <div class="card bg-base-100 shadow-sm">
       <div class="card-body">

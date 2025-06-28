@@ -1,9 +1,9 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from apps.utils.models import BaseModel
+from apps.utils.models import BaseModel, GeoLocatedModel
 
 
-class LCP(BaseModel):
+class LCP(BaseModel, GeoLocatedModel):
     """Local Convergence Point - Main distribution point"""
     name = models.CharField(max_length=100, unique=True)
     code = models.CharField(
@@ -19,6 +19,10 @@ class LCP(BaseModel):
     )
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
+    coverage_radius_meters = models.IntegerField(
+        default=1000,
+        help_text="Approximate coverage area radius in meters"
+    )
 
     class Meta:
         verbose_name = "LCP"
@@ -29,7 +33,7 @@ class LCP(BaseModel):
         return f"{self.code} - {self.name}"
 
 
-class Splitter(BaseModel):
+class Splitter(BaseModel, GeoLocatedModel):
     """Optical splitter that divides fiber signal"""
     lcp = models.ForeignKey(
         LCP, 
@@ -81,7 +85,7 @@ class Splitter(BaseModel):
         return self.port_capacity - self.used_ports
 
 
-class NAP(BaseModel):
+class NAP(BaseModel, GeoLocatedModel):
     """Network Access Point - Secondary distribution point"""
     splitter = models.ForeignKey(
         Splitter, 
@@ -106,6 +110,10 @@ class NAP(BaseModel):
     )
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
+    max_distance_meters = models.IntegerField(
+        default=100,
+        help_text="Maximum recommended customer distance in meters"
+    )
     
     class Meta:
         verbose_name = "NAP"

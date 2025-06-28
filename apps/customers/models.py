@@ -2,11 +2,11 @@ from django.db import models
 from django.urls import reverse
 
 from apps.users.models import CustomUser
-from apps.utils.models import BaseModel
+from apps.utils.models import BaseModel, GeoLocatedModel
 from apps.barangays.models import Barangay
 
 
-class Customer(BaseModel):
+class Customer(BaseModel, GeoLocatedModel):
     """
     Customer model representing ISP service subscribers
     """

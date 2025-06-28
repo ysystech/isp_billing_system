@@ -72,6 +72,44 @@
       </div>
     </div>
 
+    <!-- Location Information -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Location Information</h2>
+        <div class="space-y-3">
+          {% if customer.has_coordinates %}
+          <div>
+            <span class="text-sm text-gray-500">Coordinates</span>
+            <p class="font-medium">{{ customer.coordinates_display }}</p>
+          </div>
+          <div>
+            <span class="text-sm text-gray-500">Location Accuracy</span>
+            <p class="font-medium">{{ customer.get_location_accuracy_display }}</p>
+          </div>
+          {% if customer.location_notes %}
+          <div>
+            <span class="text-sm text-gray-500">Location Notes</span>
+            <p class="font-medium">{{ customer.location_notes }}</p>
+          </div>
+          {% endif %}
+          <div class="mt-4">
+            <a href="https://www.google.com/maps?q={{ customer.latitude }},{{ customer.longitude }}" 
+               target="_blank" 
+               class="btn btn-sm btn-outline">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              View on Google Maps
+            </a>
+          </div>
+          {% else %}
+          <p class="text-gray-500 italic">No location coordinates recorded</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
     <!-- Installation Details -->
     <!-- Account Information -->
     <div class="card bg-base-100 shadow-sm">

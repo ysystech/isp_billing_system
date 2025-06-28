@@ -26,10 +26,26 @@ class NAPInline(admin.TabularInline):
 
 @admin.register(LCP)
 class LCPAdmin(admin.ModelAdmin):
-    list_display = ['code', 'name', 'barangay', 'splitter_count', 'nap_count', 'is_active']
+    list_display = ['code', 'name', 'barangay', 'coordinates_display', 'splitter_count', 'nap_count', 'is_active']
     list_filter = ['is_active', 'barangay']
     search_fields = ['code', 'name', 'location']
     inlines = [SplitterInline]
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('code', 'name', 'barangay', 'is_active')
+        }),
+        ('Location Details', {
+            'fields': ('location', 'latitude', 'longitude', 'location_accuracy', 'location_notes', 'coverage_radius_meters')
+        }),
+        ('Notes', {
+            'fields': ('notes',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def coordinates_display(self, obj):
+        return obj.coordinates_display
+    coordinates_display.short_description = 'Coordinates'
     
     def splitter_count(self, obj):
         return obj.splitters.count()
