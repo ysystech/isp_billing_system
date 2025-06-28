@@ -2,11 +2,10 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from apps.subscriptions.models import SubscriptionPlan
 from apps.customer_installations.models import CustomerInstallation
-from apps.customer_subscriptions.models import CustomerSubscription
 
 
 class Command(BaseCommand):
-    help = 'Hard delete all Subscription Plans, Installations, and Subscriptions'
+    help = 'Hard delete all Subscription Plans and Installations'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -19,13 +18,11 @@ class Command(BaseCommand):
         # Get counts before deletion
         subscription_plans_count = SubscriptionPlan.objects.count()
         installations_count = CustomerInstallation.objects.count()
-        subscriptions_count = CustomerSubscription.objects.count()
         
         self.stdout.write(self.style.WARNING(
             f"\nThis will permanently delete:\n"
             f"- {subscription_plans_count} Subscription Plans\n"
             f"- {installations_count} Customer Installations\n"
-            f"- {subscriptions_count} Customer Subscriptions\n"
         ))
         
         if not options['confirm']:
@@ -38,19 +35,13 @@ class Command(BaseCommand):
             with transaction.atomic():
                 # Delete in correct order to respect foreign key constraints
                 
-                # 1. Delete Customer Subscriptions first (depends on plans and installations)
-                deleted_subscriptions = CustomerSubscription.objects.all().delete()
-                self.stdout.write(self.style.SUCCESS(
-                    f"✓ Deleted {deleted_subscriptions[0]} Customer Subscriptions"
-                ))
-                
-                # 2. Delete Customer Installations (might be referenced by subscriptions)
+                # 1. Delete Customer Installations
                 deleted_installations = CustomerInstallation.objects.all().delete()
                 self.stdout.write(self.style.SUCCESS(
                     f"✓ Deleted {deleted_installations[0]} Customer Installations"
                 ))
                 
-                # 3. Delete Subscription Plans (referenced by subscriptions)
+                # 2. Delete Subscription Plans
                 deleted_plans = SubscriptionPlan.objects.all().delete()
                 self.stdout.write(self.style.SUCCESS(
                     f"✓ Deleted {deleted_plans[0]} Subscription Plans"

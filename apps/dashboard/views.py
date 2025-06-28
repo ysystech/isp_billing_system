@@ -19,7 +19,6 @@ from apps.barangays.models import Barangay
 from apps.routers.models import Router
 from apps.subscriptions.models import SubscriptionPlan
 from apps.customer_installations.models import CustomerInstallation
-from apps.customer_subscriptions.models import CustomerSubscription
 
 
 def _string_to_date(date_str: str) -> datetime.date:
@@ -79,30 +78,6 @@ def dashboard(request):
         "active_installations": CustomerInstallation.objects.filter(status='ACTIVE').count(),
     }
     
-    # Get subscription statistics
-    now = timezone.now()
-    three_days_later = now + timedelta(days=3)
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    subscription_stats = {
-        "active_subscriptions": CustomerSubscription.objects.filter(
-            start_date__lte=now,
-            end_date__gte=now,
-            is_paid=True
-        ).count(),
-        "expiring_soon": CustomerSubscription.objects.filter(
-            start_date__lte=now,
-            end_date__gte=now,
-            end_date__lte=three_days_later,
-            is_paid=True
-        ).count(),
-        "todays_revenue": CustomerSubscription.objects.filter(
-            payment_date__gte=today_start,
-            payment_date__lte=now,
-            is_paid=True
-        ).aggregate(total=models.Sum('amount_paid'))['total'] or 0,
-    }
-    
     return TemplateResponse(
         request,
         "dashboard/user_dashboard.html",
@@ -119,7 +94,6 @@ def dashboard(request):
             "subscription_plan_stats": subscription_plan_stats,
             "user_stats": user_stats,
             "installation_stats": installation_stats,
-            "subscription_stats": subscription_stats,
         },
     )
 
