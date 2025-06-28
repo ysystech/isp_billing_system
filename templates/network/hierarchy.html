@@ -1,0 +1,236 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block title %}Network Hierarchy Visualization{% endblock %}
+
+{% block app %}
+<section class="app-card">
+    <h1 class="pg-title mb-6">Network Infrastructure Hierarchy</h1>
+    
+    <!-- Visual Diagram -->
+    <div class="bg-base-200 p-8 rounded-lg">
+        <!-- LCP Level -->
+        <div class="flex justify-center mb-8">
+            <div class="card bg-error text-white p-6 shadow-xl">
+                <h2 class="text-xl font-bold mb-2">LCP (Local Convergence Point)</h2>
+                <p class="text-sm opacity-90">Main fiber distribution point</p>
+                <p class="text-sm opacity-90">Coverage: ~1km radius</p>
+                <p class="text-sm opacity-90">Located at barangay level</p>
+            </div>
+        </div>
+        
+        <!-- Arrow -->
+        <div class="text-center text-3xl mb-4">↓</div>
+        <p class="text-center mb-8 text-sm">Fiber optic cable</p>
+        
+        <!-- Splitter Level -->
+        <div class="flex justify-center gap-4 flex-wrap mb-8">
+            <div class="card bg-warning text-white p-4 shadow-lg">
+                <h3 class="font-bold">Splitter 1:4</h3>
+                <p class="text-sm">4 output ports</p>
+            </div>
+            <div class="card bg-warning text-white p-4 shadow-lg">
+                <h3 class="font-bold">Splitter 1:8</h3>
+                <p class="text-sm">8 output ports</p>
+            </div>
+            <div class="card bg-warning text-white p-4 shadow-lg">
+                <h3 class="font-bold">Splitter 1:16</h3>
+                <p class="text-sm">16 output ports</p>
+            </div>
+            <div class="card bg-warning text-white p-4 shadow-lg">
+                <h3 class="font-bold">Splitter 1:32</h3>
+                <p class="text-sm">32 output ports</p>
+            </div>
+        </div>
+        
+        <!-- Arrow -->
+        <div class="text-center text-3xl mb-4">↓</div>
+        <p class="text-center mb-8 text-sm">Each splitter port connects to NAP</p>
+        
+        <!-- NAP Level -->
+        <div class="flex justify-center gap-4 flex-wrap mb-8">
+            <div class="card bg-info text-white p-4 shadow-lg">
+                <h3 class="font-bold">NAP-001</h3>
+                <p class="text-sm">Connected to Port 1</p>
+                <p class="text-sm">8 customer ports</p>
+                <div class="grid grid-cols-4 gap-1 mt-2">
+                    <div class="bg-success text-xs p-1 rounded text-center">P1</div>
+                    <div class="bg-error text-xs p-1 rounded text-center">P2✓</div>
+                    <div class="bg-error text-xs p-1 rounded text-center">P3✓</div>
+                    <div class="bg-success text-xs p-1 rounded text-center">P4</div>
+                    <div class="bg-error text-xs p-1 rounded text-center">P5✓</div>
+                    <div class="bg-success text-xs p-1 rounded text-center">P6</div>
+                    <div class="bg-success text-xs p-1 rounded text-center">P7</div>
+                    <div class="bg-error text-xs p-1 rounded text-center">P8✓</div>
+                </div>
+            </div>
+            
+            <div class="card bg-info text-white p-4 shadow-lg">
+                <h3 class="font-bold">NAP-002</h3>
+                <p class="text-sm">Connected to Port 2</p>
+                <p class="text-sm">16 customer ports</p>
+                <div class="grid grid-cols-4 gap-1 mt-2">
+                    <div class="bg-error text-xs p-1 rounded text-center">P1✓</div>
+                    <div class="bg-error text-xs p-1 rounded text-center">P2✓</div>
+                    <div class="bg-success text-xs p-1 rounded text-center">P3</div>
+                    <div class="bg-success text-xs p-1 rounded text-center">P4</div>
+                    <div class="text-xs p-1">...</div>
+                    <div class="text-xs p-1">...</div>
+                    <div class="text-xs p-1">...</div>
+                    <div class="bg-success text-xs p-1 rounded text-center">P16</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Arrow -->
+        <div class="text-center text-3xl mb-4">↓</div>
+        <p class="text-center mb-8 text-sm">Each port connects one customer</p>
+        
+        <!-- Customer Level -->
+        <div class="flex justify-center">
+            <div class="card bg-primary text-white p-4 shadow">
+                <h3 class="font-bold">Customer Installation</h3>
+                <p class="text-sm">1 Port = 1 Location</p>
+                <p class="text-sm">House/Business/Unit</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Explanation Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-error">LCP Details</h2>
+                <ul class="space-y-2">
+                    <li>• Main distribution point for fiber network</li>
+                    <li>• Usually located in central/accessible location</li>
+                    <li>• Contains multiple splitters inside cabinet</li>
+                    <li>• Serves entire barangay or area</li>
+                    <li>• Fed by main fiber trunk from central office</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-warning">Splitter Types</h2>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Ports</th>
+                            <th>Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1:4</td>
+                            <td>4</td>
+                            <td>Rural/Low density</td>
+                        </tr>
+                        <tr>
+                            <td>1:8</td>
+                            <td>8</td>
+                            <td>Standard residential</td>
+                        </tr>
+                        <tr>
+                            <td>1:16</td>
+                            <td>16</td>
+                            <td>Medium density</td>
+                        </tr>
+                        <tr>
+                            <td>1:32</td>
+                            <td>32</td>
+                            <td>High density/Urban</td>
+                        </tr>
+                        <tr>
+                            <td>1:64</td>
+                            <td>64</td>
+                            <td>Very high density</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-info">NAP Functions</h2>
+                <ul class="space-y-2">
+                    <li>• Secondary distribution point</li>
+                    <li>• Located near customer clusters</li>
+                    <li>• Weatherproof box on pole/wall</li>
+                    <li>• Direct fiber connections to customers</li>
+                    <li>• Multiple NAPs can share splitter port (cascading)</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-success">Port Management</h2>
+                <ul class="space-y-2">
+                    <li>• <span class="badge badge-success">Green</span> = Available port</li>
+                    <li>• <span class="badge badge-error">Red</span> = Occupied port</li>
+                    <li>• 1 Port = 1 Customer premise</li>
+                    <li>• Port serves entire location (all devices)</li>
+                    <li>• Track usage for capacity planning</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Capacity Calculation Example -->
+    <div class="card bg-base-100 shadow-xl mt-8">
+        <div class="card-body">
+            <h2 class="card-title">Capacity Calculation Example</h2>
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Quantity</th>
+                            <th>Capacity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>LCP-001</td>
+                            <td>1</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td>├─ Splitter 1:8</td>
+                            <td>2</td>
+                            <td>8 ports each</td>
+                            <td>16 splitter ports</td>
+                        </tr>
+                        <tr>
+                            <td>├─ Splitter 1:16</td>
+                            <td>1</td>
+                            <td>16 ports</td>
+                            <td>16 splitter ports</td>
+                        </tr>
+                        <tr>
+                            <td>└─ Splitter 1:32</td>
+                            <td>1</td>
+                            <td>32 ports</td>
+                            <td>32 splitter ports</td>
+                        </tr>
+                        <tr class="font-bold">
+                            <td colspan="3">Total Splitter Ports</td>
+                            <td>64 ports</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3">If each port → 1 NAP with 8 customer ports</td>
+                            <td>64 × 8 = 512 customers</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

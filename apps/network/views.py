@@ -152,3 +152,13 @@ def network_map_data(request):
             })
     
     return JsonResponse(data)
+
+
+@login_required
+def network_hierarchy(request):
+    """Display network hierarchy visualization"""
+    context = {
+        'page_title': 'Network Hierarchy',
+        'active_tab': 'network_hierarchy',
+    }
+    return render(request, 'network/hierarchy.html', context)
