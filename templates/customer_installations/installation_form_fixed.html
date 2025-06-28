@@ -200,13 +200,29 @@
 
 <!-- Modified map widget script to handle customer defaults -->
 <script>
-// Extend the map widget to handle customer coordinate defaults
+// Wait for Alpine.js to be ready
+document.addEventListener('alpine:init', () => {
+    // Function to update map widget coordinates
+    window.updateMapCoordinates = function(lat, lng) {
+        // Find the map widget Alpine component
+        const mapElement = document.querySelector('[x-data*="mapWidget"]');
+        if (mapElement && mapElement._x_dataStack) {
+            const mapData = mapElement._x_dataStack[0];
+            if (mapData && lat && lng) {
+                // Update the data which will trigger Alpine reactivity
+                mapData.lat = lat;
+                mapData.lng = lng;
+                // Call the map update function
+                mapData.updateMapFromInputs();
+            }
+        }
+    };
+});
+
+// Customer coordinate auto-fill
 document.addEventListener('DOMContentLoaded', function() {
     const customerSelect = document.getElementById('id_customer');
     if (!customerSelect) return;
-    
-    // Store original setLocation function
-    const originalInit = window.mapWidget;
     
     // Fetch and apply customer coordinates when selection changes
     customerSelect.addEventListener('change', function() {
@@ -225,17 +241,23 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.length > 0 && data[0].latitude && data[0].longitude) {
                 const customer = data[0];
-                // Update the latitude/longitude inputs
-                const latInput = document.getElementById('id_latitude');
-                const lngInput = document.getElementById('id_longitude');
                 
-                if (latInput && lngInput) {
-                    latInput.value = customer.latitude;
-                    lngInput.value = customer.longitude;
+                // Update using the Alpine-aware function
+                if (window.updateMapCoordinates) {
+                    window.updateMapCoordinates(customer.latitude, customer.longitude);
+                } else {
+                    // Fallback: Update inputs and trigger input event
+                    const latInput = document.getElementById('id_latitude');
+                    const lngInput = document.getElementById('id_longitude');
                     
-                    // Trigger input event for Alpine.js x-model binding
-                    latInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    lngInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    if (latInput && lngInput) {
+                        latInput.value = customer.latitude;
+                        lngInput.value = customer.longitude;
+                        
+                        // Trigger input event for Alpine.js x-model
+                        latInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        lngInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
                 }
             }
         })
@@ -249,7 +271,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-
 
 <!-- NAP Port Selection Script -->
 <script>
