@@ -249,9 +249,6 @@ def active_subscriptions(request):
             to_attr='active_subscriptions'
         )
     )
-
-    print(active_installations)
-    print("-----------------")
     
     # Build list of installations with active subscriptions
     installations_data = []
@@ -259,10 +256,15 @@ def active_subscriptions(request):
         if installation.active_subscriptions:
             # Get the current active subscription (latest end date)
             current_sub = installation.active_subscriptions[0]
+            
+            # Use the model's time_remaining_display property
+            days_remaining = current_sub.days_remaining
+            
             installations_data.append({
                 'installation': installation,
                 'current_subscription': current_sub,
-                'days_remaining': int(current_sub.days_remaining) if current_sub.days_remaining > 0 else 0
+                'days_remaining': days_remaining,
+                'days_remaining_display': current_sub.time_remaining_display
             })
     
     # Search functionality
@@ -283,7 +285,6 @@ def active_subscriptions(request):
         'active_tab': 'active_subscriptions',
         'current_time': timezone.now(),
     }
-    print(context)
     
     return render(request, 'customer_subscriptions/active_subscriptions.html', context)
 

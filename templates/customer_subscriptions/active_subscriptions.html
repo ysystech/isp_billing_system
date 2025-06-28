@@ -76,10 +76,14 @@
               {% if subscription.end_date < current_time %}
                 <span class="badge badge-error badge-sm">Expired</span>
               {% else %}
-                {% if data.days_remaining <= 3 %}
-                  <span class="badge badge-warning badge-sm">{{ data.days_remaining }} days left</span>
+                {% if data.days_remaining <= 1 %}
+                  <span class="badge badge-error badge-sm">{{ data.days_remaining_display }} left</span>
+                {% elif data.days_remaining <= 3 %}
+                  <span class="badge badge-warning badge-sm">{{ data.days_remaining_display }} left</span>
                 {% elif data.days_remaining <= 7 %}
-                  <span class="badge badge-info badge-sm">{{ data.days_remaining }} days left</span>
+                  <span class="badge badge-info badge-sm">{{ data.days_remaining_display }} left</span>
+                {% else %}
+                  <span class="badge badge-success badge-sm">{{ data.days_remaining_display }} left</span>
                 {% endif %}
               {% endif %}
             </td>

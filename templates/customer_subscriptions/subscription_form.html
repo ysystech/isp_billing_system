@@ -109,19 +109,8 @@
           </div>
         </div>
         
-        <!-- Start Date -->
-        <div class="form-control mt-4">
-          <label for="{{ form.start_date.id_for_label }}" class="label">
-            <span class="label-text">{{ form.start_date.label }}</span>
-            <span class="label-text-alt text-error">*</span>
-          </label>
-          {{ form.start_date }}
-          {% if form.start_date.errors %}
-          <label class="label">
-            <span class="label-text-alt text-error">{{ form.start_date.errors.0 }}</span>
-          </label>
-          {% endif %}
-        </div>
+        <!-- Hidden Start Date -->
+        {{ form.start_date }}
         
         <!-- Preview -->
         <div id="subscriptionPreview" class="mt-6 p-4 bg-base-200 rounded-lg">
@@ -159,6 +148,7 @@
 <script>
 // Plan prices cache
 let planPrices = {};
+let currentStartDate = null;
 
 // Check for existing subscription
 async function checkExistingSubscription() {
@@ -177,14 +167,21 @@ async function checkExistingSubscription() {
             alertDiv.classList.remove('hidden');
             messageDiv.innerHTML = `
                 Current subscription ends on <strong>${data.end_date_display}</strong>.
-                New subscription will start after this date.
+                New subscription will automatically start after this date.
             `;
             
-            // Update start date
+            // Update hidden start date and store it
+            currentStartDate = new Date(data.end_date);
             startDateInput.value = data.end_date.slice(0, 16); // Format for datetime-local
         } else {
             alertDiv.classList.add('hidden');
+            // Use current time as start date
+            currentStartDate = new Date();
+            const localDateTime = new Date(currentStartDate.getTime() - currentStartDate.getTimezoneOffset() * 60000);
+            startDateInput.value = localDateTime.toISOString().slice(0, 16);
         }
+        
+        updatePreview();
     } catch (error) {
         console.error('Error checking subscription:', error);
     }
@@ -231,9 +228,8 @@ async function updatePreview() {
     const planId = document.getElementById('id_subscription_plan').value;
     const subscriptionType = document.getElementById('id_subscription_type').value;
     const amount = document.getElementById('id_amount').value;
-    const startDate = document.getElementById('id_start_date').value;
     
-    if (!planId || !subscriptionType || !amount || !startDate) {
+    if (!planId || !subscriptionType || !amount || !currentStartDate) {
         document.getElementById('previewContent').innerHTML = 
             '<p class="text-gray-500">Select all fields to see preview</p>';
         return;
@@ -262,7 +258,7 @@ async function updatePreview() {
         }
         
         // Calculate end date
-        const start = new Date(startDate);
+        const start = new Date(currentStartDate);
         const endDate = new Date(start);
         endDate.setDate(endDate.getDate() + preview.days);
         endDate.setHours(endDate.getHours() + preview.hours);
@@ -299,6 +295,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const installationSelect = document.getElementById('id_customer_installation');
     if (installationSelect && installationSelect.value) {
         checkExistingSubscription();
+    } else {
+        // Set current time as default start date if no installation selected
+        currentStartDate = new Date();
+        const startDateInput = document.getElementById('id_start_date');
+        const localDateTime = new Date(currentStartDate.getTime() - currentStartDate.getTimezoneOffset() * 60000);
+        startDateInput.value = localDateTime.toISOString().slice(0, 16);
     }
     
     // Update preview if form is pre-filled

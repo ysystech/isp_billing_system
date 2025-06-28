@@ -51,11 +51,8 @@ class CustomerSubscriptionForm(forms.ModelForm):
     )
     
     start_date = forms.DateTimeField(
-        widget=forms.DateTimeInput(attrs={
-            'type': 'datetime-local',
-            'class': 'input input-bordered w-full',
-            'onchange': 'updatePreview()'
-        }),
+        widget=forms.HiddenInput(),
+        required=False,
         label="Start Date & Time"
     )
     
@@ -91,7 +88,6 @@ class CustomerSubscriptionForm(forms.ModelForm):
         subscription_type = cleaned_data.get('subscription_type')
         amount = cleaned_data.get('amount')
         subscription_plan = cleaned_data.get('subscription_plan')
-        start_date = cleaned_data.get('start_date')
         
         if all([customer_installation, subscription_type, amount, subscription_plan]):
             # Validate amount based on subscription type
@@ -102,15 +98,14 @@ class CustomerSubscriptionForm(forms.ModelForm):
             elif subscription_type == 'custom' and amount <= 0:
                 raise ValidationError("Custom amount must be greater than 0")
             
-            # Check for existing active subscription to determine start date
+            # Automatically set start date based on existing subscription
             latest_sub = CustomerSubscription.get_latest_subscription(customer_installation)
             if latest_sub and latest_sub.end_date > timezone.now():
                 # If there's an active/future subscription, start after it ends
-                if start_date < latest_sub.end_date:
-                    cleaned_data['start_date'] = latest_sub.end_date
-                    self.add_error(None, 
-                        f"Start date adjusted to {latest_sub.end_date.strftime('%Y-%m-%d %H:%M')} "
-                        f"(after current subscription ends)")
+                cleaned_data['start_date'] = latest_sub.end_date
+            else:
+                # Otherwise start immediately
+                cleaned_data['start_date'] = timezone.now()
         
         return cleaned_data
     

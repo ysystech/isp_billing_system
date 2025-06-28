@@ -143,19 +143,27 @@ class CustomerSubscription(BaseModel):
     @property
     def days_remaining(self):
         """Calculate days remaining in subscription."""
-        if not self.is_active:
+        if self.status in ['EXPIRED', 'CANCELLED']:
             return 0
         
         remaining = self.end_date - timezone.now()
+        if remaining.total_seconds() <= 0:
+            return 0
+            
         return remaining.total_seconds() / 86400  # Convert to decimal days
     
     @property
     def time_remaining_display(self):
         """Get human-readable time remaining."""
-        if not self.is_active:
+        if self.status in ['EXPIRED', 'CANCELLED']:
             return "Expired"
         
         remaining = self.end_date - timezone.now()
+        
+        # Check if already expired
+        if remaining.total_seconds() <= 0:
+            return "Expired"
+        
         days = remaining.days
         hours = remaining.seconds // 3600
         minutes = (remaining.seconds % 3600) // 60
