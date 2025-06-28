@@ -18,16 +18,6 @@ def installation_list(request):
     """List all customer installations with search and filter."""
     installations = CustomerInstallation.objects.select_related(
         'customer', 'router', 'installation_technician'
-    ).annotate(
-        active_subscriptions=Count(
-            'subscriptions',
-            filter=Q(
-                subscriptions__start_date__lte=timezone.now(),
-                subscriptions__end_date__gte=timezone.now(),
-                subscriptions__is_paid=True
-            )
-        ),
-        last_payment=Max('subscriptions__payment_date')
     ).order_by('-installation_date')
     
     # Search functionality
@@ -45,18 +35,10 @@ def installation_list(request):
     if status_filter:
         installations = installations.filter(status=status_filter)
     
-    # Filter by subscription status
-    subscription_status = request.GET.get('subscription_status', '')
-    if subscription_status == 'active':
-        installations = installations.filter(active_subscriptions__gt=0)
-    elif subscription_status == 'expired':
-        installations = installations.filter(active_subscriptions=0)
-    
     context = {
         'installations': installations,
         'search_query': search_query,
         'status_filter': status_filter,
-        'subscription_status': subscription_status,
         'status_choices': CustomerInstallation.STATUS_CHOICES,
         'active_tab': 'installations',
     }
@@ -66,7 +48,7 @@ def installation_list(request):
 
 @login_required
 def installation_detail(request, pk):
-    """Display installation details with subscription history."""
+    """Display installation details."""
     installation = get_object_or_404(
         CustomerInstallation.objects.select_related(
             'customer', 'router', 'installation_technician'
@@ -74,16 +56,8 @@ def installation_detail(request, pk):
         pk=pk
     )
     
-    # Get subscription history
-    subscriptions = installation.subscriptions.select_related(
-        'plan', 'collected_by'
-    ).order_by('-start_date')
-    
     context = {
         'installation': installation,
-        'subscriptions': subscriptions,
-        'current_subscription': installation.current_subscription,
-        'is_expired': installation.is_expired,
         'active_tab': 'installations',
     }
     
@@ -148,14 +122,6 @@ def installation_update(request, pk):
 def installation_delete(request, pk):
     """Delete an installation (soft delete by setting status to terminated)."""
     installation = get_object_or_404(CustomerInstallation, pk=pk)
-    
-    # Check if installation has active subscriptions
-    if installation.current_subscription:
-        messages.error(
-            request, 
-            'Cannot delete installation with active subscription'
-        )
-        return redirect('customer_installations:installation_detail', pk=pk)
     
     installation.status = 'TERMINATED'
     installation.is_active = False
