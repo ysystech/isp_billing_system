@@ -35,14 +35,6 @@
                class="btn btn-ghost btn-xs">
               View
             </a>
-            <a href="{% url 'users:user_management_update' user.id %}"
-               class="btn btn-ghost btn-xs"
-               hx-get="{% url 'users:user_management_update' user.id %}"
-               hx-target="#modal-content"
-               hx-trigger="click"
-               @click="document.getElementById('user-modal').showModal()">
-              Edit
-            </a>
             {% if user.is_active %}
             <button class="btn btn-ghost btn-xs text-error"
                     @click="confirmDelete({{ user.id }}, '{{ user.get_full_name|escapejs }}')">
