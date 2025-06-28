@@ -13,6 +13,7 @@ class CustomerInstallation(BaseModel, GeoLocatedModel):
     # Status choices
     STATUS_CHOICES = [
         ('ACTIVE', 'Active'),
+        ('INACTIVE', 'Inactive'),  # No active subscription
         ('SUSPENDED', 'Suspended'),  # Temporary suspension
         ('TERMINATED', 'Terminated'),  # Permanent termination
     ]
@@ -80,19 +81,39 @@ class CustomerInstallation(BaseModel, GeoLocatedModel):
         ordering = ['-installation_date']
         verbose_name = "Customer Installation"
         verbose_name_plural = "Customer Installations"
-    
-    def __str__(self):
-        return f"{self.customer.full_name} - Installation ({self.get_status_display()})"
-    
-    class Meta:
-        ordering = ['-installation_date']
-        verbose_name = "Customer Installation"
-        verbose_name_plural = "Customer Installations"
         # Ensure unique port assignment per NAP
         unique_together = [['nap', 'nap_port']]
     
     def __str__(self):
         return f"{self.customer.full_name} - Installation ({self.get_status_display()})"
+    
+    @property
+    def current_subscription(self):
+        """Get the currently active subscription if any."""
+        from apps.customer_subscriptions.models import CustomerSubscription
+        now = timezone.now()
+        return self.subscriptions.filter(
+            status='ACTIVE',
+            start_date__lte=now,
+            end_date__gte=now
+        ).first()
+    
+    @property
+    def has_active_subscription(self):
+        """Check if installation has an active subscription."""
+        return self.current_subscription is not None
+    
+    def update_status_based_on_subscription(self):
+        """Update installation status based on subscription status."""
+        if self.status not in ['SUSPENDED', 'TERMINATED']:
+            if self.has_active_subscription:
+                if self.status != 'ACTIVE':
+                    self.status = 'ACTIVE'
+                    self.save()
+            else:
+                if self.status != 'INACTIVE':
+                    self.status = 'INACTIVE'
+                    self.save()
     
     def clean(self):
         """Validate NAP port assignment"""

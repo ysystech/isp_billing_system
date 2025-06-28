@@ -78,6 +78,7 @@ PROJECT_APPS = [
     "apps.customers.apps.CustomersConfig",
     "apps.subscriptions.apps.SubscriptionsConfig",
     "apps.customer_installations.apps.CustomerInstallationsConfig",
+    "apps.customer_subscriptions.apps.CustomerSubscriptionsConfig",
     "apps.lcp.apps.LcpConfig",
     "apps.web",
 ]

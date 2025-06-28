@@ -1,0 +1,121 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Subscription Details{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb -->
+  <div class="text-sm breadcrumbs mb-4">
+    <ul>
+      <li><a href="{% url 'web:home' %}">Dashboard</a></li>
+      <li><a href="{% url 'customer_subscriptions:subscription_list' %}">Subscriptions</a></li>
+      <li>Subscription Details</li>
+    </ul>
+  </div>
+
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Subscription Details</h1>
+    <div class="flex gap-2">
+      {% if subscription.status == 'ACTIVE' %}
+      <form method="post" action="{% url 'customer_subscriptions:subscription_cancel' subscription.pk %}" 
+            onsubmit="return confirm('Are you sure you want to cancel this subscription?');" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-error btn-sm">Cancel Subscription</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Customer Information -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Customer Information</h2>
+        <div class="space-y-2">
+          <p><span class="font-medium">Name:</span> {{ subscription.customer_installation.customer.full_name }}</p>
+          <p><span class="font-medium">Email:</span> {{ subscription.customer_installation.customer.email }}</p>
+          <p><span class="font-medium">Phone:</span> {{ subscription.customer_installation.customer.phone_primary }}</p>
+          <p><span class="font-medium">Installation:</span> 
+            <a href="{% url 'customer_installations:installation_detail' subscription.customer_installation.pk %}" 
+               class="link link-primary">
+              View Installation Details
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subscription Information -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Subscription Information</h2>
+        <div class="space-y-2">
+          <p><span class="font-medium">Plan:</span> {{ subscription.subscription_plan.name }}</p>
+          <p><span class="font-medium">Speed:</span> {{ subscription.subscription_plan.speed }} Mbps</p>
+          <p><span class="font-medium">Type:</span> {{ subscription.get_subscription_type_display }}</p>
+          <p><span class="font-medium">Amount Paid:</span> ₱{{ subscription.amount|floatformat:2|intcomma }}</p>
+          <p><span class="font-medium">Days Added:</span> {{ subscription.days_added }} days</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Period & Status -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Period & Status</h2>
+        <div class="space-y-2">
+          <p><span class="font-medium">Start Date:</span> {{ subscription.start_date|date:"M d, Y g:i A" }}</p>
+          <p><span class="font-medium">End Date:</span> {{ subscription.end_date|date:"M d, Y g:i A" }}</p>
+          <p><span class="font-medium">Status:</span> 
+            <span class="badge {% if subscription.status == 'ACTIVE' %}badge-success{% elif subscription.status == 'EXPIRED' %}badge-error{% else %}badge-warning{% endif %}">
+              {{ subscription.get_status_display }}
+            </span>
+          </p>
+          {% if subscription.is_active %}
+          <p><span class="font-medium">Time Remaining:</span> 
+            <span class="text-primary font-bold">{{ subscription.time_remaining_display }}</span>
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">System Information</h2>
+        <div class="space-y-2">
+          <p><span class="font-medium">Created By:</span> {{ subscription.created_by.get_full_name }}</p>
+          <p><span class="font-medium">Created At:</span> {{ subscription.created_at|date:"M d, Y g:i A" }}</p>
+          <p><span class="font-medium">Last Updated:</span> {{ subscription.updated_at|date:"M d, Y g:i A" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  {% if subscription.notes %}
+  <div class="card bg-base-100 shadow-xl mt-6">
+    <div class="card-body">
+      <h2 class="card-title">Notes</h2>
+      <p class="whitespace-pre-wrap">{{ subscription.notes }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Actions -->
+  <div class="mt-6 flex justify-between">
+    <a href="{% url 'customer_subscriptions:subscription_list' %}" class="btn btn-ghost">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Back to List
+    </a>
+    <a href="{% url 'customer_subscriptions:subscription_create' %}?installation_id={{ subscription.customer_installation.pk }}" 
+       class="btn btn-primary">
+      Add New Subscription
+    </a>
+  </div>
+</div>
+{% endblock %}

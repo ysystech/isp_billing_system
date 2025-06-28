@@ -1,0 +1,138 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Payment History - {{ customer.full_name }}{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="mb-6">
+    <a href="{% url 'customer_subscriptions:active_subscriptions' %}" class="btn btn-ghost btn-sm mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to Active Subscriptions
+    </a>
+    
+    <h1 class="text-3xl font-bold text-gray-800">Payment History</h1>
+    <p class="text-gray-600 mt-2">{{ customer.full_name }}</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Total Payments</h2>
+        <p class="text-3xl font-bold text-primary">₱{{ total_amount|floatformat:2|intcomma }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Total Subscriptions</h2>
+        <p class="text-3xl font-bold text-info">{{ subscription_count }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Customer Info</h2>
+        <p class="text-sm">
+          <span class="font-medium">Email:</span> {{ customer.email }}<br>
+          <span class="font-medium">Phone:</span> {{ customer.phone_primary }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment History Table -->
+  <div class="overflow-x-auto bg-base-100 rounded-lg shadow">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Installation Location</th>
+          <th>Plan</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Service Period</th>
+          <th>Status</th>
+          <th>Processed By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for subscription in subscriptions %}
+          <tr class="hover">
+            <td>
+              <div class="font-medium">{{ subscription.created_at|date:"M d, Y" }}</div>
+              <div class="text-sm text-gray-500">{{ subscription.created_at|date:"g:i A" }}</div>
+            </td>
+            <td>
+              <div class="text-sm">
+                {{ subscription.installation.nap.name }}
+                <span class="text-gray-500">(Port {{ subscription.installation.nap_port }})</span>
+              </div>
+            </td>
+            <td>
+              <div class="font-medium">{{ subscription.subscription_plan.name }}</div>
+              <div class="text-sm text-gray-500">{{ subscription.subscription_plan.speed }} Mbps</div>
+            </td>
+            <td>
+              <span class="badge badge-sm">{{ subscription.get_subscription_type_display }}</span>
+            </td>
+            <td>
+              <span class="font-medium">₱{{ subscription.amount|floatformat:2|intcomma }}</span>
+            </td>
+            <td>
+              <div class="text-sm">
+                {{ subscription.start_date|date:"M d, Y g:i A" }}<br>
+                to {{ subscription.end_date|date:"M d, Y g:i A" }}
+              </div>
+              <div class="text-xs text-gray-500">
+                ({{ subscription.days_added }} days)
+              </div>
+            </td>
+            <td>
+              {% if subscription.status == 'ACTIVE' %}
+                <span class="badge badge-success badge-sm">{{ subscription.get_status_display }}</span>
+              {% elif subscription.status == 'EXPIRED' %}
+                <span class="badge badge-error badge-sm">{{ subscription.get_status_display }}</span>
+              {% else %}
+                <span class="badge badge-warning badge-sm">{{ subscription.get_status_display }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="text-sm">
+                {% if subscription.created_by %}
+                  {{ subscription.created_by.get_full_name|default:subscription.created_by.username }}
+                {% else %}
+                  <span class="text-gray-400">System</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-8 text-gray-500">
+              No payment history found for this customer
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Actions -->
+  <div class="mt-6 flex gap-4">
+    <a href="{% url 'customers:customer_detail' pk=customer.id %}" class="btn btn-outline">
+      View Customer Profile
+    </a>
+    {% if customer.installations.exists %}
+      <a href="{% url 'customer_subscriptions:subscription_create' %}?installation_id={{ customer.installations.first.id }}" 
+         class="btn btn-primary">
+        Add New Subscription
+      </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

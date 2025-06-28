@@ -80,8 +80,12 @@
             </span>
           </td>
           <td>
-            <a href="{% url 'customer_installations:installation_detail' installation.pk %}" 
-               class="btn btn-sm btn-info">View</a>
+            <div class="btn-group">
+              <a href="{% url 'customer_installations:installation_detail' installation.pk %}" 
+                 class="btn btn-sm btn-info">View</a>
+              <a href="{% url 'customer_subscriptions:subscription_create' %}?installation_id={{ installation.pk }}" 
+                 class="btn btn-sm btn-success">Add Subscription</a>
+            </div>
           </td>
         </tr>
         {% empty %}

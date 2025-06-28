@@ -1,0 +1,43 @@
+--- a/apps/customer_subscriptions/views.py
++++ b/apps/customer_subscriptions/views.py
+@@ -247,24 +247,29 @@ def active_subscriptions(request):
+         )
+     )
+     
+-    # Filter only installations with active subscriptions
+-    installations_with_active_subs = []
++    # Build list of installations with active subscriptions
++    installations_data = []
+     for installation in active_installations:
+         if installation.active_subscriptions:
+             # Get the current active subscription (latest end date)
+-            installation.current_subscription = installation.active_subscriptions[0]
+-            installations_with_active_subs.append(installation)
++            current_sub = installation.active_subscriptions[0]
++            installations_data.append({
++                'installation': installation,
++                'current_subscription': current_sub,
++                'days_remaining': int(current_sub.days_remaining) if current_sub.days_remaining > 0 else 0
++            })
+     
+     # Search functionality
+     search_query = request.GET.get('search', '')
+     if search_query:
+-        filtered_installations = []
+-        for installation in installations_with_active_subs:
+-            customer = installation.customer
++        filtered_data = []
++        for data in installations_data:
++            customer = data['installation'].customer
+             if (search_query.lower() in customer.first_name.lower() or
+                 search_query.lower() in customer.last_name.lower() or
+                 search_query.lower() in customer.email.lower()):
+-                filtered_installations.append(installation)
+-        installations_with_active_subs = filtered_installations
++                filtered_data.append(data)
++        installations_data = filtered_data
+     
+     context = {
+-        'installations': installations_with_active_subs,
++        'installations_data': installations_data,
+         'search_query': search_query,

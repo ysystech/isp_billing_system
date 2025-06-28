@@ -86,4 +86,21 @@
     </a>
   </li>
 </ul>
+<li class="menu-title">
+  <span>{% translate "Billing" %}</span>
+</li>
+<ul class="menu-list">
+  <li>
+    <a href="{% url 'customer_subscriptions:active_subscriptions' %}" {% if active_tab == 'active_subscriptions' %}class="menu-active"{% endif %}>
+      <i class="fa fa-check-circle h-4 w-4"></i>
+      {% translate "Active Subscriptions" %}
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'customer_subscriptions:subscription_list' %}" {% if active_tab == 'subscriptions' %}class="menu-active"{% endif %}>
+      <i class="fa fa-credit-card h-4 w-4"></i>
+      {% translate "All Subscriptions" %}
+    </a>
+  </li>
+</ul>
 {% endif %}
