@@ -137,3 +137,13 @@ class NAP(BaseModel, GeoLocatedModel):
     def connection_path(self):
         """Get the full connection path from LCP to NAP"""
         return f"{self.splitter.lcp.name} > {self.splitter.code} (Port {self.splitter_port}) > {self.name}"
+
+    @property
+    def used_ports(self):
+        """Get count of ports that have installations connected"""
+        return self.customer_installations.filter(status='ACTIVE').count()
+
+    @property
+    def available_ports(self):
+        """Get count of available ports"""
+        return self.port_capacity - self.used_ports

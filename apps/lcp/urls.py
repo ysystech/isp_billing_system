@@ -20,4 +20,10 @@ urlpatterns = [
     path('splitter/<int:splitter_pk>/nap/create/', views.nap_create, name='nap_create'),
     path('nap/<int:pk>/edit/', views.nap_edit, name='nap_edit'),
     path('nap/<int:pk>/delete/', views.nap_delete, name='nap_delete'),
+    
+    # API URLs for hierarchical selection
+    path('api/lcps/', views.api_get_lcps, name='api_lcps'),
+    path('api/lcp/<int:lcp_id>/splitters/', views.api_get_splitters, name='api_splitters'),
+    path('api/splitter/<int:splitter_id>/naps/', views.api_get_naps, name='api_naps'),
+    path('api/nap/<int:nap_id>/hierarchy/', views.api_get_nap_hierarchy, name='api_nap_hierarchy'),
 ]

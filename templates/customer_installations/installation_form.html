@@ -103,17 +103,48 @@
         <div class="divider">Network Connection</div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- LCP Selection -->
+          <div class="form-control">
+            <label for="id_lcp" class="label">
+              <span class="label-text">LCP (Local Convergence Point)</span>
+              <span class="label-text-alt text-error">*</span>
+            </label>
+            <select id="id_lcp" class="select select-bordered w-full" onchange="updateSplitterOptions()">
+              <option value="">Select LCP...</option>
+            </select>
+          </div>
+          
+          <!-- Splitter Selection -->
+          <div class="form-control">
+            <label for="id_splitter" class="label">
+              <span class="label-text">Splitter</span>
+              <span class="label-text-alt text-error">*</span>
+            </label>
+            <select id="id_splitter" class="select select-bordered w-full" onchange="updateNapOptions()" disabled>
+              <option value="">Select Splitter...</option>
+            </select>
+            <label class="label">
+              <span class="label-text-alt" id="splitter-info">Select LCP first</span>
+            </label>
+          </div>
+
           <!-- NAP Selection -->
           <div class="form-control">
             <label for="{{ form.nap.id_for_label }}" class="label">
               <span class="label-text">{{ form.nap.label }}</span>
+              <span class="label-text-alt text-error">*</span>
             </label>
-            {{ form.nap }}
-            {% if form.nap.help_text %}
-            <label class="label">
-              <span class="label-text-alt">{{ form.nap.help_text }}</span>
-            </label>
-            {% endif %}
+            <select name="{{ form.nap.name }}" id="{{ form.nap.id_for_label }}" 
+                    class="select select-bordered w-full" 
+                    onchange="updatePortOptions()" 
+                    {% if not form.nap.value %}disabled{% endif %}>
+              <option value="">Select NAP...</option>
+              {% for value, text in form.nap.field.choices %}
+                {% if value %}
+                  <option value="{{ value }}" {% if value == form.nap.value %}selected{% endif %}>{{ text }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
             {% if form.nap.errors %}
             <label class="label">
               <span class="label-text-alt text-error">{{ form.nap.errors.0 }}</span>
@@ -125,8 +156,15 @@
           <div class="form-control">
             <label for="{{ form.nap_port.id_for_label }}" class="label">
               <span class="label-text">{{ form.nap_port.label }}</span>
+              <span class="label-text-alt text-error">*</span>
             </label>
-            {{ form.nap_port }}
+            <input type="number" 
+                   name="{{ form.nap_port.name }}" 
+                   id="{{ form.nap_port.id_for_label }}"
+                   class="input input-bordered w-full"
+                   readonly
+                   placeholder="Click a port below"
+                   value="{{ form.nap_port.value|default:'' }}">
             <label class="label">
               <span class="label-text-alt" id="port-availability">Select a NAP to see available ports</span>
             </label>
@@ -248,12 +286,134 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-{% endblock %}
-
 
 <!-- NAP Port Selection Script -->
 <script>
 let currentNapId = null;
+
+// Load LCPs on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadLCPs();
+    
+    // Check if NAP is pre-selected (edit mode)
+    const napSelect = document.getElementById('id_nap');
+    if (napSelect && napSelect.value) {
+        // Load the hierarchy for the selected NAP
+        loadHierarchyForNap(napSelect.value);
+    }
+});
+
+// Load all active LCPs
+function loadLCPs() {
+    console.log('Loading LCPs...');
+    fetch('/lcp/api/lcps/')
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('LCP data received:', data);
+            const lcpSelect = document.getElementById('id_lcp');
+            if (!lcpSelect) {
+                console.error('LCP select element not found!');
+                return;
+            }
+            lcpSelect.innerHTML = '<option value="">Select LCP...</option>';
+            
+            data.forEach(lcp => {
+                const option = document.createElement('option');
+                option.value = lcp.id;
+                option.textContent = `${lcp.name} (${lcp.code})`;
+                lcpSelect.appendChild(option);
+            });
+            console.log('LCPs loaded successfully');
+        })
+        .catch(error => {
+            console.error('Error loading LCPs:', error);
+            alert('Failed to load LCPs. Please check the console for details.');
+        });
+}
+
+// Update splitter options when LCP changes
+function updateSplitterOptions() {
+    const lcpSelect = document.getElementById('id_lcp');
+    const splitterSelect = document.getElementById('id_splitter');
+    const splitterInfo = document.getElementById('splitter-info');
+    const napSelect = document.getElementById('id_nap');
+    const napPortInput = document.getElementById('id_nap_port');
+    
+    // Reset all downstream selections
+    splitterSelect.innerHTML = '<option value="">Select Splitter...</option>';
+    splitterSelect.disabled = true;
+    napSelect.innerHTML = '<option value="">Select NAP...</option>';
+    napSelect.disabled = true;
+    napPortInput.value = '';
+    document.getElementById('port-grid').classList.add('hidden');
+    document.getElementById('port-availability').textContent = 'Select a NAP to see available ports';
+    
+    if (!lcpSelect.value) {
+        splitterInfo.textContent = 'Select LCP first';
+        return;
+    }
+    
+    // Fetch splitters for selected LCP
+    fetch(`/lcp/api/lcp/${lcpSelect.value}/splitters/`)
+        .then(response => response.json())
+        .then(data => {
+            splitterSelect.disabled = false;
+            
+            data.forEach(splitter => {
+                const option = document.createElement('option');
+                option.value = splitter.id;
+                option.textContent = `${splitter.code} (${splitter.type}) - ${splitter.available_ports}/${splitter.port_capacity} available`;
+                splitterSelect.appendChild(option);
+            });
+            
+            splitterInfo.textContent = `${data.length} splitters available`;
+        })
+        .catch(error => {
+            console.error('Error loading splitters:', error);
+            splitterInfo.textContent = 'Error loading splitters';
+        });
+}
+
+// Update NAP options when Splitter changes
+function updateNapOptions() {
+    const splitterSelect = document.getElementById('id_splitter');
+    const napSelect = document.getElementById('id_nap');
+    const napPortInput = document.getElementById('id_nap_port');
+    
+    // Reset NAP and port selections
+    napSelect.innerHTML = '<option value="">Select NAP...</option>';
+    napSelect.disabled = true;
+    napPortInput.value = '';
+    document.getElementById('port-grid').classList.add('hidden');
+    document.getElementById('port-availability').textContent = 'Select a NAP to see available ports';
+    
+    if (!splitterSelect.value) {
+        return;
+    }
+    
+    // Fetch NAPs for selected splitter
+    fetch(`/lcp/api/splitter/${splitterSelect.value}/naps/`)
+        .then(response => response.json())
+        .then(data => {
+            napSelect.disabled = false;
+            
+            data.forEach(nap => {
+                const option = document.createElement('option');
+                option.value = nap.id;
+                option.textContent = `${nap.name} (${nap.code}) - ${nap.available_ports}/${nap.port_capacity} ports available`;
+                napSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading NAPs:', error);
+        });
+}
 
 // Function to update port options when NAP changes
 function updatePortOptions() {
@@ -263,16 +423,17 @@ function updatePortOptions() {
     const portGrid = document.getElementById('port-grid');
     const portsContainer = document.getElementById('ports-container');
     
+    // Reset port selection
+    napPortInput.value = '';
+    
     if (!napSelect.value) {
         portAvailability.textContent = 'Select a NAP to see available ports';
         portGrid.classList.add('hidden');
-        napPortInput.value = '';
-        napPortInput.disabled = true;
+        // Keep it readonly, don't disable
         return;
     }
     
-    // Enable port input
-    napPortInput.disabled = false;
+    // Keep port input readonly (not disabled)
     currentNapId = napSelect.value;
     
     // Fetch port availability
@@ -291,24 +452,27 @@ function updatePortOptions() {
             
             data.ports.forEach(port => {
                 const portDiv = document.createElement('div');
-                portDiv.className = `btn btn-sm ${port.available ? 'btn-success' : 'btn-error'} relative`;
+                portDiv.className = `btn btn-sm ${port.available ? 'btn-outline btn-success' : 'btn-error'} relative`;
                 portDiv.textContent = `P${port.number}`;
                 
                 if (port.available) {
                     portDiv.onclick = () => {
                         napPortInput.value = port.number;
-                        // Highlight selected port
+                        // Remove active state from all ports
                         document.querySelectorAll('#ports-container .btn').forEach(btn => {
-                            btn.classList.remove('btn-primary');
-                            if (btn.textContent === `P${port.number}`) {
-                                btn.classList.add('btn-primary');
+                            if (btn.classList.contains('btn-success')) {
+                                btn.classList.remove('btn-success');
+                                btn.classList.add('btn-outline', 'btn-success');
                             }
                         });
+                        // Add active state to selected port
+                        portDiv.classList.remove('btn-outline');
+                        portDiv.classList.add('btn-success');
                     };
                     portDiv.style.cursor = 'pointer';
                 } else {
                     portDiv.title = `Occupied by ${port.customer}`;
-                    portDiv.classList.add('tooltip');
+                    portDiv.classList.add('tooltip', 'cursor-not-allowed');
                     portDiv.setAttribute('data-tip', port.customer);
                 }
                 
@@ -318,8 +482,9 @@ function updatePortOptions() {
             // Highlight current selection if editing
             if (napPortInput.value) {
                 const selectedPort = document.querySelector(`#ports-container .btn:nth-child(${napPortInput.value})`);
-                if (selectedPort && selectedPort.classList.contains('btn-success')) {
-                    selectedPort.classList.add('btn-primary');
+                if (selectedPort && selectedPort.classList.contains('btn-outline')) {
+                    selectedPort.classList.remove('btn-outline');
+                    selectedPort.classList.add('btn-success');
                 }
             }
         })
@@ -329,11 +494,40 @@ function updatePortOptions() {
         });
 }
 
-// Initialize on page load
+// Load hierarchy for pre-selected NAP (edit mode)
+function loadHierarchyForNap(napId) {
+    fetch(`/lcp/api/nap/${napId}/hierarchy/`)
+        .then(response => response.json())
+        .then(data => {
+            // Set LCP
+            const lcpSelect = document.getElementById('id_lcp');
+            lcpSelect.value = data.lcp_id;
+            
+            // Load splitters and set selected
+            updateSplitterOptions();
+            setTimeout(() => {
+                const splitterSelect = document.getElementById('id_splitter');
+                splitterSelect.value = data.splitter_id;
+                
+                // Load NAPs and set selected
+                updateNapOptions();
+                setTimeout(() => {
+                    updatePortOptions();
+                }, 500);
+            }, 500);
+        })
+        .catch(error => {
+            console.error('Error loading NAP hierarchy:', error);
+        });
+}
+
+// Update the NAP select's onchange event
 document.addEventListener('DOMContentLoaded', function() {
     const napSelect = document.getElementById('id_nap');
-    if (napSelect && napSelect.value) {
-        updatePortOptions();
+    if (napSelect) {
+        napSelect.addEventListener('change', updatePortOptions);
     }
 });
 </script>
+
+{% endblock %}

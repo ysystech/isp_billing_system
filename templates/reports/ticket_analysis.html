@@ -1,0 +1,366 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Ticket Analysis Report{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost btn-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Reports
+      </a>
+      <h1 class="text-3xl font-bold text-gray-800">Ticket Analysis Report</h1>
+      <p class="text-gray-600">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }} ({{ days }} days)</p>
+    </div>
+    <div class="flex gap-2">
+      <select class="select select-bordered" onchange="window.location.href='?days=' + this.value">
+        <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+        <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+        <option value="60" {% if days == 60 %}selected{% endif %}>Last 60 days</option>
+        <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Overview Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">Total Tickets</h2>
+        <p class="text-3xl font-bold">{{ total_tickets }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-success text-success-content shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm">Resolved</h2>
+        <p class="text-3xl font-bold">{{ resolved_tickets }}</p>
+        <p class="text-xs">{{ resolution_rate|floatformat:1 }}% rate</p>
+      </div>
+    </div>
+    
+    <div class="card bg-warning text-warning-content shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm">Pending</h2>
+        <p class="text-3xl font-bold">{{ pending_tickets }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-info text-info-content shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm">In Progress</h2>
+        <p class="text-3xl font-bold">{{ in_progress_tickets }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-error text-error-content shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm">Overdue</h2>
+        <p class="text-3xl font-bold">{{ overdue_count }}</p>
+        <p class="text-xs">Needs attention</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Trend Chart -->
+  <div class="card bg-base-100 shadow-md mb-6">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">Daily Ticket Trend</h2>
+      <canvas id="dailyTicketChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Tickets by Category -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Tickets by Category</h2>
+        <div class="space-y-3">
+          {% for stat in category_stats %}
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium">{{ stat.display_name }}</span>
+                <div class="text-right">
+                  <span class="text-sm font-bold">{{ stat.count }}</span>
+                  <span class="text-xs text-gray-500">({{ stat.resolution_rate|floatformat:0 }}% resolved)</span>
+                </div>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-primary h-2 rounded-full" style="width: {% widthratio stat.count total_tickets 100 %}%"></div>
+              </div>
+            </div>
+          {% empty %}
+            <p class="text-gray-500 text-center">No ticket data</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Tickets by Priority -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Tickets by Priority</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Count</th>
+                <th>Avg Resolution</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for stat in priority_stats %}
+                <tr>
+                  <td>
+                    <span class="badge badge-{{ stat.priority }}">{{ stat.display_name }}</span>
+                  </td>
+                  <td class="font-medium">{{ stat.count }}</td>
+                  <td>
+                    {% if stat.avg_resolution_hours %}
+                      {{ stat.avg_resolution_hours|floatformat:1 }} hrs
+                    {% else %}
+                      <span class="text-gray-400">-</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Technician Performance -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Technician Performance</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Technician</th>
+                <th>Total</th>
+                <th>Resolved</th>
+                <th>Pending</th>
+                <th>Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for stat in technician_stats %}
+                <tr>
+                  <td class="font-medium">{{ stat.name }}</td>
+                  <td>{{ stat.total }}</td>
+                  <td class="text-success">{{ stat.resolved }}</td>
+                  <td class="text-warning">{{ stat.pending }}</td>
+                  <td>
+                    <span class="badge badge-sm {% if stat.resolution_rate >= 80 %}badge-success{% elif stat.resolution_rate >= 60 %}badge-warning{% else %}badge-error{% endif %}">
+                      {{ stat.resolution_rate|floatformat:0 }}%
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-gray-500">No assigned tickets</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Areas by Tickets -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Top Areas by Tickets</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Barangay</th>
+                <th>Ticket Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for stat in barangay_stats %}
+                <tr>
+                  <td>{{ stat.customer_installation__customer__barangay__name }}</td>
+                  <td class="font-medium">{{ stat.count }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="2" class="text-center text-gray-500">No data</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Problem Areas -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Repeat Customers -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          Customers with Multiple Issues
+        </h2>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Tickets</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for customer in repeat_customers %}
+                <tr>
+                  <td>{{ customer.name }}</td>
+                  <td>
+                    <span class="badge badge-warning">{{ customer.ticket_count }}</span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="2" class="text-center text-gray-500">No repeat issues</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overdue Tickets -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4 text-error">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Overdue Tickets
+        </h2>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Ticket #</th>
+                <th>Customer</th>
+                <th>Priority</th>
+                <th>Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ticket in overdue_tickets %}
+                <tr>
+                  <td>
+                    <a href="{% url 'tickets:ticket_detail' pk=ticket.pk %}" class="link link-error">
+                      {{ ticket.ticket_number }}
+                    </a>
+                  </td>
+                  <td class="text-sm">{{ ticket.customer.full_name }}</td>
+                  <td>
+                    <span class="badge badge-{{ ticket.priority_color }} badge-xs">{{ ticket.get_priority_display }}</span>
+                  </td>
+                  <td class="text-sm">{{ ticket.created_at|timesince }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-gray-500">No overdue tickets</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Insights -->
+  <div class="card bg-base-200 shadow-md mt-6">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">Key Insights</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm text-gray-600 mb-1">Most Common Issue</p>
+          <p class="font-medium">
+            {% if category_stats %}
+              {{ category_stats.0.display_name }} ({{ category_stats.0.count }} tickets)
+            {% else %}
+              No data
+            {% endif %}
+          </p>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600 mb-1">Average Urgent Response Time</p>
+          <p class="font-medium">
+            {% if avg_urgent_response %}
+              {{ avg_urgent_response|floatformat:1 }} hours
+            {% else %}
+              No urgent tickets resolved
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Daily Ticket Trend Chart
+const ctx = document.getElementById('dailyTicketChart').getContext('2d');
+const dailyData = {{ daily_tickets|safe }};
+
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: dailyData.map(d => d.date),
+    datasets: [{
+      label: 'Total Tickets',
+      data: dailyData.map(d => d.total),
+      borderColor: 'rgb(59, 130, 246)',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      tension: 0.1
+    }, {
+      label: 'Resolved',
+      data: dailyData.map(d => d.resolved),
+      borderColor: 'rgb(34, 197, 94)',
+      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+      tension: 0.1
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom'
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1
+        }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

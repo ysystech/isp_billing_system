@@ -1,0 +1,222 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Customer Acquisition Report - {{ year }}{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost btn-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Reports
+      </a>
+      <h1 class="text-3xl font-bold text-gray-800">Customer Acquisition Report</h1>
+      <p class="text-xl text-gray-600">Year {{ year }}</p>
+    </div>
+    <div>
+      <select class="select select-bordered" onchange="window.location.href='?year=' + this.value">
+        {% for y in "2024,2025,2026"|make_list %}
+          <option value="{{ y }}" {% if y|stringformat:"s" == year|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">New Customers</h2>
+        <p class="text-3xl font-bold text-success">{{ total_new_customers }}</p>
+        <p class="text-xs {% if yoy_growth > 0 %}text-success{% else %}text-error{% endif %}">
+          {% if yoy_growth > 0 %}+{% endif %}{{ yoy_growth|floatformat:1 }}% YoY
+        </p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">New Installations</h2>
+        <p class="text-3xl font-bold">{{ total_new_installations }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">Avg Activation Time</h2>
+        <p class="text-3xl font-bold">{{ avg_activation_time|floatformat:1 }} days</p>
+        <p class="text-xs text-gray-500">Installation to first payment</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">Monthly Average</h2>
+        <p class="text-3xl font-bold">{{ total_new_customers|div:12|floatformat:0 }}</p>
+        <p class="text-xs text-gray-500">customers/month</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Acquisition Chart -->
+  <div class="card bg-base-100 shadow-md mb-6">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">Monthly Customer Acquisition</h2>
+      <canvas id="monthlyAcquisitionChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Monthly Breakdown Table -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Monthly Details</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>New Customers</th>
+                <th>Installations</th>
+                <th>Activations</th>
+                <th>Cumulative</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for month in monthly_data_table %}
+                <tr>
+                  <td>{{ month.month_name }}</td>
+                  <td class="font-medium">{{ month.new_customers }}</td>
+                  <td>{{ month.new_installations }}</td>
+                  <td>{{ month.activations }}</td>
+                  <td class="text-primary font-bold">{{ month.cumulative }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="font-bold">
+                <td>Total</td>
+                <td>{{ total_new_customers }}</td>
+                <td>{{ total_new_installations }}</td>
+                <td>-</td>
+                <td>{{ total_new_customers }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Barangays -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Top Acquisition Areas</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Barangay</th>
+                <th>New Customers</th>
+                <th>% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for area in barangay_data %}
+                <tr>
+                  <td>{{ area.barangay__name }}</td>
+                  <td class="font-medium">{{ area.count }}</td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <div class="w-20 bg-gray-200 rounded-full h-2">
+                        <div class="bg-primary h-2 rounded-full" style="width: {% widthratio area.count total_new_customers 100 %}%"></div>
+                      </div>
+                      <span class="text-xs">{% widthratio area.count total_new_customers 100 %}%</span>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="3" class="text-center text-gray-500">No data</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popular Plans for New Customers -->
+  <div class="card bg-base-100 shadow-md">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">Popular Plans for New Customers</h2>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {% for plan in first_plans %}
+          <div class="text-center">
+            <div class="text-2xl font-bold text-primary">{{ plan.count }}</div>
+            <div class="text-sm font-medium">{{ plan.subscription_plan__name }}</div>
+            <div class="text-xs text-gray-500">{{ plan.subscription_plan__speed }} Mbps</div>
+          </div>
+        {% empty %}
+          <div class="col-span-5 text-center text-gray-500">No subscription data</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('monthlyAcquisitionChart').getContext('2d');
+const monthlyData = {{ monthly_data|safe }};
+
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: monthlyData.map(d => d.month_name),
+    datasets: [{
+      label: 'New Customers',
+      data: monthlyData.map(d => d.new_customers),
+      borderColor: 'rgb(59, 130, 246)',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      tension: 0.1
+    }, {
+      label: 'Cumulative',
+      data: monthlyData.map(d => d.cumulative),
+      borderColor: 'rgb(34, 197, 94)',
+      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+      tension: 0.1,
+      yAxisID: 'y1',
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    scales: {
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        grid: {
+          drawOnChartArea: false,
+        },
+      },
+    }
+  }
+});
+</script>
+
+{% endblock %}

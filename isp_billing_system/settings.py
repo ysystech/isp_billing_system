@@ -67,6 +67,7 @@ THIRD_PARTY_APPS = [
     "waffle",
     "django_celery_beat",
     "template_partials.apps.SimpleAppConfig",
+    "widget_tweaks",  # django-widget-tweaks for form styling
 ]
 
 # Put your project-specific apps here
@@ -81,6 +82,7 @@ PROJECT_APPS = [
     "apps.customer_subscriptions.apps.CustomerSubscriptionsConfig",
     "apps.lcp.apps.LcpConfig",
     "apps.tickets.apps.TicketsConfig",
+    "apps.reports.apps.ReportsConfig",
     "apps.web",
 ]
 
@@ -270,7 +272,7 @@ TURNSTILE_SECRET = env("TURNSTILE_SECRET", default=None)
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Manila"
 
 USE_I18N = False
 

@@ -102,6 +102,8 @@
           <td>
             <a href="{% url 'customer_subscriptions:subscription_detail' subscription.pk %}" 
                class="btn btn-sm btn-info">View</a>
+            <a href="{% url 'customer_subscriptions:generate_receipt' subscription.pk %}" 
+               class="btn btn-sm btn-success" target="_blank">Print Receipt</a>
           </td>
         </tr>
         {% empty %}

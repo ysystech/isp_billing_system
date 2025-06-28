@@ -1,0 +1,194 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Technician Performance Report{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost btn-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Reports
+      </a>
+      <h1 class="text-3xl font-bold text-gray-800">Technician Performance Report</h1>
+      <p class="text-gray-600">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }} ({{ days }} days)</p>
+    </div>
+    <div>
+      <select class="select select-bordered" onchange="window.location.href='?days=' + this.value">
+        <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+        <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+        <option value="60" {% if days == 60 %}selected{% endif %}>Last 60 days</option>
+        <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Daily Activity Chart -->
+  <div class="card bg-base-100 shadow-md mb-6">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">Daily Activity Overview</h2>
+      <canvas id="dailyActivityChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <!-- Technician Performance Table -->
+  <div class="card bg-base-100 shadow-md">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">Individual Performance Metrics</h2>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Technician</th>
+              <th>Installations</th>
+              <th>Tickets Handled</th>
+              <th>Tickets Resolved</th>
+              <th>Resolution Rate</th>
+              <th>Avg Resolution Time</th>
+              <th>Areas Covered</th>
+              <th>Performance Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for stat in technician_stats %}
+              <tr class="hover">
+                <td>
+                  <div class="font-medium">{{ stat.technician.get_full_name|default:stat.technician.username }}</div>
+                  <div class="text-sm text-gray-500">{{ stat.technician.email }}</div>
+                </td>
+                <td class="text-center">
+                  <span class="badge badge-info">{{ stat.installations_completed }}</span>
+                </td>
+                <td class="text-center">{{ stat.tickets_assigned }}</td>
+                <td class="text-center">
+                  <span class="text-success font-medium">{{ stat.tickets_resolved }}</span>
+                  {% if stat.tickets_pending > 0 %}
+                    <span class="text-warning text-sm">({{ stat.tickets_pending }} pending)</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <span class="badge {% if stat.resolution_rate >= 80 %}badge-success{% elif stat.resolution_rate >= 60 %}badge-warning{% else %}badge-error{% endif %}">
+                    {{ stat.resolution_rate|floatformat:0 }}%
+                  </span>
+                </td>
+                <td class="text-center">
+                  {% if stat.avg_resolution_time %}
+                    {{ stat.avg_resolution_time|floatformat:1 }} hrs
+                  {% else %}
+                    <span class="text-gray-400">-</span>
+                  {% endif %}
+                </td>
+                <td class="text-center">
+                  <div class="dropdown dropdown-hover">
+                    <label tabindex="0" class="btn btn-xs btn-ghost">{{ stat.areas_covered }} areas</label>
+                    {% if stat.area_names %}
+                      <div tabindex="0" class="dropdown-content z-[1] card card-compact w-64 p-2 shadow bg-base-100">
+                        <div class="card-body">
+                          <p class="text-xs">{{ stat.area_names|join:", " }}</p>
+                        </div>
+                      </div>
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="text-center">
+                  {% with score=stat.installations_completed|add:stat.tickets_resolved %}
+                    <div class="radial-progress text-primary" style="--value:{% widthratio score 50 100 %};">
+                      {{ score }}
+                    </div>
+                  {% endwith %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="8" class="text-center py-8 text-gray-500">No technician data available</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Summary -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+    <div class="card bg-primary text-primary-content shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Top Performer</h2>
+        {% if technician_stats %}
+          <p class="text-2xl font-bold">{{ technician_stats.0.technician.get_full_name|default:technician_stats.0.technician.username }}</p>
+          <p class="text-sm">{{ technician_stats.0.installations_completed|add:technician_stats.0.tickets_resolved }} total completions</p>
+        {% else %}
+          <p class="text-gray-300">No data</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card bg-success text-success-content shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Best Resolution Rate</h2>
+        {% with best_resolver=technician_stats|dictsort:"-resolution_rate"|first %}
+          {% if best_resolver and best_resolver.tickets_assigned > 0 %}
+            <p class="text-2xl font-bold">{{ best_resolver.technician.get_full_name|default:best_resolver.technician.username }}</p>
+            <p class="text-sm">{{ best_resolver.resolution_rate|floatformat:0 }}% tickets resolved</p>
+          {% else %}
+            <p class="text-gray-300">No data</p>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+
+    <div class="card bg-info text-info-content shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Fastest Response</h2>
+        {% with fastest=technician_stats|dictsort:"avg_resolution_time"|first %}
+          {% if fastest and fastest.avg_resolution_time %}
+            <p class="text-2xl font-bold">{{ fastest.technician.get_full_name|default:fastest.technician.username }}</p>
+            <p class="text-sm">{{ fastest.avg_resolution_time|floatformat:1 }} hrs average</p>
+          {% else %}
+            <p class="text-gray-300">No data</p>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('dailyActivityChart').getContext('2d');
+const dailyData = {{ daily_activity|safe }};
+
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: dailyData.map(d => d.date),
+    datasets: [{
+      label: 'Installations',
+      data: dailyData.map(d => d.installations),
+      backgroundColor: 'rgba(59, 130, 246, 0.8)',
+    }, {
+      label: 'Tickets',
+      data: dailyData.map(d => d.tickets),
+      backgroundColor: 'rgba(34, 197, 94, 0.8)',
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        stacked: true,
+      },
+      y: {
+        stacked: true,
+        beginAtZero: true
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

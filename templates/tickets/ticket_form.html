@@ -4,7 +4,7 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block app %}
-<div class="container mx-auto px-4 py-8" x-data="ticketForm()">
+<div class="container mx-auto px-4 py-8" x-data="ticketForm()" @click.away="showCustomerResults = false">
   <div class="max-w-4xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
@@ -35,13 +35,14 @@
           <!-- Customer Search -->
           <div class="form-control">
             <label class="label">
-              <span class="label-text">Search Customer</span>
+              <span class="label-text">Search Customer <span class="text-error">*</span></span>
             </label>
             <input type="text" 
                    x-model="customerSearch"
                    @input="searchCustomers"
                    class="input input-bordered w-full"
-                   placeholder="Type customer name, email, or phone...">
+                   placeholder="Type customer name, email, or phone..."
+                   :required="!selectedCustomer">
             
             <!-- Search Results -->
             <div x-show="showCustomerResults && customerResults.length > 0" 
@@ -67,12 +68,16 @@
               <span x-text="selectedCustomer?.email"></span> • 
               <span x-text="selectedCustomer?.phone"></span>
             </div>
+            <button type="button" @click="clearCustomer()" class="btn btn-xs btn-ghost mt-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Clear
+            </button>
           </div>
 
           <!-- Hidden customer field -->
-          <div class="hidden">
-            {{ form.customer }}
-          </div>
+          {{ form.customer }}
 
           <!-- Customer Installation -->
           <div class="form-control mt-4">
@@ -220,6 +225,13 @@ function ticketForm() {
     {% else %}null{% endif %},
     showCustomerResults: false,
     
+    init() {
+      // If there's already a selected customer, set the search field
+      if (this.selectedCustomer) {
+        this.customerSearch = this.selectedCustomer.name;
+      }
+    },
+    
     async searchCustomers() {
       if (this.customerSearch.length < 2) {
         this.customerResults = [];
@@ -239,7 +251,7 @@ function ticketForm() {
     
     async selectCustomer(customer) {
       this.selectedCustomer = customer;
-      this.customerSearch = customer.text;
+      this.customerSearch = customer.name || customer.text;
       this.showCustomerResults = false;
       
       // Set the hidden customer field
@@ -247,6 +259,16 @@ function ticketForm() {
       
       // Load installations for this customer
       await this.loadInstallations(customer.id);
+    },
+    
+    clearCustomer() {
+      this.selectedCustomer = null;
+      this.customerSearch = '';
+      document.getElementById('id_customer').value = '';
+      
+      // Clear installations
+      const installationSelect = document.getElementById('id_customer_installation');
+      installationSelect.innerHTML = '<option value="">---------</option>';
     },
     
     async loadInstallations(customerId) {

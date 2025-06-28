@@ -10,6 +10,7 @@ urlpatterns = [
     path('create/', views.subscription_create, name='subscription_create'),
     path('<int:pk>/', views.subscription_detail, name='subscription_detail'),
     path('<int:pk>/cancel/', views.subscription_cancel, name='subscription_cancel'),
+    path('<int:subscription_id>/receipt/', views.generate_receipt, name='generate_receipt'),
     path('customer/<int:customer_id>/history/', views.customer_payment_history, name='payment_history'),
     
     # API endpoints

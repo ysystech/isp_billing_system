@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acknowledgment Receipt</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+                padding: 10mm;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15mm;
+            color: #333;
+            line-height: 1.2;
+            font-size: 12px;
+        }
+        
+        .receipt-container {
+            max-width: 170mm;
+            margin: 0 auto;
+            border: 2px solid #000;
+            padding: 15px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+        }
+        
+        .company-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            color: #1a1a1a;
+        }
+        
+        .company-details {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .receipt-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .receipt-number {
+            font-size: 12px;
+            margin-top: 3px;
+            color: #d32f2f;
+        }
+        
+        .content {
+            margin: 20px 0;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            width: 100px;
+            flex-shrink: 0;
+        }
+        
+        .info-value {
+            flex-grow: 1;
+        }
+        
+        .customer-section {
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            margin-bottom: 15px;
+        }
+        
+        .customer-section h3 {
+            font-size: 13px;
+            margin: 0 0 8px 0;
+        }
+        
+        .payment-details {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+        }
+        
+        .payment-details h3 {
+            font-size: 13px;
+            margin: 0 0 8px 0;
+        }
+        
+        .amount-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #000;
+        }
+        
+        .total-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .signature-box {
+            text-align: center;
+            width: 180px;
+        }
+        
+        .signature-line {
+            border-bottom: 1px solid #000;
+            margin-bottom: 3px;
+            height: 30px;
+        }
+        
+        .signature-label {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .notice {
+            margin-top: 20px;
+            padding: 8px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            font-size: 10px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="company-name">{{ company_name|upper }}</div>
+            <div class="company-details">
+                {{ company_address }}<br>
+                Tel: {{ company_phone }} | Email: {{ company_email }}
+            </div>
+            <div class="receipt-title">ACKNOWLEDGMENT RECEIPT</div>
+            <div class="receipt-number">No. {{ receipt_number }}</div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Customer Information -->
+            <div class="customer-section">
+                <h3>RECEIVED FROM:</h3>
+                <div class="info-row">
+                    <div class="info-label">Name:</div>
+                    <div class="info-value">{{ subscription.customer_installation.customer.get_full_name|upper }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Address:</div>
+                    <div class="info-value">
+                        {{ subscription.customer_installation.customer.street_address }}, 
+                        {{ subscription.customer_installation.customer.barangay.name }}
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Contact:</div>
+                    <div class="info-value">{{ subscription.customer_installation.customer.phone_primary }}</div>
+                </div>
+            </div>
+            
+            <!-- Payment Details -->
+            <div class="payment-details">
+                <h3>PAYMENT FOR:</h3>
+                <div class="info-row">
+                    <div class="info-label">Service Plan:</div>
+                    <div class="info-value">{{ subscription.subscription_plan.name }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Speed:</div>
+                    <div class="info-value">{{ subscription.subscription_plan.speed }} Mbps</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Type:</div>
+                    <div class="info-value">{{ subscription.get_subscription_type_display }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Coverage Period:</div>
+                    <div class="info-value">
+                        {{ subscription.start_date|date:"M d, Y g:i A" }} - 
+                        {{ subscription.end_date|date:"M d, Y g:i A" }}
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Days Added:</div>
+                    <div class="info-value">{{ subscription.days_added }} days</div>
+                </div>
+            </div>
+            
+            <!-- Amount Section -->
+            <div class="amount-section">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 14px; font-weight: bold;">Total</div>
+                    <div class="total-amount">₱{{ subscription.amount|floatformat:2 }}</div>
+                </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Customer Signature</div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-line">
+                        <div style="padding-top: 15px; font-size: 11px;">{{ subscription.created_by.get_full_name|default:subscription.created_by.username }}</div>
+                    </div>
+                    <div class="signature-label">Authorized Representative</div>
+                </div>
+            </div>
+            
+            <div class="notice">
+                <strong>NOTICE:</strong> This serves as an acknowledgment receipt for the internet service subscription payment stated above. 
+                Please keep this receipt for your records.
+            </div>
+            
+            <!-- Print DateTime -->
+            <div style="text-align: center; margin-top: 15px; font-size: 10px; color: #666;">
+                Printed on: {{ print_datetime|date:"F d, Y g:i A" }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -29,13 +29,10 @@ class TicketForm(forms.ModelForm):
         ]
         widgets = {
             'customer': forms.Select(attrs={
-                'class': 'select select-bordered w-full',
-                'x-model': 'selectedCustomer',
-                '@change': 'loadInstallations'
+                'class': 'select select-bordered w-full'
             }),
             'customer_installation': forms.Select(attrs={
-                'class': 'select select-bordered w-full',
-                'x-model': 'selectedInstallation'
+                'class': 'select select-bordered w-full'
             }),
             'title': forms.TextInput(attrs={
                 'class': 'input input-bordered w-full',
@@ -82,6 +79,7 @@ class TicketForm(forms.ModelForm):
         
         # Set required fields
         self.fields['customer'].required = True
+        self.fields['customer'].widget = forms.HiddenInput()  # Make it hidden since we use search
         self.fields['customer_installation'].required = True
         self.fields['title'].required = True
         self.fields['description'].required = True

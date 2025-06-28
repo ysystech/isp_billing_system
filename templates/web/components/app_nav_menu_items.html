@@ -26,15 +26,15 @@
     </a>
   </li>
   <li>
-    <a href="{% url 'routers:list' %}" {% if active_tab == 'routers' %}class="menu-active"{% endif %}>
-      <i class="fa fa-wifi h-4 w-4"></i>
-      {% translate "Routers" %}
-    </a>
-  </li>
-  <li>
     <a href="{% url 'subscriptions:subscription_plan_list' %}" {% if active_tab == 'subscription-plans' %}class="menu-active"{% endif %}>
       <i class="fa fa-list-alt h-4 w-4"></i>
       {% translate "Subscription Plans" %}
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'routers:list' %}" {% if active_tab == 'routers' %}class="menu-active"{% endif %}>
+      <i class="fa fa-wifi h-4 w-4"></i>
+      {% translate "Routers" %}
     </a>
   </li>
   <li>
@@ -99,6 +99,17 @@
     <a href="{% url 'customer_subscriptions:active_subscriptions' %}" {% if active_tab == 'active_subscriptions' %}class="menu-active"{% endif %}>
       <i class="fa fa-check-circle h-4 w-4"></i>
       {% translate "Active Subscriptions" %}
+    </a>
+  </li>
+</ul>
+<li class="menu-title">
+  <span>{% translate "Reports" %}</span>
+</li>
+<ul class="menu-list">
+  <li>
+    <a href="{% url 'reports:dashboard' %}" {% if active_tab == 'reports' %}class="menu-active"{% endif %}>
+      <i class="fa fa-chart-bar h-4 w-4"></i>
+      {% translate "Reports Dashboard" %}
     </a>
   </li>
 </ul>

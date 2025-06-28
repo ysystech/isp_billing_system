@@ -1,0 +1,202 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Payment Behavior Report{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost btn-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Reports
+      </a>
+      <h1 class="text-3xl font-bold text-gray-800">Payment Behavior Report</h1>
+      <p class="text-gray-600">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }} ({{ days }} days)</p>
+    </div>
+    <div>
+      <select class="select select-bordered" onchange="window.location.href='?days=' + this.value">
+        <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+        <option value="60" {% if days == 60 %}selected{% endif %}>Last 60 days</option>
+        <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+        <option value="180" {% if days == 180 %}selected{% endif %}>Last 180 days</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">Total Payments</h2>
+        <p class="text-3xl font-bold">{{ total_subscriptions|intcomma }}</p>
+        <p class="text-sm text-gray-500">₱{{ total_revenue|floatformat:2|intcomma }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">Average Payment</h2>
+        <p class="text-3xl font-bold">₱{{ total_revenue|div:total_subscriptions|default:0|floatformat:2|intcomma }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">Custom Payments</h2>
+        <p class="text-3xl font-bold">{{ custom_stats.count }}</p>
+        <p class="text-sm text-gray-500">₱{{ custom_stats.avg|floatformat:2 }} avg</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Payment Type Distribution -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Payment Type Distribution</h2>
+        <div class="space-y-4">
+          {% for type in payment_type_data %}
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="font-medium">{{ type.display }}</span>
+                <div class="text-right">
+                  <span class="font-bold">{{ type.count }}</span>
+                  <span class="text-sm text-gray-500">({{ type.percentage|floatformat:1 }}%)</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-gray-200 rounded-full h-2">
+                  <div class="bg-primary h-2 rounded-full" style="width: {{ type.percentage }}%"></div>
+                </div>
+                <span class="text-sm font-medium w-24 text-right">₱{{ type.total|floatformat:2|intcomma }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Renewal Patterns -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Renewal Patterns</h2>
+        {% if renewal_stats.total > 0 %}
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-success">{{ renewal_stats.early }}</div>
+              <div class="text-sm text-gray-600">Early</div>
+              <div class="text-xs text-gray-500">{{ renewal_stats.early_pct|floatformat:1 }}%</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-info">{{ renewal_stats.on_time }}</div>
+              <div class="text-sm text-gray-600">On Time</div>
+              <div class="text-xs text-gray-500">{{ renewal_stats.on_time_pct|floatformat:1 }}%</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-warning">{{ renewal_stats.late }}</div>
+              <div class="text-sm text-gray-600">Late</div>
+              <div class="text-xs text-gray-500">{{ renewal_stats.late_pct|floatformat:1 }}%</div>
+            </div>
+          </div>
+          <div class="alert alert-info">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Average gap: {{ renewal_stats.avg_gap_days|floatformat:1 }} days between subscriptions</span>
+          </div>
+        {% else %}
+          <p class="text-gray-500 text-center py-8">Not enough renewal data</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Payment Amount Distribution -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Payment Amount Distribution</h2>
+        <div class="space-y-3">
+          {% for range in amount_distribution %}
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">{{ range.range }}</span>
+              <div class="flex items-center gap-2">
+                <div class="w-32 bg-gray-200 rounded-full h-2">
+                  <div class="bg-success h-2 rounded-full" style="width: {{ range.percentage }}%"></div>
+                </div>
+                <span class="text-sm w-16 text-right">{{ range.count }} ({{ range.percentage|floatformat:0 }}%)</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Day of Week Analysis -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Payments by Day of Week</h2>
+        <canvas id="dowChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Payment Analysis -->
+  {% if custom_stats.count > 0 %}
+    <div class="card bg-base-200 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Custom Payment Analysis</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <p class="text-sm text-gray-600">Total Custom Payments</p>
+            <p class="text-xl font-bold">{{ custom_stats.count }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600">Average Amount</p>
+            <p class="text-xl font-bold">₱{{ custom_stats.avg|floatformat:2|intcomma }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600">Minimum</p>
+            <p class="text-xl font-bold">₱{{ custom_stats.min|floatformat:2|intcomma }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600">Maximum</p>
+            <p class="text-xl font-bold">₱{{ custom_stats.max|floatformat:2|intcomma }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Day of Week Chart
+const ctx = document.getElementById('dowChart').getContext('2d');
+const dowData = {{ dow_data|safe }};
+
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: dowData.map(d => d.day),
+    datasets: [{
+      label: 'Payments',
+      data: dowData.map(d => d.count),
+      backgroundColor: 'rgba(34, 197, 94, 0.8)',
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  }
+});
+</script>
+
+{% endblock %}

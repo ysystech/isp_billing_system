@@ -21,7 +21,9 @@ botocore==1.38.30
     #   boto3
     #   s3transfer
 brotli==1.1.0
-    # via whitenoise
+    # via
+    #   fonttools
+    #   whitenoise
 celery[redis]==5.5.3
     # via
     #   -r requirements/requirements.in
@@ -31,7 +33,9 @@ celery-progress==0.5
 certifi==2025.4.26
     # via requests
 cffi==1.17.1
-    # via cryptography
+    # via
+    #   cryptography
+    #   weasyprint
 charset-normalizer==3.4.2
     # via requests
 click==8.2.1
@@ -52,6 +56,8 @@ cryptography==45.0.3
     # via
     #   fido2
     #   pyjwt
+cssselect2==0.8.0
+    # via weasyprint
 django==5.2.2
     # via
     #   -r requirements/requirements.in
@@ -89,6 +95,8 @@ django-vite==3.1.0
     # via -r requirements/requirements.in
 django-waffle==4.2.0
     # via -r requirements/requirements.in
+django-widget-tweaks==1.5.0
+    # via -r requirements/requirements.in
 djangorestframework==3.16.0
     # via
     #   -r requirements/requirements.in
@@ -97,6 +105,8 @@ drf-spectacular==0.28.0
     # via -r requirements/requirements.in
 fido2==2.0.0
     # via django-allauth
+fonttools[woff]==4.58.4
+    # via weasyprint
 idna==3.10
     # via requests
 inflection==0.5.1
@@ -115,14 +125,20 @@ oauthlib==3.2.2
     # via requests-oauthlib
 packaging==25.0
     # via kombu
+pillow==11.2.1
+    # via weasyprint
 prompt-toolkit==3.0.51
     # via click-repl
 psycopg2-binary==2.9.10
     # via -r requirements/requirements.in
 pycparser==2.22
     # via cffi
+pydyf==0.11.0
+    # via weasyprint
 pyjwt[crypto]==2.10.1
     # via django-allauth
+pyphen==0.17.2
+    # via weasyprint
 python-crontab==3.2.0
     # via django-celery-beat
 python-dateutil==2.9.0.post0
@@ -159,6 +175,12 @@ six==1.17.0
     # via python-dateutil
 sqlparse==0.5.3
     # via django
+tinycss2==1.4.0
+    # via
+    #   cssselect2
+    #   weasyprint
+tinyhtml5==2.0.0
+    # via weasyprint
 typing-extensions==4.14.0
     # via referencing
 tzdata==2025.2
@@ -179,5 +201,14 @@ vine==5.1.0
     #   kombu
 wcwidth==0.2.13
     # via prompt-toolkit
+weasyprint==65.1
+    # via -r requirements/requirements.in
+webencodings==0.5.1
+    # via
+    #   cssselect2
+    #   tinycss2
+    #   tinyhtml5
 whitenoise[brotli]==6.9.0
     # via -r requirements/requirements.in
+zopfli==0.2.3.post1
+    # via fonttools

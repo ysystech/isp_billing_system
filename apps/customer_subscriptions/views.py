@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.db.models import Q, Prefetch
+from django.template.loader import render_to_string
 from decimal import Decimal
 import json
+from weasyprint import HTML
+import tempfile
 
 from .models import CustomerSubscription
 from .forms import CustomerSubscriptionForm
@@ -327,3 +330,49 @@ def customer_payment_history(request, customer_id):
     }
     
     return render(request, 'customer_subscriptions/payment_history.html', context)
+
+
+
+@login_required
+def generate_receipt(request, subscription_id):
+    """Generate official receipt for a subscription payment."""
+    subscription = get_object_or_404(
+        CustomerSubscription.objects.select_related(
+            'customer_installation__customer',
+            'customer_installation__nap__splitter__lcp',
+            'subscription_plan',
+            'created_by'
+        ),
+        id=subscription_id
+    )
+    
+    # Generate receipt number (format: AR-YYYY-MMDD-XXXX)
+    receipt_date = subscription.created_at
+    receipt_count = CustomerSubscription.objects.filter(
+        created_at__date=receipt_date.date(),
+        created_at__lt=receipt_date
+    ).count() + 1
+    receipt_number = f"AR-{receipt_date.strftime('%Y-%m%d')}-{receipt_count:04d}"
+    
+    context = {
+        'subscription': subscription,
+        'receipt_number': receipt_number,
+        'company_name': 'Your ISP Company Name',
+        'company_address': '123 Main Street, Cagayan de Oro City',
+        'company_phone': '(088) 123-4567',
+        'company_email': 'billing@yourisp.com',
+        'print_datetime': timezone.now(),  # Add current datetime for printing
+    }
+    
+    # Generate PDF
+    html_string = render_to_string('customer_subscriptions/receipts/official_receipt.html', context)
+    html = HTML(string=html_string)
+    
+    # Create a temporary file
+    result = html.write_pdf()
+    
+    # Create the HTTP response
+    response = HttpResponse(result, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="receipt_{receipt_number}.pdf"'
+    
+    return response

@@ -256,3 +256,82 @@ def nap_delete(request, pk):
         'active_tab': 'lcp',
     }
     return render(request, 'lcp/nap_confirm_delete.html', context)
+
+
+
+# API Views for hierarchical selection
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+
+
+@login_required
+@require_http_methods(["GET"])
+def api_get_lcps(request):
+    """Get all active LCPs for dropdown selection."""
+    lcps = LCP.objects.filter(is_active=True).values('id', 'name', 'code').order_by('code')
+    return JsonResponse(list(lcps), safe=False)
+
+
+@login_required
+@require_http_methods(["GET"])
+def api_get_splitters(request, lcp_id):
+    """Get all splitters for a specific LCP."""
+    splitters = Splitter.objects.filter(lcp_id=lcp_id).annotate(
+        nap_count=Count('naps')
+    )
+    
+    # Build the response with calculated properties
+    splitter_list = []
+    for splitter in splitters:
+        splitter_data = {
+            'id': splitter.id,
+            'code': splitter.code,
+            'type': splitter.type,
+            'port_capacity': splitter.port_capacity,  # This is a property
+            'nap_count': splitter.naps.count(),
+            'used_ports': splitter.used_ports,  # This is a property
+            'available_ports': splitter.available_ports  # This is a property
+        }
+        splitter_list.append(splitter_data)
+    
+    return JsonResponse(splitter_list, safe=False)
+
+
+@login_required
+@require_http_methods(["GET"])
+def api_get_naps(request, splitter_id):
+    """Get all NAPs for a specific splitter."""
+    naps = NAP.objects.filter(splitter_id=splitter_id, is_active=True)
+    
+    # Build the response with calculated properties
+    nap_list = []
+    for nap in naps:
+        nap_data = {
+            'id': nap.id,
+            'name': nap.name,
+            'code': nap.code,
+            'port_capacity': nap.port_capacity,  # This is a field
+            'used_ports': nap.used_ports,  # This is a property
+            'available_ports': nap.available_ports  # This is a property
+        }
+        nap_list.append(nap_data)
+    
+    return JsonResponse(nap_list, safe=False)
+
+
+@login_required
+@require_http_methods(["GET"])
+def api_get_nap_hierarchy(request, nap_id):
+    """Get the full hierarchy for a specific NAP (for edit mode)."""
+    nap = get_object_or_404(NAP.objects.select_related('splitter__lcp'), id=nap_id)
+    
+    hierarchy = {
+        'lcp_id': nap.splitter.lcp.id,
+        'splitter_id': nap.splitter.id,
+        'nap_id': nap.id,
+        'lcp_name': nap.splitter.lcp.name,
+        'splitter_code': nap.splitter.code,
+        'nap_name': nap.name
+    }
+    
+    return JsonResponse(hierarchy)
