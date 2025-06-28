@@ -17,14 +17,18 @@ def is_superuser(user):
 @user_passes_test(is_superuser)
 def user_management_list(request):
     """List all non-superuser users with search and filter functionality."""
-    form = UserSearchForm(request.GET)
+    # Set default is_active to 'true' if not provided
+    get_data = request.GET.copy()
+    if 'is_active' not in get_data:
+        get_data['is_active'] = 'true'
+    
+    form = UserSearchForm(get_data)
     # Exclude superusers from the list
     users = CustomUser.objects.filter(is_superuser=False)
     
     # Apply search filter
     if form.is_valid():
         search_query = form.cleaned_data.get('search')
-        user_type = form.cleaned_data.get('user_type')
         is_active = form.cleaned_data.get('is_active')
         
         if search_query:
@@ -34,9 +38,6 @@ def user_management_list(request):
                 Q(email__icontains=search_query) |
                 Q(username__icontains=search_query)
             )
-        
-        if user_type:
-            users = users.filter(user_type=user_type)
         
         if is_active:
             users = users.filter(is_active=(is_active == 'true'))

@@ -22,8 +22,7 @@ class UserManagementViewTest(TestCase):
             email='cashier@test.com',
             password='testpass123',
             first_name='Cashier',
-            last_name='User',
-            user_type=User.CASHIER
+            last_name='User'
         )
         
         self.technician_user = User.objects.create_user(
@@ -31,8 +30,7 @@ class UserManagementViewTest(TestCase):
             email='tech@test.com',
             password='testpass123',
             first_name='Tech',
-            last_name='User',
-            user_type=User.TECHNICIAN
+            last_name='User'
         )
         
         # Login as superuser
@@ -47,8 +45,9 @@ class UserManagementViewTest(TestCase):
         # Should contain regular users
         self.assertContains(response, 'Cashier User')
         self.assertContains(response, 'Tech User')
-        # Should NOT contain superuser
-        self.assertNotContains(response, 'admin@test.com')
+        # Should NOT contain superuser in the user list table
+        # Note: admin email may appear in navbar but not in the user list
+        self.assertNotContains(response, 'Super Admin')
     
     def test_create_user(self):
         """Test creating a new user."""
@@ -56,7 +55,6 @@ class UserManagementViewTest(TestCase):
         data = {
             'full_name': 'New User',
             'email': 'newuser@test.com',
-            'user_type': User.CASHIER,
             'password': 'newpass123',
             'password_confirm': 'newpass123'
         }
@@ -69,7 +67,6 @@ class UserManagementViewTest(TestCase):
         self.assertEqual(new_user.first_name, 'New')
         self.assertEqual(new_user.last_name, 'User')
         self.assertEqual(new_user.username, 'newuser@test.com')
-        self.assertEqual(new_user.user_type, User.CASHIER)
         self.assertTrue(new_user.check_password('newpass123'))
     
     def test_update_user(self):
@@ -78,7 +75,6 @@ class UserManagementViewTest(TestCase):
         data = {
             'full_name': 'Updated Cashier',
             'email': 'updated@test.com',
-            'user_type': User.TECHNICIAN,
             'is_active': True
         }
         
@@ -91,7 +87,7 @@ class UserManagementViewTest(TestCase):
         self.assertEqual(self.cashier_user.last_name, 'Cashier')
         self.assertEqual(self.cashier_user.email, 'updated@test.com')
         self.assertEqual(self.cashier_user.username, 'updated@test.com')
-        self.assertEqual(self.cashier_user.user_type, User.TECHNICIAN)
+        self.assertTrue(self.cashier_user.is_active)
     
     def test_deactivate_user(self):
         """Test that users can be deactivated."""
@@ -113,11 +109,11 @@ class UserManagementViewTest(TestCase):
         self.assertContains(response, 'Cashier User')
         self.assertNotContains(response, 'Tech User')
         
-        # Filter by user type
-        response = self.client.get(url, {'user_type': User.TECHNICIAN})
+        # Filter by status
+        response = self.client.get(url, {'is_active': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Tech User')
-        self.assertNotContains(response, 'Cashier User')
+        self.assertContains(response, 'Cashier User')
     
     def test_non_superuser_cannot_access(self):
         """Test that non-superusers cannot access user management."""

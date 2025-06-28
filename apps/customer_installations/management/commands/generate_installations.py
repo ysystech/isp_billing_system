@@ -36,7 +36,7 @@ class Command(BaseCommand):
         
         # Get available routers and technicians
         routers = list(Router.objects.all())
-        technicians = list(CustomUser.objects.filter(user_type='TECHNICIAN', is_active=True))
+        technicians = list(CustomUser.objects.filter(is_active=True))
         
         if not routers:
             self.stdout.write(
@@ -53,8 +53,7 @@ class Command(BaseCommand):
                 username='technician@example.com',
                 password='testpass123',
                 first_name='John',
-                last_name='Technician',
-                user_type='TECHNICIAN'
+                last_name='Technician'
             )
             technicians = [technician]
         

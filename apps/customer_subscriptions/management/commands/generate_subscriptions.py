@@ -35,12 +35,10 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING('No active subscription plans found'))
             return
         
-        # Get a cashier user
-        cashier = CustomUser.objects.filter(user_type='CASHIER').first()
+        # Get a staff user
+        cashier = CustomUser.objects.filter(is_staff=True).first()
         if not cashier:
-            cashier = CustomUser.objects.filter(is_staff=True).first()
-        if not cashier:
-            self.stdout.write(self.style.WARNING('No cashier or staff user found'))
+            self.stdout.write(self.style.WARNING('No staff user found'))
             return
         
         subscriptions_created = 0

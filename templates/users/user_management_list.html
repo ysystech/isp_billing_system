@@ -23,12 +23,9 @@
   <!-- Search and Filter Form -->
   <form method="get" class="mb-6" hx-get="{% url 'users:user_management_list' %}" hx-target="#user-list" hx-indicator="#search-indicator">
     {% csrf_token %}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="md:col-span-2">
         {{ form.search }}
-      </div>
-      <div>
-        {{ form.user_type }}
       </div>
       <div>
         {{ form.is_active }}

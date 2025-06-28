@@ -17,12 +17,6 @@
     <div>
       <h1 class="pg-title">{{ user_obj.get_full_name|default:"No name" }}</h1>
       <div class="mt-2 flex items-center space-x-2">
-        {% if user_obj.user_type == 'CASHIER' %}
-        <span class="badge badge-success">Cashier</span>
-        {% elif user_obj.user_type == 'TECHNICIAN' %}
-        <span class="badge badge-info">Technician</span>
-        {% endif %}
-        
         {% if user_obj.is_active %}
         <span class="badge badge-success">Active</span>
         {% else %}
@@ -63,11 +57,6 @@
           <div>
             <p class="text-sm text-gray-500">Username</p>
             <p class="font-medium">{{ user_obj.username }}</p>
-          </div>
-          
-          <div>
-            <p class="text-sm text-gray-500">User Type</p>
-            <p class="font-medium">{{ user_obj.get_user_type_display }}</p>
           </div>
         </div>
       </div>

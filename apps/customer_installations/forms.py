@@ -30,7 +30,7 @@ class CustomerInstallationForm(forms.ModelForm):
     )
     
     installation_technician = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(user_type='TECHNICIAN', is_active=True),
+        queryset=CustomUser.objects.filter(is_active=True),
         widget=forms.Select(attrs={
             'class': 'select select-bordered w-full',
             'data-placeholder': 'Select a technician'

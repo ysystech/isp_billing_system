@@ -15,7 +15,6 @@ class Command(BaseCommand):
                 'last_name': 'Dela Cruz',
                 'email': 'juan.delacruz@ispbilling.com',
                 'username': 'juan.delacruz@ispbilling.com',
-                'user_type': User.CASHIER,
                 'is_active': True,
             },
             {
@@ -23,7 +22,6 @@ class Command(BaseCommand):
                 'last_name': 'Reyes',
                 'email': 'ana.reyes@ispbilling.com',
                 'username': 'ana.reyes@ispbilling.com',
-                'user_type': User.CASHIER,
                 'is_active': True,
             },
             {
@@ -31,7 +29,6 @@ class Command(BaseCommand):
                 'last_name': 'Garcia',
                 'email': 'pedro.garcia@ispbilling.com',
                 'username': 'pedro.garcia@ispbilling.com',
-                'user_type': User.TECHNICIAN,
                 'is_active': True,
             },
             {
@@ -39,7 +36,6 @@ class Command(BaseCommand):
                 'last_name': 'Martinez',
                 'email': 'carlos.martinez@ispbilling.com',
                 'username': 'carlos.martinez@ispbilling.com',
-                'user_type': User.TECHNICIAN,
                 'is_active': True,
             },
             {
@@ -47,7 +43,6 @@ class Command(BaseCommand):
                 'last_name': 'Domingo',
                 'email': 'rosa.domingo@ispbilling.com',
                 'username': 'rosa.domingo@ispbilling.com',
-                'user_type': User.TECHNICIAN,
                 'is_active': True,
             },
             {
@@ -55,8 +50,7 @@ class Command(BaseCommand):
                 'last_name': 'Rizal',
                 'email': 'jose.rizal@ispbilling.com',
                 'username': 'jose.rizal@ispbilling.com',
-                'user_type': User.CASHIER,
-                'is_active': False,  # Inactive cashier
+                'is_active': False,  # Inactive user
             },
         ]
 
@@ -70,14 +64,13 @@ class Command(BaseCommand):
                     password='testpass123',  # Default password for all test users
                     first_name=user_data['first_name'],
                     last_name=user_data['last_name'],
-                    user_type=user_data['user_type'],
                     is_active=user_data['is_active'],
                 )
                 created_count += 1
                 status = "Active" if user.is_active else "Inactive"
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f'Created {user.get_user_type_display()} user: {user.get_full_name()} ({status})'
+                        f'Created user: {user.get_full_name()} ({status})'
                     )
                 )
             else:

@@ -112,11 +112,8 @@ class UserManagementCreateForm(forms.ModelForm):
     
     class Meta:
         model = CustomUser
-        fields = ['full_name', 'email', 'user_type']
+        fields = ['full_name', 'email']
         widgets = {
-            'user_type': forms.Select(attrs={
-                'class': 'select select-bordered w-full'
-            })
         }
     
     def clean_email(self):
@@ -180,11 +177,8 @@ class UserManagementUpdateForm(forms.ModelForm):
     
     class Meta:
         model = CustomUser
-        fields = ['full_name', 'email', 'user_type', 'is_active']
+        fields = ['full_name', 'email', 'is_active']
         widgets = {
-            'user_type': forms.Select(attrs={
-                'class': 'select select-bordered w-full'
-            }),
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'checkbox checkbox-primary'
             })
@@ -235,24 +229,13 @@ class UserSearchForm(forms.Form):
         })
     )
     
-    user_type = forms.ChoiceField(
-        required=False,
-        choices=[('', 'All Types')] + CustomUser.USER_TYPE_CHOICES,
-        widget=forms.Select(attrs={
-            'class': 'select select-bordered select-sm',
-            'hx-get': '',
-            'hx-target': '#user-list',
-            'hx-trigger': 'change',
-            'hx-indicator': '#search-indicator'
-        })
-    )
-    
     is_active = forms.ChoiceField(
         required=False,
+        initial='true',  # Set default to Active Only
         choices=[
-            ('', 'All Users'),
             ('true', 'Active Only'),
-            ('false', 'Inactive Only')
+            ('false', 'Inactive Only'),
+            ('', 'All Users')
         ],
         widget=forms.Select(attrs={
             'class': 'select select-bordered select-sm',

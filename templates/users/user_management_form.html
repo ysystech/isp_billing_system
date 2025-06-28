@@ -58,19 +58,6 @@
           {% endif %}
         </div>
 
-        <!-- User Type -->
-        <div class="form-control">
-          <label for="{{ form.user_type.id_for_label }}" class="label">
-            <span class="label-text">User Type</span>
-          </label>
-          {{ form.user_type }}
-          {% if form.user_type.errors %}
-          <label class="label">
-            <span class="label-text-alt text-error">{{ form.user_type.errors.0 }}</span>
-          </label>
-          {% endif %}
-        </div>
-
         {% if form.password %}
         <!-- Password fields for create form -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

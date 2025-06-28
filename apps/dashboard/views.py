@@ -67,9 +67,8 @@ def dashboard(request):
     # Get user statistics (excluding superusers)
     user_stats = {
         "total": CustomUser.objects.filter(is_superuser=False).count(),
-        "cashiers": CustomUser.objects.filter(user_type=CustomUser.CASHIER, is_superuser=False).count(),
-        "technicians": CustomUser.objects.filter(user_type=CustomUser.TECHNICIAN, is_superuser=False).count(),
         "active": CustomUser.objects.filter(is_active=True, is_superuser=False).count(),
+        "inactive": CustomUser.objects.filter(is_active=False, is_superuser=False).count(),
     }
     
     # Get installation statistics
