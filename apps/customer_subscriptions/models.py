@@ -83,6 +83,18 @@ class CustomerSubscription(BaseModel):
             models.Index(fields=['customer_installation', 'status']),
             models.Index(fields=['start_date', 'end_date']),
         ]
+        permissions = [
+            ("view_subscription_list", "Can view subscription list"),
+            ("view_subscription_detail", "Can view subscription details"),
+            ("create_subscription", "Can create new subscription"),
+            ("process_payment", "Can process subscription payment"),
+            ("generate_receipt", "Can generate payment receipt"),
+            ("cancel_subscription", "Can cancel subscription"),
+            ("view_payment_history", "Can view payment history"),
+            ("export_subscription_data", "Can export subscription data"),
+            ("view_financial_summary", "Can view financial summary"),
+            ("process_refund", "Can process subscription refund"),
+        ]
     
     def __str__(self):
         return f"{self.customer_installation.customer.full_name} - {self.subscription_plan.name} ({self.get_subscription_type_display()})"

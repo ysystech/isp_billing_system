@@ -68,6 +68,30 @@ class Customer(BaseModel, GeoLocatedModel):
             models.Index(fields=["status"]),
             models.Index(fields=["last_name", "first_name"]),
         ]
+        permissions = [
+            # View permissions
+            ("view_customer_list", "Can view customer list"),
+            ("view_customer_detail", "Can view customer details"),
+            ("view_customer_sensitive_info", "Can view sensitive customer information"),
+            
+            # Create/Edit permissions
+            ("create_customer", "Can create new customer"),  # Changed from add_customer
+            ("change_customer_basic", "Can edit customer basic information"),
+            ("change_customer_status", "Can change customer status"),
+            ("change_customer_address", "Can edit customer address"),
+            
+            # Delete permissions
+            ("remove_customer", "Can remove customer"),  # Changed from delete_customer
+            ("bulk_delete_customers", "Can bulk delete customers"),
+            
+            # Export/Import permissions
+            ("export_customers", "Can export customer data"),
+            ("import_customers", "Can import customer data"),
+            
+            # Special operations
+            ("merge_duplicate_customers", "Can merge duplicate customer records"),
+            ("view_customer_coordinates", "Can view customer GPS coordinates"),
+        ]
     
     def __str__(self):
         return f"{self.get_full_name()} ({self.email})"

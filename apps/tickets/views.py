@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from django.http import JsonResponse
@@ -13,6 +13,7 @@ from apps.customer_installations.models import CustomerInstallation
 
 
 @login_required
+@permission_required('tickets.view_ticket_list', raise_exception=True)
 def ticket_list(request):
     """List all tickets with filtering and search."""
     tickets = Ticket.objects.select_related(
@@ -68,6 +69,7 @@ def ticket_list(request):
 
 
 @login_required
+@permission_required('tickets.create_ticket', raise_exception=True)
 def ticket_create(request):
     """Create a new ticket."""
     if request.method == 'POST':
@@ -115,6 +117,7 @@ def ticket_create(request):
 
 
 @login_required
+@permission_required('tickets.view_ticket_detail', raise_exception=True)
 def ticket_detail(request, pk):
     """View ticket details and add comments."""
     ticket = get_object_or_404(
@@ -151,6 +154,7 @@ def ticket_detail(request, pk):
 
 
 @login_required
+@permission_required('tickets.change_ticket', raise_exception=True)
 def ticket_update(request, pk):
     """Update ticket details."""
     ticket = get_object_or_404(Ticket, pk=pk)
@@ -190,6 +194,7 @@ def ticket_update(request, pk):
 
 
 @login_required
+@permission_required('tickets.assign_ticket', raise_exception=True)
 @require_POST
 def ticket_quick_assign(request, pk):
     """Quick assign ticket to a technician."""
@@ -224,6 +229,7 @@ def ticket_quick_assign(request, pk):
 
 
 @login_required
+@permission_required('tickets.change_ticket_status', raise_exception=True)
 @require_POST
 def ticket_update_status(request, pk):
     """Quick update ticket status."""
@@ -260,6 +266,7 @@ def ticket_update_status(request, pk):
 # AJAX endpoints for dynamic form behavior
 
 @login_required
+@permission_required('tickets.view_ticket', raise_exception=True)
 def ajax_search_customers(request):
     """AJAX endpoint to search customers."""
     query = request.GET.get('q', '')
@@ -287,7 +294,8 @@ def ajax_search_customers(request):
     return JsonResponse({'results': []})
 
 
-@login_required  
+@login_required
+@permission_required('tickets.view_ticket', raise_exception=True)
 def ajax_get_customer_installations(request):
     """AJAX endpoint to get customer installations."""
     customer_id = request.GET.get('customer_id')

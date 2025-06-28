@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Count, Q
 from django.core.paginator import Paginator
 from django.urls import reverse
@@ -9,6 +9,7 @@ from .forms import LCPForm, SplitterForm, NAPForm
 
 
 @login_required
+@permission_required('lcp.view_lcp_list', raise_exception=True)
 def lcp_list(request):
     lcps = LCP.objects.select_related('barangay').annotate(
         splitter_count=Count('splitters'),
@@ -47,6 +48,7 @@ def lcp_list(request):
 
 
 @login_required
+@permission_required('lcp.view_lcp_detail', raise_exception=True)
 def lcp_detail(request, pk):
     lcp = get_object_or_404(LCP.objects.select_related('barangay'), pk=pk)
     splitters = lcp.splitters.annotate(nap_count=Count('naps')).order_by('code')
@@ -60,6 +62,7 @@ def lcp_detail(request, pk):
 
 
 @login_required
+@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def lcp_create(request):
     if request.method == 'POST':
         form = LCPForm(request.POST)
@@ -78,6 +81,7 @@ def lcp_create(request):
 
 
 @login_required
+@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def lcp_edit(request, pk):
     lcp = get_object_or_404(LCP, pk=pk)
     
@@ -99,6 +103,7 @@ def lcp_edit(request, pk):
 
 
 @login_required
+@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def lcp_delete(request, pk):
     lcp = get_object_or_404(LCP, pk=pk)
     
@@ -117,6 +122,7 @@ def lcp_delete(request, pk):
 
 # Splitter views
 @login_required
+@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def splitter_create(request, lcp_pk):
     lcp = get_object_or_404(LCP, pk=lcp_pk)
     

@@ -128,6 +128,18 @@ class Ticket(BaseModel):
             models.Index(fields=['customer', '-created_at']),
             models.Index(fields=['assigned_to', 'status']),
         ]
+        permissions = [
+            ("view_ticket_list", "Can view ticket list"),
+            ("view_ticket_detail", "Can view ticket details"),
+            ("create_ticket", "Can create new ticket"),
+            ("assign_ticket", "Can assign ticket to technician"),
+            ("change_ticket_status", "Can change ticket status"),
+            ("change_ticket_priority", "Can change ticket priority"),
+            ("add_ticket_comment", "Can add comments to tickets"),
+            ("view_all_tickets", "Can view all tickets (not just assigned)"),
+            ("export_ticket_data", "Can export ticket data"),
+            ("remove_ticket", "Can remove ticket"),  # Changed from delete_ticket
+        ]
     
     def __str__(self):
         return f"{self.ticket_number} - {self.title}"
@@ -228,6 +240,10 @@ class TicketComment(BaseModel):
     
     class Meta:
         ordering = ['created_at']
+        permissions = [
+            ("view_ticket_comments", "Can view ticket comments"),
+            ("delete_any_comment", "Can delete any comment"),
+        ]
     
     def __str__(self):
         return f"Comment on {self.ticket.ticket_number} by {self.user.get_full_name()}"

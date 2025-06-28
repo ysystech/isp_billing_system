@@ -1,0 +1,73 @@
+{% extends "web/app/app_base.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block app %}
+<section class="app-card">
+  <div class="mb-6">
+    <h1 class="pg-title">{{ title }}</h1>
+  </div>
+  
+  <form method="post" class="max-w-2xl">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+      <div class="alert alert-error mb-4">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+    
+    <div class="form-control w-full mb-4">
+      <label class="label">
+        <span class="label-text">{{ form.name.label }}</span>
+      </label>
+      {{ form.name|add_class:"input input-bordered w-full" }}
+      {% if form.name.errors %}
+        <label class="label">
+          <span class="label-text-alt text-error">{{ form.name.errors.0 }}</span>
+        </label>
+      {% endif %}
+    </div>
+    
+    <div class="form-control w-full mb-4">
+      <label class="label">
+        <span class="label-text">{{ form.description.label }}</span>
+      </label>
+      {{ form.description|add_class:"textarea textarea-bordered w-full h-24" }}
+      {% if form.description.errors %}
+        <label class="label">
+          <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+        </label>
+      {% endif %}
+    </div>
+    
+    {% if role and role.is_system %}
+    <div class="alert alert-warning mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span>This is a system role. Be careful when making changes.</span>
+    </div>
+    {% endif %}
+    
+    <div class="form-control w-full mb-6">
+      <label class="label cursor-pointer">
+        <span class="label-text">{{ form.is_active.label }}</span>
+        {{ form.is_active|add_class:"toggle toggle-primary" }}
+      </label>
+    </div>
+    
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        {% if role %}{% translate "Update Role" %}{% else %}{% translate "Create Role" %}{% endif %}
+      </button>
+      <a href="{% url 'roles:role_list' %}" class="btn btn-ghost">
+        {% translate "Cancel" %}
+      </a>
+    </div>
+  </form>
+</section>
+{% endblock %}

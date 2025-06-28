@@ -83,6 +83,16 @@ class CustomerInstallation(BaseModel, GeoLocatedModel):
         verbose_name_plural = "Customer Installations"
         # Ensure unique port assignment per NAP
         unique_together = [['nap', 'nap_port']]
+        permissions = [
+            ("view_installation_list", "Can view installation list"),
+            ("view_installation_detail", "Can view installation details"),
+            ("create_installation", "Can create new installation"),
+            ("change_installation_status", "Can change installation status"),
+            ("assign_technician", "Can assign technician to installation"),
+            ("view_installation_technical_details", "Can view technical details"),
+            ("manage_nap_assignments", "Can manage NAP port assignments"),
+            ("export_installation_data", "Can export installation data"),
+        ]
     
     def __str__(self):
         return f"{self.customer.full_name} - Installation ({self.get_status_display()})"

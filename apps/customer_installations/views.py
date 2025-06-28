@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Q, Count, Max
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -14,6 +14,7 @@ from apps.customers.models import Customer
 
 
 @login_required
+@permission_required('customer_installations.view_installation_list', raise_exception=True)
 def installation_list(request):
     """List all customer installations with search and filter."""
     installations = CustomerInstallation.objects.select_related(
@@ -47,6 +48,7 @@ def installation_list(request):
 
 
 @login_required
+@permission_required('customer_installations.view_installation_detail', raise_exception=True)
 def installation_detail(request, pk):
     """Display installation details."""
     installation = get_object_or_404(
@@ -65,6 +67,7 @@ def installation_detail(request, pk):
 
 
 @login_required
+@permission_required('customer_installations.create_installation', raise_exception=True)
 def installation_create(request):
     """Create a new customer installation."""
     if request.method == 'POST':
@@ -93,6 +96,7 @@ def installation_create(request):
 
 
 @login_required
+@permission_required('customer_installations.change_customerinstallation', raise_exception=True)
 def installation_update(request, pk):
     """Update an existing installation."""
     installation = get_object_or_404(CustomerInstallation, pk=pk)
@@ -118,6 +122,7 @@ def installation_update(request, pk):
 
 
 @login_required
+@permission_required('customer_installations.delete_customerinstallation', raise_exception=True)
 @require_http_methods(["POST"])
 def installation_delete(request, pk):
     """Delete an installation (soft delete by setting status to terminated)."""
@@ -135,6 +140,7 @@ def installation_delete(request, pk):
 
 
 @login_required
+@permission_required('customer_installations.view_installation_technical_details', raise_exception=True)
 def get_nap_ports(request, nap_id):
     """API endpoint to get NAP port availability"""
     try:

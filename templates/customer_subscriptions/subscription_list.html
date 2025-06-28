@@ -1,5 +1,6 @@
 {% extends "web/app/app_base.html" %}
 {% load humanize %}
+{% load role_tags %}
 
 {% block title %}Customer Subscriptions{% endblock %}
 
@@ -7,12 +8,14 @@
 <div class="container mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-gray-800">Customer Subscriptions</h1>
+    {% if user|has_permission:"customer_subscriptions.create_subscription" %}
     <a href="{% url 'customer_subscriptions:subscription_create' %}" class="btn btn-primary">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
       New Subscription
     </a>
+    {% endif %}
   </div>
 
   <!-- Search and Filter Form -->
@@ -100,10 +103,14 @@
             {% endif %}
           </td>
           <td>
+            {% if user|has_permission:"customer_subscriptions.view_subscription_detail" %}
             <a href="{% url 'customer_subscriptions:subscription_detail' subscription.pk %}" 
                class="btn btn-sm btn-info">View</a>
+            {% endif %}
+            {% if user|has_permission:"customer_subscriptions.generate_receipt" %}
             <a href="{% url 'customer_subscriptions:generate_receipt' subscription.pk %}" 
                class="btn btn-sm btn-success" target="_blank">Print Receipt</a>
+            {% endif %}
           </td>
         </tr>
         {% empty %}

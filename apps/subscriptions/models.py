@@ -39,6 +39,12 @@ class SubscriptionPlan(BaseModel):
         ordering = ['price', 'name']
         verbose_name = "Subscription Plan"
         verbose_name_plural = "Subscription Plans"
+        permissions = [
+            ("view_subscriptionplan_list", "Can view subscription plan list"),
+            ("change_subscriptionplan_pricing", "Can change plan pricing"),
+            ("activate_deactivate_plans", "Can activate/deactivate plans"),
+            ("create_promotional_plans", "Can create promotional plans"),
+        ]
     
     def __str__(self):
         return f"{self.name} - {self.speed}Mbps ({self.day_count} days, ₱{self.price})"

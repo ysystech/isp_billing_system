@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
@@ -12,6 +12,7 @@ from .models import Customer
 
 
 @login_required
+@permission_required('customers.view_customer_list', raise_exception=True)
 def customer_list(request):
     """List all customers with search and filtering"""
     form = CustomerSearchForm(request.GET or None)
@@ -56,6 +57,7 @@ def customer_list(request):
 
 
 @login_required
+@permission_required('customers.view_customer_detail', raise_exception=True)
 def customer_detail(request, pk):
     """Display customer details"""
     customer = get_object_or_404(Customer.objects.select_related("user", "barangay"), pk=pk)
@@ -66,6 +68,7 @@ def customer_detail(request, pk):
 
 
 @login_required
+@permission_required('customers.create_customer', raise_exception=True)
 def customer_create(request):
     """Create a new customer"""
     if request.method == "POST":
@@ -94,6 +97,7 @@ def customer_create(request):
 
 
 @login_required
+@permission_required('customers.change_customer', raise_exception=True)
 def customer_update(request, pk):
     """Update customer information"""
     customer = get_object_or_404(Customer, pk=pk)
@@ -122,6 +126,7 @@ def customer_update(request, pk):
 
 
 @login_required
+@permission_required('customers.remove_customer', raise_exception=True)
 @require_http_methods(["POST", "DELETE"])
 def customer_delete(request, pk):
     """Delete (deactivate) a customer"""
@@ -144,6 +149,7 @@ def customer_delete(request, pk):
 
 
 @login_required
+@permission_required('customers.view_customer_list', raise_exception=True)
 def customer_quick_stats(request):
     """Get quick statistics for dashboard"""
     stats = {

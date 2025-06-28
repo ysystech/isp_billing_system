@@ -28,6 +28,13 @@ class LCP(BaseModel, GeoLocatedModel):
         verbose_name = "LCP"
         verbose_name_plural = "LCPs"
         ordering = ['code']
+        permissions = [
+            ("view_lcp_list", "Can view LCP list"),
+            ("view_lcp_detail", "Can view LCP details"),
+            ("manage_lcp_infrastructure", "Can manage LCP infrastructure"),
+            ("view_lcp_map", "Can view LCP on map"),
+            ("export_lcp_data", "Can export LCP data"),
+        ]
 
     def __str__(self):
         return f"{self.code} - {self.name}"
@@ -65,6 +72,11 @@ class Splitter(BaseModel, GeoLocatedModel):
     class Meta:
         unique_together = ['lcp', 'code']
         ordering = ['lcp', 'code']
+        permissions = [
+            ("view_splitter_list", "Can view splitter list"),
+            ("view_splitter_detail", "Can view splitter details"),
+            ("manage_splitter_ports", "Can manage splitter ports"),
+        ]
 
     def __str__(self):
         return f"{self.lcp.code} - {self.code} ({self.type})"
@@ -120,6 +132,12 @@ class NAP(BaseModel, GeoLocatedModel):
         verbose_name_plural = "NAPs"
         unique_together = ['splitter', 'code']  # Changed from splitter_port to code
         ordering = ['splitter__lcp', 'splitter', 'splitter_port']
+        permissions = [
+            ("view_nap_list", "Can view NAP list"),
+            ("view_nap_detail", "Can view NAP details"),
+            ("manage_nap_ports", "Can manage NAP ports"),
+            ("view_nap_availability", "Can view NAP port availability"),
+        ]
 
     def __str__(self):
         return f"{self.splitter.lcp.code} > {self.splitter.code} (Port {self.splitter_port}) > {self.code}"

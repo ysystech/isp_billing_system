@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Sum, Count, Q, F, Min
 from django.utils import timezone
 from django.http import HttpResponse
@@ -19,6 +19,7 @@ from apps.lcp.models import NAP
 
 
 @login_required
+@permission_required('reports.view_reports', raise_exception=True)
 def reports_dashboard(request):
     """Main reports dashboard showing available reports."""
     context = {
@@ -28,6 +29,7 @@ def reports_dashboard(request):
 
 
 @login_required
+@permission_required('reports.view_daily_collection_report', raise_exception=True)
 def daily_collection_report(request):
     """Daily collection report showing today's payments."""
     # Get date from request or use today
@@ -124,6 +126,7 @@ def daily_collection_report(request):
 
 
 @login_required
+@permission_required('reports.view_subscription_expiry_report', raise_exception=True)
 def subscription_expiry_report(request):
     """Report showing subscriptions due to expire."""
     today = timezone.now()
@@ -233,7 +236,8 @@ def subscription_expiry_report(request):
     return render(request, 'reports/subscription_expiry.html', context)
 
 
-@login_required  
+@login_required
+@permission_required('reports.view_monthly_revenue_report', raise_exception=True)
 def monthly_revenue_report(request):
     """Monthly revenue analysis report."""
     # Get month and year from request
@@ -372,6 +376,7 @@ def monthly_revenue_report(request):
 
 
 @login_required
+@permission_required('reports.view_ticket_analysis_report', raise_exception=True)
 def ticket_analysis_report(request):
     """Ticket analysis report for service quality insights."""
     from apps.tickets.models import Ticket, TicketComment
@@ -519,6 +524,7 @@ def ticket_analysis_report(request):
 
 
 @login_required
+@permission_required('reports.view_technician_performance_report', raise_exception=True)
 def technician_performance_report(request):
     """Technician performance report for staff efficiency tracking."""
     from apps.tickets.models import Ticket
@@ -621,6 +627,7 @@ def technician_performance_report(request):
 
 
 @login_required
+@permission_required('reports.view_customer_acquisition_report', raise_exception=True)
 def customer_acquisition_report(request):
     """Customer acquisition report for growth tracking."""
     # Get year
@@ -738,6 +745,7 @@ def customer_acquisition_report(request):
 
 
 @login_required
+@permission_required('reports.view_payment_behavior_report', raise_exception=True)
 def payment_behavior_report(request):
     """Payment behavior report for financial planning."""
     # Get date range
@@ -878,6 +886,7 @@ def payment_behavior_report(request):
 
 
 @login_required
+@permission_required('reports.view_area_performance_dashboard', raise_exception=True)
 def area_performance_dashboard(request):
     """Area performance dashboard for geographic business insights."""
     # Get all active barangays

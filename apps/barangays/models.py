@@ -30,6 +30,11 @@ class Barangay(BaseModel):
         ordering = ["name"]
         verbose_name = "Barangay"
         verbose_name_plural = "Barangays"
+        permissions = [
+            ("view_barangay_list", "Can view barangay list"),
+            ("manage_barangay_status", "Can activate/deactivate barangays"),
+            ("view_barangay_statistics", "Can view barangay statistics"),
+        ]
         indexes = [
             models.Index(fields=["name"]),
             models.Index(fields=["is_active"]),

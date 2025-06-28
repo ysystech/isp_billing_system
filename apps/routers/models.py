@@ -48,6 +48,14 @@ class Router(BaseModel):
         indexes = [
             models.Index(fields=["serial_number"]),
         ]
+        permissions = [
+            ("view_router_list", "Can view router list"),
+            ("view_router_detail", "Can view router details"),
+            ("manage_router_inventory", "Can manage router inventory"),
+            ("export_router_data", "Can export router data"),
+            ("bulk_import_routers", "Can bulk import routers"),
+            ("view_router_mac_address", "Can view router MAC addresses"),
+        ]
     
     def __str__(self):
         return f"{self.brand} {self.model} - {self.serial_number}" if self.model else f"{self.brand} - {self.serial_number}"

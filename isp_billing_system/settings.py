@@ -83,6 +83,7 @@ PROJECT_APPS = [
     "apps.lcp.apps.LcpConfig",
     "apps.tickets.apps.TicketsConfig",
     "apps.reports.apps.ReportsConfig",
+    "apps.roles.apps.RolesConfig",
     "apps.web",
 ]
 
@@ -151,6 +152,7 @@ TEMPLATES = [
                 "apps.web.context_processors.project_meta",
                 # this line can be removed if not using google analytics
                 "apps.web.context_processors.google_analytics_id",
+                "apps.roles.context_processors.user_roles",
             ],
             "loaders": _DEFAULT_LOADERS if DEBUG else _CACHED_LOADERS,
             "builtins": [

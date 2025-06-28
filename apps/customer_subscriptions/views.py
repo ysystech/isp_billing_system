@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
@@ -17,6 +17,7 @@ from apps.subscriptions.models import SubscriptionPlan
 
 
 @login_required
+@permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def subscription_list(request):
     """List all customer subscriptions with filtering."""
     subscriptions = CustomerSubscription.objects.select_related(
@@ -64,6 +65,7 @@ def subscription_list(request):
 
 
 @login_required
+@permission_required('customer_subscriptions.create_subscription', raise_exception=True)
 def subscription_create(request):
     """Create a new subscription with preview."""
     # Check if installation_id is passed in query params
@@ -105,6 +107,7 @@ def subscription_create(request):
 
 
 @login_required
+@permission_required('customer_subscriptions.view_subscription_detail', raise_exception=True)
 def subscription_detail(request, pk):
     """View subscription details."""
     subscription = get_object_or_404(
@@ -130,6 +133,7 @@ def subscription_detail(request, pk):
 
 
 @login_required
+@permission_required('customer_subscriptions.cancel_subscription', raise_exception=True)
 def subscription_cancel(request, pk):
     """Cancel a subscription."""
     subscription = get_object_or_404(CustomerSubscription, pk=pk)
@@ -146,6 +150,7 @@ def subscription_cancel(request, pk):
 # API Endpoints for AJAX functionality
 
 @login_required
+@permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def api_get_latest_subscription(request):
     """Get the latest subscription for an installation."""
     installation_id = request.GET.get('installation_id')
@@ -175,6 +180,7 @@ def api_get_latest_subscription(request):
 
 
 @login_required
+@permission_required('customer_subscriptions.create_subscription', raise_exception=True)
 def api_calculate_preview(request):
     """Calculate subscription preview based on amount and type."""
     try:
@@ -211,7 +217,8 @@ def api_calculate_preview(request):
         return JsonResponse({'error': str(e)}, status=400)
 
 
-@login_required 
+@login_required
+@permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def api_get_plan_price(request):
     """Get the price of a subscription plan."""
     plan_id = request.GET.get('plan_id')
@@ -231,6 +238,7 @@ def api_get_plan_price(request):
 
 
 @login_required
+@permission_required('customer_subscriptions.view_active_subscriptions', raise_exception=True)
 def active_subscriptions(request):
     """View all active subscriptions per customer."""
     # Get all active installations with current active subscriptions
@@ -290,6 +298,7 @@ def active_subscriptions(request):
 
 
 @login_required
+@permission_required('customer_subscriptions.view_payment_history', raise_exception=True)
 def customer_payment_history(request, customer_id):
     """View all payment history for a specific customer."""
     # Get all installations for this customer
@@ -335,6 +344,7 @@ def customer_payment_history(request, customer_id):
 
 
 @login_required
+@permission_required('customer_subscriptions.generate_receipt', raise_exception=True)
 def generate_receipt(request, subscription_id):
     """Generate official receipt for a subscription payment."""
     subscription = get_object_or_404(
