@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.http import HttpResponse
@@ -10,12 +10,7 @@ from apps.barangays.models import Barangay
 from apps.barangays.forms import BarangayForm
 
 
-def is_superuser(user):
-    return user.is_superuser
-
-
 @login_required
-@user_passes_test(is_superuser)
 def barangay_list(request):
     """List all barangays with search and pagination"""
     barangays = Barangay.objects.annotate(
@@ -58,7 +53,6 @@ def barangay_list(request):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def barangay_detail(request, pk):
     """View barangay details"""
     barangay = get_object_or_404(
@@ -82,7 +76,6 @@ def barangay_detail(request, pk):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def barangay_create(request):
     """Create a new barangay"""
     if request.method == "POST":
@@ -108,7 +101,6 @@ def barangay_create(request):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def barangay_update(request, pk):
     """Update a barangay"""
     barangay = get_object_or_404(Barangay, pk=pk)
@@ -140,7 +132,6 @@ def barangay_update(request, pk):
 
 
 @login_required
-@user_passes_test(is_superuser)
 @require_http_methods(["DELETE"])
 def barangay_delete(request, pk):
     """Delete a barangay (soft delete by setting is_active=False)"""
@@ -164,7 +155,6 @@ def barangay_delete(request, pk):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def barangay_quick_stats(request):
     """Get quick statistics for barangays (for dashboard)"""
     stats = {

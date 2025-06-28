@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.template.response import TemplateResponse
 from django.utils import timezone
@@ -26,7 +26,7 @@ def _string_to_date(date_str: str) -> datetime.date:
     return datetime.strptime(date_str, date_format).date()
 
 
-@user_passes_test(lambda u: u.is_superuser, login_url="/404")
+@login_required
 @staff_member_required
 def dashboard(request):
     end_str = request.GET.get("end")

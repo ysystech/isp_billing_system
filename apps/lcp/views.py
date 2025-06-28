@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.core.paginator import Paginator
 from django.urls import reverse
@@ -8,12 +8,7 @@ from .models import LCP, Splitter, NAP
 from .forms import LCPForm, SplitterForm, NAPForm
 
 
-def is_superuser(user):
-    return user.is_superuser
-
-
 @login_required
-@user_passes_test(is_superuser)
 def lcp_list(request):
     lcps = LCP.objects.select_related('barangay').annotate(
         splitter_count=Count('splitters'),
@@ -52,7 +47,6 @@ def lcp_list(request):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def lcp_detail(request, pk):
     lcp = get_object_or_404(LCP.objects.select_related('barangay'), pk=pk)
     splitters = lcp.splitters.annotate(nap_count=Count('naps')).order_by('code')
@@ -66,7 +60,6 @@ def lcp_detail(request, pk):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def lcp_create(request):
     if request.method == 'POST':
         form = LCPForm(request.POST)
@@ -85,7 +78,6 @@ def lcp_create(request):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def lcp_edit(request, pk):
     lcp = get_object_or_404(LCP, pk=pk)
     
@@ -107,7 +99,6 @@ def lcp_edit(request, pk):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def lcp_delete(request, pk):
     lcp = get_object_or_404(LCP, pk=pk)
     
@@ -126,7 +117,6 @@ def lcp_delete(request, pk):
 
 # Splitter views
 @login_required
-@user_passes_test(is_superuser)
 def splitter_create(request, lcp_pk):
     lcp = get_object_or_404(LCP, pk=lcp_pk)
     
@@ -150,7 +140,6 @@ def splitter_create(request, lcp_pk):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def splitter_edit(request, pk):
     splitter = get_object_or_404(Splitter.objects.select_related('lcp'), pk=pk)
     
@@ -173,7 +162,6 @@ def splitter_edit(request, pk):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def splitter_delete(request, pk):
     splitter = get_object_or_404(Splitter.objects.select_related('lcp'), pk=pk)
     lcp = splitter.lcp
@@ -193,7 +181,6 @@ def splitter_delete(request, pk):
 
 # NAP views
 @login_required
-@user_passes_test(is_superuser)
 def nap_create(request, splitter_pk):
     splitter = get_object_or_404(Splitter.objects.select_related('lcp'), pk=splitter_pk)
     
@@ -217,7 +204,6 @@ def nap_create(request, splitter_pk):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def nap_edit(request, pk):
     nap = get_object_or_404(NAP.objects.select_related('splitter__lcp'), pk=pk)
     
@@ -240,7 +226,6 @@ def nap_edit(request, pk):
 
 
 @login_required
-@user_passes_test(is_superuser)
 def nap_delete(request, pk):
     nap = get_object_or_404(NAP.objects.select_related('splitter__lcp'), pk=pk)
     lcp = nap.splitter.lcp

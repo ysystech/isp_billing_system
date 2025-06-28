@@ -29,70 +29,69 @@ def home(request):
             "page_title": _("Dashboard"),
         }
         
-        if request.user.is_superuser:
-            # Date range handling
-            end_str = request.GET.get("end")
-            end = _string_to_date(end_str) if end_str else timezone.now().date() + timedelta(days=1)
-            start_str = request.GET.get("start")
-            start = _string_to_date(start_str) if start_str else end - timedelta(days=90)
-            serializer = UserSignupStatsSerializer(get_user_signups(start, end), many=True)
-            form = DateRangeForm(initial={"start": start, "end": end})
-            start_value = CustomUser.objects.filter(date_joined__lt=start).count()
-            
-            # Get customer statistics
-            customer_stats = {
-                "total": Customer.objects.count(),
-                "active": Customer.objects.filter(status=Customer.ACTIVE).count(),
-                "inactive": Customer.objects.filter(status=Customer.INACTIVE).count(),
-                "suspended": Customer.objects.filter(status=Customer.SUSPENDED).count(),
-            }
-            
-            # Get barangay statistics
-            barangay_stats = {
-                "total": Barangay.objects.count(),
-                "active": Barangay.objects.filter(is_active=True).count(),
-                "with_customers": Barangay.objects.filter(customers__isnull=False).distinct().count(),
-            }
-            
-            # Get router statistics
-            router_stats = {
-                "total": Router.objects.count(),
-            }
-            
-            # Get subscription plan statistics
-            subscription_plan_stats = {
-                "total": SubscriptionPlan.objects.count(),
-                "active": SubscriptionPlan.objects.filter(is_active=True).count(),
-                "inactive": SubscriptionPlan.objects.filter(is_active=False).count(),
-            }
-            
-            # Get user statistics (excluding superusers)
-            user_stats = {
-                "total": CustomUser.objects.filter(is_superuser=False).count(),
-                "active": CustomUser.objects.filter(is_active=True, is_superuser=False).count(),
-                "inactive": CustomUser.objects.filter(is_active=False, is_superuser=False).count(),
-            }
-            
-            # Get installation statistics
-            installation_stats = {
-                "total_installations": CustomerInstallation.objects.count(),
-                "active_installations": CustomerInstallation.objects.filter(status='ACTIVE').count(),
-            }
-            
-            # Update context with dashboard data
-            context.update({
-                "signup_data": serializer.data,
-                "form": form,
-                "start": start.isoformat(),
-                "end": end.isoformat(),
-                "start_value": start_value,
-                "customer_stats": customer_stats,
-                "barangay_stats": barangay_stats,
-                "router_stats": router_stats,
-                "subscription_plan_stats": subscription_plan_stats,
-                "user_stats": user_stats,
-                "installation_stats": installation_stats,
-            })
+        # Date range handling
+        end_str = request.GET.get("end")
+        end = _string_to_date(end_str) if end_str else timezone.now().date() + timedelta(days=1)
+        start_str = request.GET.get("start")
+        start = _string_to_date(start_str) if start_str else end - timedelta(days=90)
+        serializer = UserSignupStatsSerializer(get_user_signups(start, end), many=True)
+        form = DateRangeForm(initial={"start": start, "end": end})
+        start_value = CustomUser.objects.filter(date_joined__lt=start).count()
+        
+        # Get customer statistics
+        customer_stats = {
+            "total": Customer.objects.count(),
+            "active": Customer.objects.filter(status=Customer.ACTIVE).count(),
+            "inactive": Customer.objects.filter(status=Customer.INACTIVE).count(),
+            "suspended": Customer.objects.filter(status=Customer.SUSPENDED).count(),
+        }
+        
+        # Get barangay statistics
+        barangay_stats = {
+            "total": Barangay.objects.count(),
+            "active": Barangay.objects.filter(is_active=True).count(),
+            "with_customers": Barangay.objects.filter(customers__isnull=False).distinct().count(),
+        }
+        
+        # Get router statistics
+        router_stats = {
+            "total": Router.objects.count(),
+        }
+        
+        # Get subscription plan statistics
+        subscription_plan_stats = {
+            "total": SubscriptionPlan.objects.count(),
+            "active": SubscriptionPlan.objects.filter(is_active=True).count(),
+            "inactive": SubscriptionPlan.objects.filter(is_active=False).count(),
+        }
+        
+        # Get user statistics (excluding superusers)
+        user_stats = {
+            "total": CustomUser.objects.filter(is_superuser=False).count(),
+            "active": CustomUser.objects.filter(is_active=True, is_superuser=False).count(),
+            "inactive": CustomUser.objects.filter(is_active=False, is_superuser=False).count(),
+        }
+        
+        # Get installation statistics
+        installation_stats = {
+            "total_installations": CustomerInstallation.objects.count(),
+            "active_installations": CustomerInstallation.objects.filter(status='ACTIVE').count(),
+        }
+        
+        # Update context with dashboard data
+        context.update({
+            "signup_data": serializer.data,
+            "form": form,
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+            "start_value": start_value,
+            "customer_stats": customer_stats,
+            "barangay_stats": barangay_stats,
+            "router_stats": router_stats,
+            "subscription_plan_stats": subscription_plan_stats,
+            "user_stats": user_stats,
+            "installation_stats": installation_stats,
+        })
         
         return render(request, "web/app_home.html", context)
     else:

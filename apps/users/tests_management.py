@@ -115,8 +115,8 @@ class UserManagementViewTest(TestCase):
         self.assertContains(response, 'Tech User')
         self.assertContains(response, 'Cashier User')
     
-    def test_non_superuser_cannot_access(self):
-        """Test that non-superusers cannot access user management."""
+    def test_non_superuser_can_access(self):
+        """Test that non-superusers can now access user management."""
         # Login as regular cashier user
         self.client.logout()
         self.client.login(username='cashier@test.com', password='testpass123')
@@ -130,5 +130,5 @@ class UserManagementViewTest(TestCase):
         
         for url in urls:
             response = self.client.get(url)
-            # Should redirect or show 404
-            self.assertIn(response.status_code, [302, 404])
+            # Should be accessible (200 OK)
+            self.assertEqual(response.status_code, 200)

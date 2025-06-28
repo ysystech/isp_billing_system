@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,12 +9,7 @@ from .models import CustomUser
 from .forms import UserManagementCreateForm, UserManagementUpdateForm, UserSearchForm
 
 
-def is_superuser(user):
-    """Check if user is a superuser."""
-    return user.is_superuser
-
-
-@user_passes_test(is_superuser)
+@login_required
 def user_management_list(request):
     """List all non-superuser users with search and filter functionality."""
     # Set default is_active to 'true' if not provided
@@ -58,7 +53,7 @@ def user_management_list(request):
     })
 
 
-@user_passes_test(is_superuser)
+@login_required
 def user_management_create(request):
     """Create a new user."""
     if request.method == 'POST':
@@ -84,7 +79,7 @@ def user_management_create(request):
     })
 
 
-@user_passes_test(is_superuser)
+@login_required
 def user_management_update(request, pk):
     """Update an existing user."""
     user = get_object_or_404(CustomUser, pk=pk, is_superuser=False)
@@ -113,7 +108,7 @@ def user_management_update(request, pk):
     })
 
 
-@user_passes_test(is_superuser)
+@login_required
 @require_http_methods(["DELETE"])
 def user_management_delete(request, pk):
     """Deactivate a user (soft delete)."""
@@ -135,7 +130,7 @@ def user_management_delete(request, pk):
     return redirect('users:user_management_list')
 
 
-@user_passes_test(is_superuser)
+@login_required
 def user_management_detail(request, pk):
     """View details of a user."""
     user = get_object_or_404(CustomUser, pk=pk, is_superuser=False)

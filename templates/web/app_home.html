@@ -7,14 +7,13 @@
 <section class="app-card">
     <h1 class="pg-title">{% translate "Dashboard" %}</h1>
     
-    {% if user.is_superuser %}
-        <!-- Customer Statistics -->
-        {% if customer_stats %}
-        <div class="mb-6">
-          <h2 class="text-xl font-semibold mb-4">Customer Overview</h2>
-          {% include 'customers/partials/quick_stats.html' with stats=customer_stats %}
-        </div>
-        {% endif %}
+    <!-- Customer Statistics -->
+    {% if customer_stats %}
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">Customer Overview</h2>
+      {% include 'customers/partials/quick_stats.html' with stats=customer_stats %}
+    </div>
+    {% endif %}
         
         <!-- Barangay Statistics -->
         {% if barangay_stats %}
@@ -79,30 +78,11 @@
             </div>
           </div>
         </div>
-    {% else %}
-        <!-- Non-superuser view -->
-        <div class="pg-columns pg-columns-reversed pg-align-items-center">
-            <div class="pg-column-one-third">
-                <img class="img-fluid" src="{% static 'images/web/rocket-laptop.svg' %}" alt="{% translate "Welcome!" %}">
-            </div>
-            <div class="pg-column">
-                <h2 class="pg-subtitle">
-                    {% translate "Welcome to ISP Billing System" %}
-                </h2>
-                <p>
-                    {% translate "You're signed in as" %} <strong>{{ user.get_full_name|default:user.email }}</strong>
-                </p>
-                <p>
-                    {% translate "Please contact your administrator for access to specific features." %}
-                </p>
-            </div>
-        </div>
-    {% endif %}
 </section>
 {% endblock %}
 
 {% block page_js %}
-{% if user.is_superuser and signup_data %}
+{% if signup_data %}
 {{ signup_data|json_script:'signup-data' }}
 {% vite_asset 'assets/javascript/app.js' %}
 <script>
