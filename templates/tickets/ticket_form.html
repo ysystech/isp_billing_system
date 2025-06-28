@@ -1,0 +1,279 @@
+{% extends "web/app/app_base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8" x-data="ticketForm()">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <a href="{% url 'tickets:ticket_list' %}" class="btn btn-ghost btn-sm mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Tickets
+      </a>
+      <h1 class="text-3xl font-bold text-gray-800">{{ title }}</h1>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <!-- Customer Selection -->
+      <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+          <h2 class="card-title text-lg mb-4">Customer Information</h2>
+          
+          <!-- Customer Search -->
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Search Customer</span>
+            </label>
+            <input type="text" 
+                   x-model="customerSearch"
+                   @input="searchCustomers"
+                   class="input input-bordered w-full"
+                   placeholder="Type customer name, email, or phone...">
+            
+            <!-- Search Results -->
+            <div x-show="showCustomerResults && customerResults.length > 0" 
+                 x-transition
+                 class="absolute z-10 mt-12 w-full bg-base-100 shadow-lg rounded-lg border border-base-300 max-h-60 overflow-y-auto">
+              <template x-for="customer in customerResults" :key="customer.id">
+                <div @click="selectCustomer(customer)"
+                     class="p-3 hover:bg-base-200 cursor-pointer border-b border-base-300 last:border-b-0">
+                  <div class="font-medium" x-text="customer.name"></div>
+                  <div class="text-sm text-gray-500">
+                    <span x-text="customer.email"></span> • 
+                    <span x-text="customer.phone"></span>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Selected Customer Display -->
+          <div x-show="selectedCustomer" class="mt-4 p-4 bg-base-200 rounded-lg">
+            <div class="font-medium" x-text="selectedCustomer?.name"></div>
+            <div class="text-sm text-gray-500">
+              <span x-text="selectedCustomer?.email"></span> • 
+              <span x-text="selectedCustomer?.phone"></span>
+            </div>
+          </div>
+
+          <!-- Hidden customer field -->
+          <div class="hidden">
+            {{ form.customer }}
+          </div>
+
+          <!-- Customer Installation -->
+          <div class="form-control mt-4">
+            <label class="label">
+              <span class="label-text">Installation Location <span class="text-error">*</span></span>
+            </label>
+            {{ form.customer_installation|add_class:"select select-bordered w-full" }}
+            {% if form.customer_installation.errors %}
+              <label class="label">
+                <span class="label-text-alt text-error">{{ form.customer_installation.errors.0 }}</span>
+              </label>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket Details -->
+      <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+          <h2 class="card-title text-lg mb-4">Ticket Details</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Title -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Title <span class="text-error">*</span></span>
+              </label>
+              {{ form.title }}
+              {% if form.title.errors %}
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ form.title.errors.0 }}</span>
+                </label>
+              {% endif %}
+            </div>
+
+            <!-- Category -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Category</span>
+              </label>
+              {{ form.category }}
+            </div>
+
+            <!-- Priority -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Priority</span>
+              </label>
+              {{ form.priority }}
+            </div>
+
+            <!-- Source -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Source</span>
+              </label>
+              {{ form.source }}
+            </div>
+
+            <!-- Status -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Status</span>
+              </label>
+              {{ form.status }}
+            </div>
+
+            <!-- Description -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Description <span class="text-error">*</span></span>
+              </label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+                </label>
+              {% endif %}
+            </div>
+
+            <!-- Assigned To -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Assign to Technician</span>
+              </label>
+              {{ form.assigned_to }}
+            </div>
+
+            <!-- Resolution Notes (if updating) -->
+            {% if form.instance.pk %}
+              <div class="form-control md:col-span-2">
+                <label class="label">
+                  <span class="label-text">Resolution Notes</span>
+                </label>
+                {{ form.resolution_notes }}
+                {% if form.resolution_notes.errors %}
+                  <label class="label">
+                    <span class="label-text-alt text-error">{{ form.resolution_notes.errors.0 }}</span>
+                  </label>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Initial Comment (for new tickets) -->
+      {% if not form.instance.pk %}
+        <div class="card bg-base-100 shadow-md">
+          <div class="card-body">
+            <h2 class="card-title text-lg mb-4">Additional Notes</h2>
+            <div class="form-control">
+              <textarea name="initial_comment" 
+                        class="textarea textarea-bordered w-full" 
+                        rows="3"
+                        placeholder="Add any additional notes or context..."></textarea>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Submit Buttons -->
+      <div class="flex gap-4">
+        <button type="submit" class="btn btn-primary">
+          {% if form.instance.pk %}Update Ticket{% else %}Create Ticket{% endif %}
+        </button>
+        <a href="{% url 'tickets:ticket_list' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function ticketForm() {
+  return {
+    customerSearch: '',
+    customerResults: [],
+    selectedCustomer: {% if form.instance.customer %}
+      {
+        id: {{ form.instance.customer.id }},
+        name: "{{ form.instance.customer.full_name }}",
+        email: "{{ form.instance.customer.email }}",
+        phone: "{{ form.instance.customer.phone_primary }}"
+      }
+    {% else %}null{% endif %},
+    showCustomerResults: false,
+    
+    async searchCustomers() {
+      if (this.customerSearch.length < 2) {
+        this.customerResults = [];
+        this.showCustomerResults = false;
+        return;
+      }
+      
+      try {
+        const response = await fetch(`{% url 'tickets:ajax_search_customers' %}?q=${encodeURIComponent(this.customerSearch)}`);
+        const data = await response.json();
+        this.customerResults = data.results;
+        this.showCustomerResults = true;
+      } catch (error) {
+        console.error('Error searching customers:', error);
+      }
+    },
+    
+    async selectCustomer(customer) {
+      this.selectedCustomer = customer;
+      this.customerSearch = customer.text;
+      this.showCustomerResults = false;
+      
+      // Set the hidden customer field
+      document.getElementById('id_customer').value = customer.id;
+      
+      // Load installations for this customer
+      await this.loadInstallations(customer.id);
+    },
+    
+    async loadInstallations(customerId) {
+      try {
+        const response = await fetch(`{% url 'tickets:ajax_get_customer_installations' %}?customer_id=${customerId}`);
+        const data = await response.json();
+        
+        // Clear and populate installation select
+        const installationSelect = document.getElementById('id_customer_installation');
+        installationSelect.innerHTML = '<option value="">---------</option>';
+        
+        data.results.forEach(installation => {
+          const option = document.createElement('option');
+          option.value = installation.id;
+          option.textContent = installation.text;
+          installationSelect.appendChild(option);
+        });
+        
+        // Select first installation if only one
+        if (data.results.length === 1) {
+          installationSelect.value = data.results[0].id;
+        }
+      } catch (error) {
+        console.error('Error loading installations:', error);
+      }
+    }
+  }
+}
+</script>
+{% endblock %}

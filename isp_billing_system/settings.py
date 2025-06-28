@@ -80,6 +80,7 @@ PROJECT_APPS = [
     "apps.customer_installations.apps.CustomerInstallationsConfig",
     "apps.customer_subscriptions.apps.CustomerSubscriptionsConfig",
     "apps.lcp.apps.LcpConfig",
+    "apps.tickets.apps.TicketsConfig",
     "apps.web",
 ]
 
@@ -413,13 +414,19 @@ CELERY_BROKER_URL = CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Add tasks to this dict and run `python manage.py bootstrap_celery_tasks` to create them
+from celery import schedules
+
 SCHEDULED_TASKS = {
-    # Example of a crontab schedule
-    # from celery import schedules
-    # "daily-4am-task": {
-    #     "task": "some.task.path",
-    #     "schedule": schedules.crontab(minute=0, hour=4),
-    # },
+    # Update expired subscriptions every 30 minutes
+    "update-expired-subscriptions": {
+        "task": "apps.customer_subscriptions.tasks.update_expired_subscriptions",
+        "schedule": schedules.crontab(minute="*/30"),  # Every 30 minutes
+    },
+    # Send expiration reminders daily at 9 AM
+    "send-expiration-reminders": {
+        "task": "apps.customer_subscriptions.tasks.send_expiration_reminders",
+        "schedule": schedules.crontab(minute=0, hour=9),  # Daily at 9 AM
+    },
 }
 
 

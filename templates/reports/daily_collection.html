@@ -1,0 +1,192 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Daily Collection Report{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost btn-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Reports
+      </a>
+      <h1 class="text-3xl font-bold text-gray-800">Daily Collection Report</h1>
+    </div>
+    <div class="flex gap-2">
+      <input type="date" id="reportDate" value="{{ report_date|date:'Y-m-d' }}" 
+             class="input input-bordered" 
+             onchange="window.location.href='?date=' + this.value">
+      <a href="?date={{ report_date|date:'Y-m-d' }}&export=csv" class="btn btn-outline btn-success">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Export CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">Total Collections</h2>
+        <p class="text-3xl font-bold text-success">₱{{ total_amount|floatformat:2|intcomma }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">Transactions</h2>
+        <p class="text-3xl font-bold">{{ total_count }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">vs Yesterday</h2>
+        <p class="text-2xl font-bold {% if yesterday_change > 0 %}text-success{% elif yesterday_change < 0 %}text-error{% endif %}">
+          {% if yesterday_change > 0 %}+{% endif %}{{ yesterday_change|floatformat:1 }}%
+        </p>
+        <p class="text-xs text-gray-500">₱{{ yesterday_total|floatformat:2|intcomma }}</p>
+      </div>
+    </div>
+    
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm text-gray-600">vs Last Week</h2>
+        <p class="text-2xl font-bold {% if last_week_change > 0 %}text-success{% elif last_week_change < 0 %}text-error{% endif %}">
+          {% if last_week_change > 0 %}+{% endif %}{{ last_week_change|floatformat:1 }}%
+        </p>
+        <p class="text-xs text-gray-500">₱{{ last_week_total|floatformat:2|intcomma }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Breakdown by Type -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">By Payment Type</h2>
+        <div class="space-y-2">
+          {% for type in type_breakdown %}
+            <div class="flex justify-between items-center">
+              <span class="text-sm">
+                {% if type.subscription_type == 'one_month' %}1 Month
+                {% elif type.subscription_type == 'fifteen_days' %}15 Days
+                {% else %}Custom{% endif %}
+              </span>
+              <div class="text-right">
+                <span class="font-medium">₱{{ type.total|floatformat:2|intcomma }}</span>
+                <span class="text-xs text-gray-500">({{ type.count }})</span>
+              </div>
+            </div>
+          {% empty %}
+            <p class="text-gray-500 text-sm">No transactions</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Breakdown by Plan -->
+    <div class="card bg-base-100 shadow-md col-span-2">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">By Subscription Plan</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Plan</th>
+                <th>Speed</th>
+                <th>Count</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for plan in plan_breakdown %}
+                <tr>
+                  <td>{{ plan.subscription_plan__name }}</td>
+                  <td>{{ plan.subscription_plan__speed }} Mbps</td>
+                  <td>{{ plan.count }}</td>
+                  <td class="text-right font-medium">₱{{ plan.total|floatformat:2|intcomma }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-gray-500">No transactions</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transaction Details -->
+  <div class="card bg-base-100 shadow-md mt-6">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">Transaction Details</h2>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Customer</th>
+              <th>Location</th>
+              <th>Plan</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Processed By</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in subscriptions %}
+              <tr class="hover">
+                <td class="text-sm">{{ sub.created_at|date:"g:i A" }}</td>
+                <td>
+                  <div class="font-medium">{{ sub.customer_installation.customer.full_name }}</div>
+                  <div class="text-xs text-gray-500">{{ sub.customer_installation.customer.phone_primary }}</div>
+                </td>
+                <td class="text-sm">
+                  {{ sub.customer_installation.nap.name }}
+                  <span class="text-gray-500">({{ sub.customer_installation.customer.barangay.name }})</span>
+                </td>
+                <td>
+                  <span class="badge badge-sm">{{ sub.subscription_plan.name }}</span>
+                </td>
+                <td class="text-sm">{{ sub.get_subscription_type_display }}</td>
+                <td class="font-medium">₱{{ sub.amount|floatformat:2|intcomma }}</td>
+                <td class="text-sm">
+                  {% if sub.created_by %}
+                    {{ sub.created_by.get_full_name|default:sub.created_by.username }}
+                  {% else %}
+                    System
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-8 text-gray-500">
+                  No collections for {{ report_date|date:"F d, Y" }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          {% if subscriptions %}
+            <tfoot>
+              <tr class="font-bold">
+                <td colspan="5" class="text-right">Total:</td>
+                <td>₱{{ total_amount|floatformat:2|intcomma }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -246,6 +246,9 @@ def active_subscriptions(request):
             to_attr='active_subscriptions'
         )
     )
+
+    print(active_installations)
+    print("-----------------")
     
     # Build list of installations with active subscriptions
     installations_data = []
@@ -277,6 +280,7 @@ def active_subscriptions(request):
         'active_tab': 'active_subscriptions',
         'current_time': timezone.now(),
     }
+    print(context)
     
     return render(request, 'customer_subscriptions/active_subscriptions.html', context)
 

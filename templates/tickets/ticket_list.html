@@ -1,0 +1,153 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Support Tickets{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Support Tickets</h1>
+    <a href="{% url 'tickets:ticket_create' %}" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      New Ticket
+    </a>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="text-sm text-gray-600">Total Tickets</h2>
+        <p class="text-2xl font-bold">{{ stats.total }}</p>
+      </div>
+    </div>
+    <div class="card bg-warning text-warning-content shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="text-sm">Pending</h2>
+        <p class="text-2xl font-bold">{{ stats.pending }}</p>
+      </div>
+    </div>
+    <div class="card bg-info text-info-content shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="text-sm">In Progress</h2>
+        <p class="text-2xl font-bold">{{ stats.in_progress }}</p>
+      </div>
+    </div>
+    <div class="card bg-success text-success-content shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="text-sm">Resolved</h2>
+        <p class="text-2xl font-bold">{{ stats.resolved }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="bg-base-200 p-4 rounded-lg mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      {{ filter_form.search }}
+      {{ filter_form.status }}
+      {{ filter_form.priority }}
+      {{ filter_form.assigned_to }}
+      <button type="submit" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+        </svg>
+        Filter
+      </button>
+    </div>
+  </form>
+
+  <!-- Tickets Table -->
+  <div class="overflow-x-auto bg-base-100 rounded-lg shadow">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Ticket #</th>
+          <th>Customer</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Assigned To</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in tickets %}
+          <tr class="hover">
+            <td>
+              <a href="{% url 'tickets:ticket_detail' pk=ticket.pk %}" class="link link-primary font-medium">
+                {{ ticket.ticket_number }}
+              </a>
+            </td>
+            <td>
+              <div class="text-sm">
+                <div class="font-medium">{{ ticket.customer.full_name }}</div>
+                <div class="text-gray-500">{{ ticket.customer_installation.nap.name }}</div>
+              </div>
+            </td>
+            <td>
+              <div class="max-w-xs truncate">{{ ticket.title }}</div>
+            </td>
+            <td>
+              <span class="text-sm">{{ ticket.get_category_display }}</span>
+            </td>
+            <td>
+              <span class="badge badge-{{ ticket.priority_color }} badge-sm">
+                {{ ticket.get_priority_display }}
+              </span>
+            </td>
+            <td>
+              <span class="badge badge-{{ ticket.status_color }} badge-sm">
+                {{ ticket.get_status_display }}
+              </span>
+            </td>
+            <td>
+              {% if ticket.assigned_to %}
+                <div class="text-sm">{{ ticket.assigned_to.get_full_name|default:ticket.assigned_to.username }}</div>
+              {% else %}
+                <span class="text-gray-400 text-sm">Unassigned</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="text-sm">
+                {{ ticket.created_at|date:"M d, Y" }}
+                <div class="text-gray-500">{{ ticket.created_at|date:"g:i A" }}</div>
+              </div>
+            </td>
+            <td>
+              <div class="flex gap-1">
+                <a href="{% url 'tickets:ticket_detail' pk=ticket.pk %}" 
+                   class="btn btn-sm btn-ghost" title="View Details">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </a>
+                {% if ticket.status != 'resolved' and ticket.status != 'cancelled' %}
+                  <a href="{% url 'tickets:ticket_update' pk=ticket.pk %}" 
+                     class="btn btn-sm btn-ghost" title="Edit">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="9" class="text-center py-8 text-gray-500">
+              No tickets found
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

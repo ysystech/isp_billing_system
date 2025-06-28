@@ -1,0 +1,288 @@
+{% extends "web/app/app_base.html" %}
+{% load humanize %}
+
+{% block title %}Subscription Expiry Report{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <a href="{% url 'reports:dashboard' %}" class="btn btn-ghost btn-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Reports
+      </a>
+      <h1 class="text-3xl font-bold text-gray-800">Subscription Expiry Report</h1>
+      <p class="text-gray-600">Generated: {{ current_time|date:"F d, Y g:i A" }}</p>
+    </div>
+    <div class="flex gap-2">
+      <select class="select select-bordered" onchange="window.location.href='?barangay=' + this.value">
+        <option value="">All Barangays</option>
+        {% for barangay in barangays %}
+          <option value="{{ barangay.id }}" {% if selected_barangay == barangay.id|stringformat:"s" %}selected{% endif %}>
+            {{ barangay.name }}
+          </option>
+        {% endfor %}
+      </select>
+      <a href="?barangay={{ selected_barangay }}&export=csv" class="btn btn-outline btn-success">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Export CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="card bg-error text-error-content shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm">Due in 3 Days</h2>
+        <p class="text-3xl font-bold">{{ due_3_days.count }}</p>
+        <p class="text-xs">Urgent follow-up needed</p>
+      </div>
+    </div>
+    
+    <div class="card bg-warning text-warning-content shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm">Due in 7 Days</h2>
+        <p class="text-3xl font-bold">{{ due_7_days.count }}</p>
+        <p class="text-xs">Regular reminders</p>
+      </div>
+    </div>
+    
+    <div class="card bg-secondary text-secondary-content shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm">Expired Yesterday</h2>
+        <p class="text-3xl font-bold">{{ expired_yesterday.count }}</p>
+        <p class="text-xs">Immediate action</p>
+      </div>
+    </div>
+    
+    <div class="card bg-neutral text-neutral-content shadow-sm">
+      <div class="card-body">
+        <h2 class="text-sm">Expired 3+ Days</h2>
+        <p class="text-3xl font-bold">{{ expired_3_plus.count }}</p>
+        <p class="text-xs">Disconnection candidates</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Due in 3 Days (URGENT) -->
+  <div class="card bg-base-100 shadow-md mb-6">
+    <div class="card-body">
+      <h2 class="card-title text-lg text-error mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        Due in 3 Days - URGENT
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Location</th>
+              <th>Plan</th>
+              <th>Expires</th>
+              <th>Time Left</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in due_3_days %}
+              {% with days_left=sub.end_date|timeuntil:current_time %}
+              <tr class="hover">
+                <td>
+                  <div class="font-medium">{{ sub.customer_installation.customer.full_name }}</div>
+                  <div class="text-xs text-gray-500">{{ sub.customer_installation.customer.email }}</div>
+                </td>
+                <td>{{ sub.customer_installation.customer.phone_primary }}</td>
+                <td>
+                  <div class="text-sm">{{ sub.customer_installation.nap.name }}</div>
+                  <div class="text-xs text-gray-500">{{ sub.customer_installation.customer.barangay.name }}</div>
+                </td>
+                <td>
+                  <span class="badge badge-sm">{{ sub.subscription_plan.name }}</span>
+                </td>
+                <td class="text-sm">{{ sub.end_date|date:"M d, Y g:i A" }}</td>
+                <td>
+                  <span class="badge badge-error badge-sm">{{ days_left }}</span>
+                </td>
+              </tr>
+              {% endwith %}
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-gray-500">No subscriptions due in 3 days</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Due in 7 Days -->
+  <div class="card bg-base-100 shadow-md mb-6">
+    <div class="card-body">
+      <h2 class="card-title text-lg text-warning mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Due in 7 Days
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Location</th>
+              <th>Plan</th>
+              <th>Expires</th>
+              <th>Days Left</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in due_7_days %}
+              {% with days_left=sub.end_date|timeuntil:current_time %}
+              <tr class="hover">
+                <td>
+                  <div class="font-medium">{{ sub.customer_installation.customer.full_name }}</div>
+                  <div class="text-xs text-gray-500">{{ sub.customer_installation.customer.email }}</div>
+                </td>
+                <td>{{ sub.customer_installation.customer.phone_primary }}</td>
+                <td>
+                  <div class="text-sm">{{ sub.customer_installation.nap.name }}</div>
+                  <div class="text-xs text-gray-500">{{ sub.customer_installation.customer.barangay.name }}</div>
+                </td>
+                <td>
+                  <span class="badge badge-sm">{{ sub.subscription_plan.name }}</span>
+                </td>
+                <td class="text-sm">{{ sub.end_date|date:"M d, Y g:i A" }}</td>
+                <td>
+                  <span class="badge badge-warning badge-sm">{{ days_left }}</span>
+                </td>
+              </tr>
+              {% endwith %}
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-gray-500">No subscriptions due in 7 days</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expired Yesterday -->
+  <div class="card bg-base-100 shadow-md mb-6">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Expired Yesterday
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Location</th>
+              <th>Plan</th>
+              <th>Expired At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in expired_yesterday %}
+              <tr class="hover">
+                <td>
+                  <div class="font-medium">{{ sub.customer_installation.customer.full_name }}</div>
+                  <div class="text-xs text-gray-500">{{ sub.customer_installation.customer.email }}</div>
+                </td>
+                <td>{{ sub.customer_installation.customer.phone_primary }}</td>
+                <td>
+                  <div class="text-sm">{{ sub.customer_installation.nap.name }}</div>
+                  <div class="text-xs text-gray-500">{{ sub.customer_installation.customer.barangay.name }}</div>
+                </td>
+                <td>
+                  <span class="badge badge-sm">{{ sub.subscription_plan.name }}</span>
+                </td>
+                <td class="text-sm">{{ sub.end_date|date:"M d, Y g:i A" }}</td>
+                <td>
+                  <a href="{% url 'customer_subscriptions:subscription_create' %}?installation_id={{ sub.customer_installation.id }}" 
+                     class="btn btn-success btn-xs">Renew</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-gray-500">No subscriptions expired yesterday</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expired 3+ Days -->
+  <div class="card bg-base-100 shadow-md">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        </svg>
+        Expired 3+ Days (Disconnection Candidates)
+      </h2>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Location</th>
+              <th>Plan</th>
+              <th>Expired</th>
+              <th>Days Overdue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in expired_3_plus %}
+              {% with days_overdue=current_time|timesince:sub.end_date %}
+              <tr class="hover">
+                <td>
+                  <div class="font-medium">{{ sub.customer_installation.customer.full_name }}</div>
+                  <div class="text-xs text-gray-500">{{ sub.customer_installation.customer.email }}</div>
+                </td>
+                <td>{{ sub.customer_installation.customer.phone_primary }}</td>
+                <td>
+                  <div class="text-sm">{{ sub.customer_installation.nap.name }}</div>
+                  <div class="text-xs text-gray-500">{{ sub.customer_installation.customer.barangay.name }}</div>
+                </td>
+                <td>
+                  <span class="badge badge-sm">{{ sub.subscription_plan.name }}</span>
+                </td>
+                <td class="text-sm">{{ sub.end_date|date:"M d, Y" }}</td>
+                <td>
+                  <span class="badge badge-error badge-sm">{{ days_overdue }}</span>
+                </td>
+              </tr>
+              {% endwith %}
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-gray-500">No subscriptions expired 3+ days</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

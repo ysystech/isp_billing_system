@@ -1,0 +1,66 @@
+              <div>
+                <span class="text-sm text-gray-600">Installation</span>
+                <div class="mt-1">
+                  <a href="{% url 'customer_installations:installation_detail' pk=ticket.customer_installation.pk %}" class="link link-primary">
+                    {{ ticket.customer_installation.nap.name }} - Port {{ ticket.customer_installation.nap_port }}
+                  </a>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-sm text-gray-600">Current Plan</span>
+                <div class="mt-1">
+                  {% if ticket.customer_installation.current_subscription %}
+                    {{ ticket.customer_installation.current_subscription.subscription_plan.name }}
+                    ({{ ticket.customer_installation.current_subscription.subscription_plan.speed }} Mbps)
+                  {% else %}
+                    <span class="text-gray-400">No active subscription</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card bg-base-100 shadow-md">
+          <div class="card-body">
+            <h2 class="card-title text-lg mb-4">Timeline</h2>
+            
+            <div class="space-y-3 text-sm">
+              <div>
+                <span class="text-gray-600">Created</span>
+                <div class="font-medium">
+                  {{ ticket.created_at|date:"M d, Y g:i A" }}
+                  <span class="text-gray-500">by {{ ticket.reported_by.get_full_name|default:ticket.reported_by.username }}</span>
+                </div>
+              </div>
+
+              {% if ticket.resolved_at %}
+                <div>
+                  <span class="text-gray-600">Resolved</span>
+                  <div class="font-medium">
+                    {{ ticket.resolved_at|date:"M d, Y g:i A" }}
+                    {% if ticket.response_time %}
+                      <span class="text-gray-500">({{ ticket.response_time.days }}d {{ ticket.response_time.seconds|floatformat:0|intcomma }}h)</span>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endif %}
+
+              {% if ticket.is_overdue %}
+                <div class="alert alert-warning">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span>This ticket is overdue!</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
