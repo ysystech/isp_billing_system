@@ -1,12 +1,12 @@
 from django.db import models
 from django.utils import timezone
-from apps.utils.models import BaseModel
+from apps.utils.models import BaseModel, GeoLocatedModel
 from apps.customers.models import Customer
 from apps.routers.models import Router
 from apps.users.models import CustomUser
 
 
-class CustomerInstallation(BaseModel):
+class CustomerInstallation(BaseModel, GeoLocatedModel):
     """Model for tracking customer installations and their status."""
     
     # Status choices

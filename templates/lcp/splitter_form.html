@@ -26,14 +26,30 @@
     {% endif %}
   </h1>
 
-  <form method="post" class="max-w-xl">
+  <form method="post" class="max-w-4xl">
     {% csrf_token %}
     
-    <div class="space-y-4">
-      {% render_field form.code %}
-      {% render_field form.type %}
-      {% render_field form.location %}
-      {% render_field form.is_active %}
+    <!-- Basic Information -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Basic Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {% render_field form.code %}
+          {% render_field form.type %}
+        </div>
+        <div class="mt-4">
+          {% render_field form.location %}
+        </div>
+        {% render_field form.is_active %}
+      </div>
+    </div>
+
+    <!-- Location Map -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Location Coordinates</h2>
+        {% include 'components/map_widget.html' with form=form %}
+      </div>
     </div>
 
     <div class="flex gap-4 mt-6">

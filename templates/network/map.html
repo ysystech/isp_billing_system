@@ -1,0 +1,285 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+
+{% block app %}
+<div class="h-full flex flex-col">
+    <!-- Header and Controls -->
+    <div class="app-card mb-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <h1 class="pg-title mb-0">Network Infrastructure Map</h1>
+            <div class="flex gap-2">
+                <button onclick="refreshMap()" class="btn btn-sm btn-outline">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+        </div>
+        
+        <!-- Layer Controls -->
+        <div class="flex flex-wrap gap-4">
+            <label class="label cursor-pointer">
+                <input type="checkbox" id="show-lcps" class="checkbox checkbox-sm mr-2" checked onchange="updateLayers()">
+                <span class="label-text flex items-center gap-2">
+                    <span class="w-4 h-4 bg-error rounded"></span> LCPs
+                </span>
+            </label>
+            <label class="label cursor-pointer">
+                <input type="checkbox" id="show-splitters" class="checkbox checkbox-sm mr-2" checked onchange="updateLayers()">
+                <span class="label-text flex items-center gap-2">
+                    <span class="w-4 h-4 bg-warning rounded"></span> Splitters
+                </span>
+            </label>
+            <label class="label cursor-pointer">
+                <input type="checkbox" id="show-naps" class="checkbox checkbox-sm mr-2" checked onchange="updateLayers()">
+                <span class="label-text flex items-center gap-2">
+                    <span class="w-4 h-4 bg-info rounded"></span> NAPs
+                </span>
+            </label>
+            <label class="label cursor-pointer">
+                <input type="checkbox" id="show-customers" class="checkbox checkbox-sm mr-2" checked onchange="updateLayers()">
+                <span class="label-text flex items-center gap-2">
+                    <span class="w-4 h-4 bg-success rounded"></span> Customers
+                </span>
+            </label>
+            <label class="label cursor-pointer">
+                <input type="checkbox" id="show-installations" class="checkbox checkbox-sm mr-2" checked onchange="updateLayers()">
+                <span class="label-text flex items-center gap-2">
+                    <span class="w-4 h-4 bg-primary rounded"></span> Installations
+                </span>
+            </label>
+            <label class="label cursor-pointer">
+                <input type="checkbox" id="show-coverage" class="checkbox checkbox-sm mr-2" onchange="updateLayers()">
+                <span class="label-text">Show Coverage Areas</span>
+            </label>
+        </div>
+    </div>
+    
+    <!-- Map Container -->
+    <div class="flex-1 app-card p-0 overflow-hidden">
+        <div id="network-map" class="h-full min-h-[600px]"></div>
+    </div>
+</div>
+
+<script>
+let map;
+let markers = {
+    lcps: L.layerGroup(),
+    splitters: L.layerGroup(),
+    naps: L.layerGroup(),
+    customers: L.layerGroup(),
+    installations: L.layerGroup(),
+    coverage: L.layerGroup()
+};
+
+// Initialize map
+function initMap() {
+    map = L.map('network-map').setView([8.4542, 124.6319], 12);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Add all layer groups to map
+    Object.values(markers).forEach(layer => map.addLayer(layer));
+    
+    // Load initial data
+    loadNetworkData();
+}
+
+// Create custom icons
+const icons = {
+    lcp: L.divIcon({
+        html: '<div class="bg-error text-white rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold"><i class="fa fa-tower-broadcast"></i></div>',
+        className: 'custom-div-icon',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+    }),
+    splitter: L.divIcon({
+        html: '<div class="bg-warning text-white rounded w-6 h-6 flex items-center justify-center text-xs"><i class="fa fa-sitemap"></i></div>',
+        className: 'custom-div-icon',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    }),
+    nap: L.divIcon({
+        html: '<div class="bg-info text-white rounded w-6 h-6 flex items-center justify-center text-xs"><i class="fa fa-box"></i></div>',
+        className: 'custom-div-icon',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    }),
+    customer: L.divIcon({
+        html: '<div class="bg-success rounded-full w-3 h-3"></div>',
+        className: 'custom-div-icon',
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+    }),
+    installation: L.divIcon({
+        html: '<div class="bg-primary text-white rounded w-5 h-5 flex items-center justify-center text-xs"><i class="fa fa-home"></i></div>',
+        className: 'custom-div-icon',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    })
+};
+
+// Load network data
+function loadNetworkData() {
+    const params = new URLSearchParams({
+        show_lcps: document.getElementById('show-lcps').checked,
+        show_splitters: document.getElementById('show-splitters').checked,
+        show_naps: document.getElementById('show-naps').checked,
+        show_customers: document.getElementById('show-customers').checked,
+        show_installations: document.getElementById('show-installations').checked
+    });
+    
+    fetch(`/network/map/data/?${params}`)
+        .then(response => response.json())
+        .then(data => {
+            // Clear existing markers
+            Object.values(markers).forEach(layer => layer.clearLayers());
+            
+            // Add LCPs
+            data.lcps.forEach(lcp => {
+                const marker = L.marker([lcp.lat, lcp.lng], {icon: icons.lcp})
+                    .bindPopup(`
+                        <div class="font-bold">${lcp.code} - ${lcp.name}</div>
+                        <div class="text-sm">
+                            <p>Location: ${lcp.location}</p>
+                            <p>Barangay: ${lcp.barangay}</p>
+                            <p>Splitters: ${lcp.splitter_count}</p>
+                            <p>NAPs: ${lcp.nap_count}</p>
+                            <a href="/lcp/${lcp.id}/" class="text-primary">View Details</a>
+                        </div>
+                    `);
+                markers.lcps.addLayer(marker);
+                
+                // Add coverage circle if enabled
+                if (document.getElementById('show-coverage').checked) {
+                    const circle = L.circle([lcp.lat, lcp.lng], {
+                        radius: lcp.coverage_radius,
+                        color: '#dc2626',
+                        fillColor: '#dc2626',
+                        fillOpacity: 0.1,
+                        weight: 1
+                    });
+                    markers.coverage.addLayer(circle);
+                }
+            });
+            
+            // Add Splitters
+            data.splitters.forEach(splitter => {
+                const marker = L.marker([splitter.lat, splitter.lng], {icon: icons.splitter})
+                    .bindPopup(`
+                        <div class="font-bold">${splitter.code} (${splitter.type})</div>
+                        <div class="text-sm">
+                            <p>Location: ${splitter.location}</p>
+                            <p>LCP: ${splitter.lcp_code}</p>
+                            <p>Ports: ${splitter.used_ports}/${splitter.port_capacity}</p>
+                            <p>NAPs: ${splitter.nap_count}</p>
+                        </div>
+                    `);
+                markers.splitters.addLayer(marker);
+            });
+            
+            // Add NAPs
+            data.naps.forEach(nap => {
+                const marker = L.marker([nap.lat, nap.lng], {icon: icons.nap})
+                    .bindPopup(`
+                        <div class="font-bold">${nap.code} - ${nap.name}</div>
+                        <div class="text-sm">
+                            <p>Location: ${nap.location}</p>
+                            <p>Splitter: ${nap.splitter_code}</p>
+                            <p>Port Capacity: ${nap.port_capacity}</p>
+                            <p>Max Distance: ${nap.max_distance}m</p>
+                        </div>
+                    `);
+                markers.naps.addLayer(marker);
+            });
+            
+            // Add Customers
+            data.customers.forEach(customer => {
+                const marker = L.marker([customer.lat, customer.lng], {icon: icons.customer})
+                    .bindPopup(`
+                        <div class="font-bold">${customer.name}</div>
+                        <div class="text-sm">
+                            <p>${customer.address}</p>
+                            <a href="/customers/${customer.id}/" class="text-primary">View Details</a>
+                        </div>
+                    `);
+                markers.customers.addLayer(marker);
+            });
+            
+            // Add Installations
+            data.installations.forEach(installation => {
+                const marker = L.marker([installation.lat, installation.lng], {icon: icons.installation})
+                    .bindPopup(`
+                        <div class="font-bold">Installation: ${installation.customer_name}</div>
+                        <div class="text-sm">
+                            <p>Address: ${installation.address}</p>
+                            <p>Router: ${installation.router}</p>
+                            <p>Installed: ${installation.installation_date}</p>
+                            <a href="/installations/${installation.id}/" class="text-primary">View Details</a>
+                        </div>
+                    `);
+                markers.installations.addLayer(marker);
+            });
+        })
+        .catch(error => console.error('Error loading network data:', error));
+}
+
+// Update layer visibility
+function updateLayers() {
+    if (document.getElementById('show-lcps').checked) {
+        map.addLayer(markers.lcps);
+    } else {
+        map.removeLayer(markers.lcps);
+    }
+    
+    if (document.getElementById('show-splitters').checked) {
+        map.addLayer(markers.splitters);
+    } else {
+        map.removeLayer(markers.splitters);
+    }
+    
+    if (document.getElementById('show-naps').checked) {
+        map.addLayer(markers.naps);
+    } else {
+        map.removeLayer(markers.naps);
+    }
+    
+    if (document.getElementById('show-customers').checked) {
+        map.addLayer(markers.customers);
+    } else {
+        map.removeLayer(markers.customers);
+    }
+    
+    if (document.getElementById('show-installations').checked) {
+        map.addLayer(markers.installations);
+    } else {
+        map.removeLayer(markers.installations);
+    }
+    
+    if (document.getElementById('show-coverage').checked) {
+        loadNetworkData(); // Reload to show coverage
+    } else {
+        map.removeLayer(markers.coverage);
+    }
+}
+
+// Refresh map data
+function refreshMap() {
+    loadNetworkData();
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', initMap);
+</script>
+
+<style>
+.custom-div-icon {
+    background: transparent;
+    border: none;
+}
+</style>
+{% endblock %}

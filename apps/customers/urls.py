@@ -11,4 +11,5 @@ urlpatterns = [
     path("<int:pk>/edit/", views.customer_update, name="customer_update"),
     path("<int:pk>/delete/", views.customer_delete, name="customer_delete"),
     path("stats/", views.customer_quick_stats, name="customer_stats"),
+    path("api/coordinates/", views.customer_coordinates_api, name="customer_coordinates_api"),
 ]

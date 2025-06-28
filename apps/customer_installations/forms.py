@@ -49,7 +49,8 @@ class CustomerInstallationForm(forms.ModelForm):
         model = CustomerInstallation
         fields = [
             'customer', 'router', 'installation_date', 
-            'installation_technician', 'status', 'installation_notes'
+            'installation_technician', 'status', 'installation_notes',
+            'latitude', 'longitude', 'location_accuracy', 'location_notes'
         ]
         widgets = {
             'status': forms.Select(attrs={

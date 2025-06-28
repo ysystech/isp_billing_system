@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
 
 from .forms import CustomerForm, CustomerSearchForm
 from .models import Customer
@@ -161,3 +162,23 @@ def customer_quick_stats(request):
         "stats": stats,
         "active_tab": "customers",
     })
+
+
+@login_required
+def customer_coordinates_api(request):
+    """API endpoint to get customer coordinates"""
+    if request.method == 'POST':
+        import json
+        try:
+            data = json.loads(request.body)
+            customer_ids = data.get('customer_ids', [])
+            
+            customers = Customer.objects.filter(
+                id__in=customer_ids
+            ).values('id', 'latitude', 'longitude', 'location_notes')
+            
+            return JsonResponse(list(customers), safe=False)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

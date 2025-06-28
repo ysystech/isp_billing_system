@@ -43,6 +43,12 @@
       {% translate "LCP" %}
     </a>
   </li>
+  <li>
+    <a href="{% url 'network:network_map' %}" {% if active_tab == 'network_map' %}class="menu-active"{% endif %}>
+      <i class="fa fa-map h-4 w-4"></i>
+      {% translate "Network Map" %}
+    </a>
+  </li>
 </ul>
 <li class="menu-title">
   <span>{% translate "User Management" %}</span>

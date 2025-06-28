@@ -48,17 +48,45 @@
   </div>
   {% endif %}
 
-  <form method="post" class="max-w-2xl">
+  <form method="post" class="max-w-4xl">
     {% csrf_token %}
     
-    <div class="space-y-4">
-      {% render_field form.code %}
-      {% render_field form.name %}
-      {% render_field form.splitter_port %}
-      {% render_field form.location %}
-      {% render_field form.port_capacity %}
-      {% render_field form.is_active %}
-      {% render_field form.notes %}
+    <!-- Basic Information -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Basic Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {% render_field form.code %}
+          {% render_field form.name %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {% render_field form.splitter_port %}
+          {% render_field form.port_capacity %}
+        </div>
+        <div class="mt-4">
+          {% render_field form.location %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {% render_field form.max_distance_meters %}
+          {% render_field form.is_active %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Location Map -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Location Coordinates</h2>
+        {% include 'components/map_widget.html' with form=form %}
+      </div>
+    </div>
+
+    <!-- Additional Notes -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Additional Notes</h2>
+        {% render_field form.notes %}
+      </div>
     </div>
 
     <div class="flex gap-4 mt-6">

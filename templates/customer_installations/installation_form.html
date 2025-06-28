@@ -1,10 +1,11 @@
 {% extends "web/app/app_base.html" %}
 {% load static %}
+{% load form_tags %}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block app %}
-<section class="app-card">
+<section class="app-card max-w-4xl mx-auto">
   <!-- Breadcrumb -->
   <div class="text-sm breadcrumbs mb-4">
     <ul>
@@ -14,20 +15,21 @@
     </ul>
   </div>
   
-  <div class="p-6">
-    <h2 class="text-2xl font-bold mb-6">{{ title }}</h2>
+  <h1 class="pg-title mb-6">{{ title }}</h1>
+  
+  <form method="post">
+    {% csrf_token %}
     
-    <form method="post">
-      {% csrf_token %}
-      
-      {% if form.non_field_errors %}
-        <div class="alert alert-error mb-4">
-          {{ form.non_field_errors }}
-        </div>
-      {% endif %}
-      
-      <div class="space-y-4">
-        <!-- Customer -->
+    {% if form.non_field_errors %}
+      <div class="alert alert-error mb-4">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+    
+    <!-- Customer Selection -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Customer Information</h2>
         <div class="form-control">
           <label for="{{ form.customer.id_for_label }}" class="label">
             <span class="label-text">{{ form.customer.label }}</span>
@@ -47,8 +49,25 @@
           </label>
           {% endif %}
         </div>
+      </div>
+    </div>
+    
+    <!-- Installation Location -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Installation Location</h2>
+        <p class="text-sm text-base-content/70 mb-4">
+          Location will default to customer's address. Adjust the pin if the actual installation location is different.
+        </p>
+        {% include 'components/map_widget.html' with form=form %}
+      </div>
+    </div>
 
-        <!-- Router and Technician Grid -->
+    <!-- Installation Details -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Installation Details</h2>
+        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Router -->
           <div class="form-control">
@@ -79,9 +98,8 @@
             {% endif %}
           </div>
         </div>
-
-        <!-- Installation Date and Status Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <!-- Installation Date -->
           <div class="form-control">
             <label for="{{ form.installation_date.id_for_label }}" class="label">
@@ -113,7 +131,7 @@
         </div>
 
         <!-- Installation Notes -->
-        <div class="form-control">
+        <div class="form-control mt-4">
           <label for="{{ form.installation_notes.id_for_label }}" class="label">
             <span class="label-text">{{ form.installation_notes.label }}</span>
           </label>
@@ -125,13 +143,57 @@
           {% endif %}
         </div>
       </div>
+    </div>
 
-      <!-- Form Actions -->
-      <div class="mt-6 flex justify-end space-x-2">
-        <a href="{% url 'customer_installations:installation_list' %}" class="btn btn-ghost">Cancel</a>
-        <button type="submit" class="btn btn-primary">{{ submit_text }}</button>
-      </div>
-    </form>
-  </div>
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'customer_installations:installation_list' %}" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">{{ submit_text }}</button>
+    </div>
+  </form>
 </section>
+
+<!-- Modified map widget script to handle customer defaults -->
+<script>
+// Extend the map widget to handle customer coordinate defaults
+document.addEventListener('DOMContentLoaded', function() {
+    const customerSelect = document.getElementById('id_customer');
+    if (!customerSelect) return;
+    
+    // Store original setLocation function
+    const originalInit = window.mapWidget;
+    
+    // Fetch and apply customer coordinates when selection changes
+    customerSelect.addEventListener('change', function() {
+        const customerId = this.value;
+        if (!customerId) return;
+        
+        fetch(`/customers/api/coordinates/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ customer_ids: [customerId] })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.length > 0 && data[0].latitude && data[0].longitude) {
+                const customer = data[0];
+                // Update the latitude/longitude inputs
+                document.getElementById('id_latitude').value = customer.latitude;
+                document.getElementById('id_longitude').value = customer.longitude;
+                // Trigger change event to update map
+                document.getElementById('id_latitude').dispatchEvent(new Event('change'));
+            }
+        })
+        .catch(error => console.error('Error fetching customer coordinates:', error));
+    });
+    
+    // Trigger on page load if customer is pre-selected (edit mode)
+    if (customerSelect.value) {
+        customerSelect.dispatchEvent(new Event('change'));
+    }
+});
+</script>
 {% endblock %}
