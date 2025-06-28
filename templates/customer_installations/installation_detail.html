@@ -58,6 +58,17 @@
                   <span class="text-gray-400">No router assigned</span>
                 {% endif %}
               </p>
+              <p><span class="font-medium">NAP Connection:</span> 
+                {% if installation.nap %}
+                  <span class="text-primary">{{ installation.nap_connection_display }}</span>
+                  <br>
+                  <span class="text-sm text-gray-600 ml-4">
+                    Path: {{ installation.network_path.lcp }} → {{ installation.network_path.splitter }} (Port {{ installation.network_path.splitter_port }}) → {{ installation.network_path.nap }}
+                  </span>
+                {% else %}
+                  <span class="text-gray-400">Not connected to NAP</span>
+                {% endif %}
+              </p>
               <p><span class="font-medium">Status:</span> 
                 <span class="badge {% if installation.status == 'ACTIVE' %}badge-success{% elif installation.status == 'SUSPENDED' %}badge-warning{% else %}badge-error{% endif %}">
                   {{ installation.get_status_display }}

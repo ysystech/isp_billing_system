@@ -1,5 +1,5 @@
-ISP Billing System - Project Knowledge Base (Updated)
-=====================================================
+ISP Billing System - Project Knowledge Base (Updated December 2024)
+====================================================================
 
 ## Project Overview
 A comprehensive billing management system for a small-scale Internet Service Provider (ISP) operating in Cagayan de Oro, Northern Mindanao, Philippines. Built for localized network coverage with manual infrastructure and personalized customer service.
@@ -13,24 +13,28 @@ A comprehensive billing management system for a small-scale Internet Service Pro
 - **Task Queue**: Celery
 - **Development**: Docker Compose
 - **Base Framework**: Pegasus SaaS
+- **Maps**: Leaflet.js with OpenStreetMap
 
 ## Project Structure
 ```
 /Users/aldesabido/pers/isp_billing_system/
 ├── apps/
-│   ├── barangays/        # Barangay master list
-│   ├── customers/        # Customer management
-│   ├── dashboard/        # Admin dashboard (deprecated - moved to home)
-│   ├── lcp/              # LCP infrastructure management
-│   ├── routers/          # Router inventory
-│   ├── subscriptions/    # Subscription plans
-│   ├── customer_installations/  # Customer installations
+│   ├── barangays/               # Barangay master list
+│   ├── customers/               # Customer management (with geo-location)
+│   ├── dashboard/               # DEPRECATED - merged into home
+│   ├── lcp/                     # LCP, Splitter, NAP infrastructure (with geo-location)
+│   ├── routers/                 # Router inventory
+│   ├── subscriptions/           # Subscription plans
+│   ├── customer_installations/  # Customer installations (with geo-location & NAP ports)
 │   ├── customer_subscriptions/  # Customer subscriptions
-│   ├── users/            # User authentication & management
-│   └── web/              # Public pages & home dashboard
-├── templates/            # Django templates
-├── assets/              # Frontend assets (Vite)
-└── requirements/        # Python dependencies
+│   ├── network/                 # Network visualization and maps
+│   ├── users/                   # User authentication & management
+│   └── web/                     # Public pages & home dashboard
+├── templates/
+│   ├── components/              # Reusable components (includes map_widget.html)
+│   └── network/                 # Network visualization templates
+├── assets/                      # Frontend assets (Vite)
+└── requirements/                # Python dependencies
 ```
 
 ## Development Commands
@@ -59,200 +63,185 @@ make ruff-lint                 # Lint Python code
 make ruff-format              # Format Python code
 ```
 
-## Coding Standards
+## Database Schema Updates
 
-### Python
-- PEP 8 with 120 character line limit
-- Double quotes for strings
-- Type hints encouraged but not required
-- All models extend `apps.utils.models.BaseModel`
-- Function-based views preferred
-- Django ORM best practices
+### Core Models with Geo-Location
 
-### Templates
-- 2 spaces indentation
-- Use `{% extends "web/app/app_base.html" %}` for app pages
-- DaisyUI components preferred
-- HTMX for server interactions
-- Alpine.js for client-only interactions
-
-### JavaScript
-- ES6+ syntax
-- 2 spaces indentation
-- Single quotes for strings
-- Use generated OpenAPI client for APIs
-
-## Database Schema
-
-### Core Models
-
-#### Customer
-- Personal and contact information
-- Foreign key to Barangay
-- Status tracking (Active/Inactive/Suspended/Terminated)
-- Installation details
-- Soft delete support
+#### Customer (Enhanced with GeoLocatedModel)
+- All original fields PLUS:
+- `latitude`, `longitude` - Customer's primary location
+- `location_accuracy` - How coordinates were obtained
+- `location_notes` - Location landmarks/notes
+- REMOVED: `installation_date`, `installation_technician`, `installation_notes` (moved to CustomerInstallation)
 
 #### Barangay
 - Master list of service areas (80 barangays in CDO)
-- Active/inactive status
-- Related customers tracking
+- No changes from original
 
 #### Router
 - Basic inventory tracking
-- Brand, model, serial number
-- No deployment tracking (simplified)
+- No changes from original
 
 #### SubscriptionPlan
-- Name (unique)
-- Description
-- Speed (Mbps)
-- Price (PHP)
-- Active/inactive status
+- Name, Description, Speed, Price
+- No changes from original
 
-#### CustomUser
-- Extended Django User model
-- User types: Cashier, Technician (only superuser is admin)
-- Full name, email, username
-- Active/inactive status
-
-### LCP Infrastructure Models (NEW)
+### LCP Infrastructure Models (Enhanced with GeoLocatedModel)
 
 #### LCP (Local Convergence Point)
-- Name and unique code
-- Physical location
-- Linked to Barangay
-- Active/inactive status
-- Contains multiple splitters
+- All original fields PLUS:
+- `latitude`, `longitude`, `location_accuracy`, `location_notes`
+- `coverage_radius_meters` - Service area radius
 
 #### Splitter
-- Belongs to LCP
-- Unique code within LCP
-- Type (1:4, 1:8, 1:16, 1:32, 1:64)
-- Location within LCP
-- Port capacity calculated from type
-- Tracks used/available ports
+- All original fields PLUS:
+- `latitude`, `longitude`, `location_accuracy`, `location_notes`
 
 #### NAP (Network Access Point)
-- Belongs to Splitter
-- Connected to specific splitter port
-- Multiple NAPs can share same port (for cascading)
-- Unique code within splitter
-- Physical location
-- Customer port capacity
-- Validates port within splitter range
+- All original fields PLUS:
+- `latitude`, `longitude`, `location_accuracy`, `location_notes`
+- `max_distance_meters` - Maximum customer distance
 
-### Customer Service Models
+### Customer Service Models (Enhanced)
 
 #### CustomerInstallation
-- Links customer to installation details
-- Installation date and technician
-- Status tracking
-- Equipment details
+- All original fields PLUS:
+- Inherits from `GeoLocatedModel` - Has its own coordinates
+- `nap` - ForeignKey to NAP where customer connects
+- `nap_port` - Integer (1 to NAP.port_capacity)
+- Unique constraint on (nap, nap_port) - prevents double booking
+- Properties:
+  - `nap_connection_display` - Shows "NAP-001 - Port 5"
+  - `network_path` - Full path: LCP → Splitter → NAP → Port
 
 #### CustomerSubscription
-- Links customer to subscription plan
-- Billing cycle (Weekly/Quincenal/Monthly)
-- Payment tracking
-- Start/end dates
+- No changes from original
 
 ## Features Implemented
 
-### Phase 1-2 Complete ✅
-- Customer Management (CRUD, search, status tracking)
-- Barangay Management 
-- Router Inventory
-- Subscription Plans
-- User Management (Cashier/Technician roles)
-- Unified Dashboard (statistics, charts, widgets)
-
-### Phase 3 Complete ✅
-- LCP Infrastructure Management
-  - Hierarchical view: LCP → Splitter → NAP
-  - Port tracking and availability
-  - Visual capacity management
-  - Full CRUD operations
-- Customer Installations
+### Phase 1-3 Complete ✅
+- Customer Management with geo-location
+- LCP Infrastructure Management with geo-location
+- Customer Installations with NAP port assignment
 - Customer Subscriptions
 
-## Navigation Structure
+### NEW: Geo-Location System ✅
+1. **Reusable Map Widget** (`templates/components/map_widget.html`)
+   - Interactive Leaflet.js map
+   - Click to set location
+   - Address search via Nominatim
+   - "Use My Location" GPS button
+   - Manual coordinate input
+   - Works on Customer, LCP, Splitter, NAP, and Installation forms
 
-**Application**
-- Dashboard (unified home page with statistics)
+2. **Network Visualization Map** (`/network/map/`)
+   - Shows all infrastructure and customers on one map
+   - Layer controls for each type
+   - Different icons for LCP, Splitter, NAP, Customer, Installation
+   - Coverage radius visualization
+   - Click markers for details
 
-**Admin Setup**
-- Customers
-- Barangays
-- Routers
-- Subscription Plans
-- LCP (fiber infrastructure management)
+3. **Network Hierarchy Visualization** (`/network/hierarchy/`)
+   - Visual representation of LCP → Splitter → NAP → Ports
+   - Shows port capacity and usage
+   - Educational diagrams
 
-**User Management**
-- User Lists
-- User Roles (placeholder)
+### NEW: NAP Port Management ✅
+1. **Port Assignment**
+   - Each installation connects to specific NAP port
+   - Visual port grid showing availability
+   - Real-time validation
+   - Prevents double-booking
 
-**Installation**
-- Setup Customer (/installations/)
-- Tickets (placeholder)
+2. **Port Availability API**
+   - `/installations/api/nap/<nap_id>/ports/`
+   - Returns port status and occupancy
 
-**Subscription**
-- Active Subscriptions
-- Payment (placeholder)
-
-## Recent Changes
-
-### Dashboard Consolidation
-- Removed separate /dashboard/ route
-- Merged Project Dashboard content into home page
-- Superusers see full statistics dashboard
-- Regular users see welcome page
-- Updated all 'dashboard:dashboard' references to 'web:home'
-
-### Navigation Updates
-- "My Account" moved to top-right dropdown
-- Shows user's full name (or email if no name)
-- Removed Flowbite demo and dependencies
-- Reorganized menu sections for better grouping
-
-### LCP Infrastructure Implementation
-- Complete fiber network hierarchy management
-- Custom views replacing Django admin
-- Search and filter capabilities
-- Visual port usage tracking
-- Flexible port assignment (multiple NAPs per port allowed)
+3. **Network Path Tracking**
+   - Complete path from customer to LCP
+   - Useful for troubleshooting
 
 ## Business Rules
 
-### LCP Infrastructure
-- LCP contains multiple splitters
-- Splitters have different capacities (1:4 to 1:64)
-- NAPs connect to splitter ports
-- Multiple NAPs can share a port (cascading)
-- Port numbers must be within splitter capacity
-- NAP codes unique within splitter
+### Geo-Location
+- Customers have primary location (billing/contact)
+- Installations have service location (actual connection point)
+- Installation form pre-fills customer coordinates
+- All infrastructure elements can have coordinates
 
-### Customers
-- Unique email required
-- Must belong to a barangay
-- Can be soft deleted
-- Status workflow: Active → Suspended → Terminated
+### NAP Port Assignment
+- One port = one customer installation
+- Ports numbered 1 to NAP.port_capacity
+- Cannot assign same port twice
+- Port assignment validated on save
 
-### Users
-- Superusers excluded from management interface
-- Only superuser can access admin functions
-- Email used as username
-- User types: Cashier, Technician
+### Network Hierarchy
+```
+LCP (1)
+ └─> Splitters (Multiple)
+      └─> NAPs (Multiple per splitter port)
+           └─> Customer Ports (4-16 per NAP)
+                └─> Customer Installations (1 per port)
+```
 
 ## API Endpoints
-- Currently using Django views with HTMX
-- REST API planned for mobile app
-- HTMX endpoints for dynamic UI
 
-## Security
-- Django authentication
-- Superuser required for admin functions
-- CSRF protection configured for HTMX
-- Session-based auth for web
+### Customer APIs
+- `/customers/api/coordinates/` - Get customer coordinates (POST)
+
+### Network APIs
+- `/network/map/data/` - Get all network elements for map
+- `/installations/api/nap/<nap_id>/ports/` - Get NAP port availability
+
+## Recent Architecture Decisions
+
+### 1. Geo-Location on Both Customer and Installation
+- Customer location = primary/billing address
+- Installation location = actual service location
+- Handles multiple properties per customer
+- Installation inherits customer location as default
+
+### 2. Installation Tracking Removed from Customer
+- Moved installation_date, technician, notes to CustomerInstallation
+- Cleaner separation of concerns
+- Supports multiple installations per customer
+
+### 3. Dashboard Consolidation
+- Removed separate /dashboard/ app
+- Merged into home page
+- Single entry point for all users
+
+## JavaScript Components
+
+### mapWidget (Alpine.js)
+- Reusable map component
+- Handles coordinate selection
+- Address search integration
+- GPS location support
+
+### Installation Form Enhancement
+- Dynamic NAP port selection
+- Real-time availability checking
+- Visual port grid
+- Customer coordinate inheritance
+
+## Important Technical Notes
+
+### Map Integration
+- Uses Leaflet.js (free, no API key)
+- OpenStreetMap tiles
+- Leaflet Search plugin for geocoding
+- All map resources loaded via CDN in base template
+
+### Coordinate System
+- Decimal degrees (7 decimal places)
+- Centered on CDO: 8.4542, 124.6319
+- Simple distance calculation for <10km
+
+### HTMX + Alpine.js Pattern
+- HTMX for server interactions
+- Alpine.js for client-side interactivity
+- Map widget uses Alpine.js data binding
 
 ## Sample Data Generators
 ```bash
@@ -263,55 +252,67 @@ make manage ARGS="generate_sample_users"
 make manage ARGS="generate_lcp_data"
 ```
 
-## Important Technical Notes
-
-### HTMX Configuration
-- CSRF token configured globally in base template
-- Use simple `htmx.ajax('METHOD', 'url')` syntax
-- No manual CSRF headers needed
-
-### User Authentication
-- Top navigation shows user dropdown
-- Displays full name or email
-- Profile, password change, logout options
-
-### LCP Management
-- Accessible via /lcp/ (not Django admin)
-- Full CRUD for LCP, Splitter, NAP
-- Validates port assignments
-- Tracks fiber network topology
+## Utility Commands
+```bash
+# Hard delete all subscriptions, installations, and plans
+make manage ARGS="hard_delete_records --confirm"
+```
 
 ## Known Issues/TODOs
 - User Roles management UI not implemented
 - Tickets system not implemented
-- Payment tracking not implemented
+- Payment/Billing system not implemented ← CRITICAL
 - No SMS integration
 - No customer portal
 - No mobile app yet
 
-## Next Development Phases
+## Next Development Priority
 
-### Phase 4: Billing System
-- Invoice generation
-- Payment recording
-- Billing reports
-- Payment history
+### CRITICAL: Phase 4 - Billing System
+The system cannot operate commercially without billing functionality:
 
-### Phase 5: Enhanced Features
-- Automated reminders
-- Payment gateway integration
-- Advanced reporting
-- SMS notifications
+1. **Invoice Generation**
+   - Monthly/weekly/quincenal billing cycles
+   - PDF invoice generation
+   - Bulk invoice creation
 
-### Phase 6: Mobile Client
-- Flutter application
-- Customer self-service
-- Payment submissions
-- Usage monitoring
+2. **Payment Recording**
+   - Record payments against invoices
+   - Multiple payment methods
+   - Partial payments
+
+3. **Financial Reporting**
+   - Outstanding balances
+   - Collection efficiency
+   - Revenue reports
+
+4. **Collection Management**
+   - Overdue accounts
+   - Payment reminders
+   - Service suspension automation
 
 ## Development Tips
 - Always use absolute paths in Desktop Commander
-- Chunk large files into 30-line segments
+- Chunk large files into 30-line segments when editing
 - Check for existing similar code before implementing
-- Run `make manage ARGS="check"` after changes
-- Use sample data generators for testing
+- Run `make manage ARGS="check"` after model changes
+- Map widget is reusable - use it for any geo-located model
+- Test coordinate features with "Use My Location" button
+
+## Recent Accomplishments
+1. ✅ Implemented comprehensive geo-location system
+2. ✅ Created reusable map widget component  
+3. ✅ Built network visualization map
+4. ✅ Added NAP port management to installations
+5. ✅ Created network hierarchy visualization
+6. ✅ Implemented proper fiber network tracking (LCP → Customer)
+
+## System Readiness
+- **Infrastructure Management**: 100% Complete
+- **Customer Management**: 100% Complete
+- **Network Visualization**: 100% Complete
+- **Installation Tracking**: 100% Complete
+- **Billing System**: 0% - NEEDS IMPLEMENTATION
+- **Overall**: ~70% ready for commercial operation
+
+The system now properly tracks the complete fiber network from LCP to customer premises with visual maps and port management. The critical missing piece is the billing system, without which the ISP cannot collect payments from customers.

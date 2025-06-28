@@ -99,6 +99,51 @@
           </div>
         </div>
         
+        <!-- NAP Connection -->
+        <div class="divider">Network Connection</div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- NAP Selection -->
+          <div class="form-control">
+            <label for="{{ form.nap.id_for_label }}" class="label">
+              <span class="label-text">{{ form.nap.label }}</span>
+            </label>
+            {{ form.nap }}
+            {% if form.nap.help_text %}
+            <label class="label">
+              <span class="label-text-alt">{{ form.nap.help_text }}</span>
+            </label>
+            {% endif %}
+            {% if form.nap.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.nap.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+          
+          <!-- NAP Port -->
+          <div class="form-control">
+            <label for="{{ form.nap_port.id_for_label }}" class="label">
+              <span class="label-text">{{ form.nap_port.label }}</span>
+            </label>
+            {{ form.nap_port }}
+            <label class="label">
+              <span class="label-text-alt" id="port-availability">Select a NAP to see available ports</span>
+            </label>
+            {% if form.nap_port.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.nap_port.errors.0 }}</span>
+            </label>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Port Availability Display -->
+        <div id="port-grid" class="mt-4 hidden">
+          <h4 class="font-semibold mb-2">Port Availability:</h4>
+          <div id="ports-container" class="grid grid-cols-8 gap-2"></div>
+        </div>
+        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <!-- Installation Date -->
           <div class="form-control">
@@ -197,3 +242,91 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
+
+
+<!-- NAP Port Selection Script -->
+<script>
+let currentNapId = null;
+
+// Function to update port options when NAP changes
+function updatePortOptions() {
+    const napSelect = document.getElementById('id_nap');
+    const napPortInput = document.getElementById('id_nap_port');
+    const portAvailability = document.getElementById('port-availability');
+    const portGrid = document.getElementById('port-grid');
+    const portsContainer = document.getElementById('ports-container');
+    
+    if (!napSelect.value) {
+        portAvailability.textContent = 'Select a NAP to see available ports';
+        portGrid.classList.add('hidden');
+        napPortInput.value = '';
+        napPortInput.disabled = true;
+        return;
+    }
+    
+    // Enable port input
+    napPortInput.disabled = false;
+    currentNapId = napSelect.value;
+    
+    // Fetch port availability
+    fetch(`/installations/api/nap/${currentNapId}/ports/`)
+        .then(response => response.json())
+        .then(data => {
+            // Update port input max value
+            napPortInput.max = data.nap.capacity;
+            
+            // Update availability text
+            portAvailability.innerHTML = `<span class="text-success">${data.available_count} available</span> / ${data.nap.capacity} total ports`;
+            
+            // Clear and populate port grid
+            portsContainer.innerHTML = '';
+            portGrid.classList.remove('hidden');
+            
+            data.ports.forEach(port => {
+                const portDiv = document.createElement('div');
+                portDiv.className = `btn btn-sm ${port.available ? 'btn-success' : 'btn-error'} relative`;
+                portDiv.textContent = `P${port.number}`;
+                
+                if (port.available) {
+                    portDiv.onclick = () => {
+                        napPortInput.value = port.number;
+                        // Highlight selected port
+                        document.querySelectorAll('#ports-container .btn').forEach(btn => {
+                            btn.classList.remove('btn-primary');
+                            if (btn.textContent === `P${port.number}`) {
+                                btn.classList.add('btn-primary');
+                            }
+                        });
+                    };
+                    portDiv.style.cursor = 'pointer';
+                } else {
+                    portDiv.title = `Occupied by ${port.customer}`;
+                    portDiv.classList.add('tooltip');
+                    portDiv.setAttribute('data-tip', port.customer);
+                }
+                
+                portsContainer.appendChild(portDiv);
+            });
+            
+            // Highlight current selection if editing
+            if (napPortInput.value) {
+                const selectedPort = document.querySelector(`#ports-container .btn:nth-child(${napPortInput.value})`);
+                if (selectedPort && selectedPort.classList.contains('btn-success')) {
+                    selectedPort.classList.add('btn-primary');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching port data:', error);
+            portAvailability.textContent = 'Error loading port information';
+        });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const napSelect = document.getElementById('id_nap');
+    if (napSelect && napSelect.value) {
+        updatePortOptions();
+    }
+});
+</script>

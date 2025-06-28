@@ -5,9 +5,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
+from django.http import JsonResponse
 
 from .models import CustomerInstallation
 from .forms import CustomerInstallationForm
+from apps.lcp.models import NAP
 from apps.customers.models import Customer
 
 
@@ -164,3 +166,49 @@ def installation_delete(request, pk):
         f'Installation for {installation.customer.full_name} has been terminated'
     )
     return redirect('customer_installations:installation_list')
+
+
+@login_required
+def get_nap_ports(request, nap_id):
+    """API endpoint to get NAP port availability"""
+    try:
+        nap = NAP.objects.get(id=nap_id)
+        
+        # Get all occupied ports
+        occupied_ports = CustomerInstallation.objects.filter(
+            nap=nap
+        ).values_list('nap_port', flat=True)
+        
+        # Generate port availability data
+        ports = []
+        for port_num in range(1, nap.port_capacity + 1):
+            if port_num in occupied_ports:
+                installation = CustomerInstallation.objects.get(nap=nap, nap_port=port_num)
+                ports.append({
+                    'number': port_num,
+                    'available': False,
+                    'customer': installation.customer.get_full_name()
+                })
+            else:
+                ports.append({
+                    'number': port_num,
+                    'available': True,
+                    'customer': None
+                })
+        
+        return JsonResponse({
+            'nap': {
+                'id': nap.id,
+                'code': nap.code,
+                'name': nap.name,
+                'capacity': nap.port_capacity,
+                'location': nap.location,
+                'lcp': nap.splitter.lcp.code,
+                'splitter': nap.splitter.code,
+            },
+            'ports': ports,
+            'available_count': sum(1 for p in ports if p['available']),
+            'occupied_count': sum(1 for p in ports if not p['available'])
+        })
+    except NAP.DoesNotExist:
+        return JsonResponse({'error': 'NAP not found'}, status=404)

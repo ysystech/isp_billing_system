@@ -9,4 +9,5 @@ urlpatterns = [
     path('<int:pk>/', views.installation_detail, name='installation_detail'),
     path('<int:pk>/update/', views.installation_update, name='installation_update'),
     path('<int:pk>/delete/', views.installation_delete, name='installation_delete'),
+    path('api/nap/<int:nap_id>/ports/', views.get_nap_ports, name='get_nap_ports'),
 ]
