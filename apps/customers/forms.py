@@ -31,10 +31,6 @@ class CustomerForm(forms.ModelForm):
             "phone_primary": forms.TextInput(attrs={"class": "input input-bordered w-full", "placeholder": "+63 XXX XXX XXXX"}),
             "street_address": forms.TextInput(attrs={"class": "input input-bordered w-full"}),
             "barangay": forms.Select(attrs={"class": "select select-bordered w-full"}),
-            "latitude": forms.NumberInput(attrs={"class": "input input-bordered w-full", "step": "any", "placeholder": "8.4542"}),
-            "longitude": forms.NumberInput(attrs={"class": "input input-bordered w-full", "step": "any", "placeholder": "124.6319"}),
-            "location_accuracy": forms.Select(attrs={"class": "select select-bordered w-full"}),
-            "location_notes": forms.TextInput(attrs={"class": "input input-bordered w-full", "placeholder": "Near landmark..."}),
             "status": forms.Select(attrs={"class": "select select-bordered w-full"}),
             "notes": forms.Textarea(attrs={"class": "textarea textarea-bordered w-full", "rows": 3}),
         }
