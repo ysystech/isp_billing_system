@@ -3,12 +3,12 @@ from django.contrib.admin.models import LogEntry
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
-from apps.utils.models import BaseModel
+from apps.utils.models import BaseModel, TenantAwareModel
 
 User = get_user_model()
 
 
-class AuditLogEntry(BaseModel):
+class AuditLogEntry(TenantAwareModel):
     """
     Extended audit log entry that captures additional metadata
     beyond Django's built-in LogEntry

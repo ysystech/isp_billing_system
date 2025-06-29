@@ -223,7 +223,7 @@ class Ticket(TenantAwareModel):
         return colors.get(self.priority, 'neutral')
 
 
-class TicketComment(BaseModel):
+class TicketComment(TenantAwareModel):
     """Comments and updates on tickets."""
     
     ticket = models.ForeignKey(

@@ -1,15 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from apps.utils.models import BaseModel
+from apps.utils.models import BaseModel, TenantAwareModel
 
 
-class Role(BaseModel):
+class Role(TenantAwareModel):
     """
     Wrapper around Django's Group model to provide additional functionality
     and better UI/UX for role management.
     """
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50)
     description = models.TextField(blank=True, help_text="Describe what this role is for")
     group = models.OneToOneField(
         Group, 
@@ -24,6 +24,7 @@ class Role(BaseModel):
     
     class Meta:
         ordering = ['name']
+        unique_together = ['tenant', 'name']
         
     def __str__(self):
         return self.name
