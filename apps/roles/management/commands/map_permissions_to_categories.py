@@ -193,7 +193,8 @@ class Command(BaseCommand):
                 ('roles', 'change_role', 'Edit Role', 'Edit role permissions'),
                 ('roles', 'delete_role', 'Delete Role', 'Delete roles'),
                 
-                # Admin logs
+                # Admin logs - TODO: Implement audit log viewing functionality
+                # Currently this permission exists but there's no user-facing audit log viewer
                 ('admin', 'view_logentry', 'View Admin Logs', 'View admin action logs'),
             ],
         }
