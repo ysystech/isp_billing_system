@@ -1,0 +1,61 @@
+{% extends "web/app/app_base.html" %}
+{% load i18n %}
+{% load role_tags %}
+
+{% block app %}
+<section class="app-card">
+  <div class="mb-6">
+    <h1 class="pg-title">{% translate "Manage Permissions" %} - {{ role.name }}</h1>
+    <p class="text-gray-600">{{ role.description }}</p>
+  </div>
+  
+  <p>Debug: permission_data has {{ permission_data|length }} categories</p>
+  
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+    
+    {% if permission_data %}
+      {% for item in permission_data %}
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">{{ item.category.name }}</h2>
+          <p class="text-sm text-gray-600 mb-4">{{ item.category.description|default:"No description" }}</p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for perm in item.permissions %}
+            <label class="cursor-pointer hover:bg-base-200 p-2 rounded">
+              <div class="flex items-start gap-3">
+                <input type="checkbox" 
+                       name="permissions" 
+                       value="{{ perm.id }}" 
+                       {% if perm.is_selected %}checked{% endif %}
+                       class="checkbox checkbox-primary mt-1">
+                <div class="flex-1">
+                  <div class="font-medium">{{ perm.display_name }}</div>
+                  <div class="text-sm text-gray-600">{{ perm.description|default:"" }}</div>
+                  <div class="text-xs text-gray-500 mt-1">{{ perm.codename }}</div>
+                </div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="alert alert-info">
+        <span>No permission categories found. The permission_data variable is empty.</span>
+      </div>
+    {% endif %}
+    
+    <div class="flex gap-2 mt-6">
+      <button type="submit" class="btn btn-primary">
+        {% translate "Save Permissions" %}
+      </button>
+      <a href="{% url 'roles:role_detail' role.pk %}" class="btn btn-ghost">
+        {% translate "Cancel" %}
+      </a>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% if has_permission %}
+  {{ content }}
+{% else %}
+  {% if show_message %}
+    <div class="text-gray-500 text-sm">
+      You don't have permission to {{ permission }}
+    </div>
+  {% endif %}
+{% endif %}

@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from .models import Role, PermissionCategory, PermissionCategoryMapping
-from .forms import RoleForm, RolePermissionForm
+from .forms import RoleForm, RolePermissionsForm
 from .decorators import require_permission
 
 
@@ -123,7 +123,8 @@ def role_permissions(request, pk):
     
     if role.is_system and not request.user.is_superuser:
         messages.error(request, 'System role permissions can only be edited by superusers.')
-        return redirect('roles:role_detail', pk=role.pk)    
+        return redirect('roles:role_detail', pk=role.pk)
+    
     # Get all permission categories with their permissions
     categories = PermissionCategory.objects.prefetch_related(
         'permission_mappings__permission__content_type'
@@ -162,6 +163,11 @@ def role_permissions(request, pk):
                 'category': category,
                 'permissions': category_perms,
             })
+    
+    # Debug output
+    print(f"Permission data categories: {len(permission_data)}")
+    for item in permission_data:
+        print(f"  - {item['category'].name}: {len(item['permissions'])} permissions")
     
     return render(request, 'roles/role_permissions.html', {
         'role': role,

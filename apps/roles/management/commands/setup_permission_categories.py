@@ -10,63 +10,92 @@ class Command(BaseCommand):
     help = 'Set up initial permission categories for the ISP billing system'
 
     def handle(self, *args, **options):
+        # Define categories with better grouping
         categories = [
+            {
+                'name': 'Dashboard',
+                'code': 'dashboard',
+                'description': 'Main dashboard and system overview',
+                'icon': 'fa-tachometer-alt',
+                'order': 10,
+            },
             {
                 'name': 'Customer Management',
                 'code': 'customers',
+                'description': 'Manage customer profiles, contacts, and information',
                 'icon': 'fa-users',
-                'order': 10,
-                'description': 'Manage customer information, contacts, and profiles'
-            },
-            {
-                'name': 'Billing & Subscriptions',
-                'code': 'billing',
-                'icon': 'fa-credit-card',
                 'order': 20,
-                'description': 'Handle customer subscriptions, payments, and receipts'
             },
             {
-                'name': 'Infrastructure Management',
-                'code': 'infrastructure',
-                'icon': 'fa-broadcast-tower',
+                'name': 'Barangay Management',
+                'code': 'barangays',
+                'description': 'Manage barangay records and geographic areas',
+                'icon': 'fa-map-marker-alt',
                 'order': 30,
-                'description': 'Manage LCP, splitters, NAPs, and network infrastructure'
             },
             {
-                'name': 'Technical Operations',
-                'code': 'technical',
-                'icon': 'fa-tools',
+                'name': 'Router Management',
+                'code': 'routers',
+                'description': 'Manage router inventory and equipment',
+                'icon': 'fa-wifi',
                 'order': 40,
-                'description': 'Handle installations, router management, and field operations'
             },
             {
-                'name': 'Support & Tickets',
-                'code': 'support',
-                'icon': 'fa-ticket-alt',
+                'name': 'Subscription Plans',
+                'code': 'plans',
+                'description': 'Manage internet plans and pricing',
+                'icon': 'fa-list-alt',
                 'order': 50,
-                'description': 'Customer support tickets and issue tracking'
+            },
+            {
+                'name': 'LCP Infrastructure',
+                'code': 'lcp',
+                'description': 'Manage LCP, Splitter, and NAP infrastructure',
+                'icon': 'fa-broadcast-tower',
+                'order': 60,
+            },
+            {
+                'name': 'Network Management',
+                'code': 'network',
+                'description': 'Network visualization and management',
+                'icon': 'fa-network-wired',
+                'order': 70,
+            },
+            {
+                'name': 'Installations',
+                'code': 'installations',
+                'description': 'Manage customer installations and connections',
+                'icon': 'fa-tools',
+                'order': 80,
+            },
+            {
+                'name': 'Customer Subscriptions',
+                'code': 'subscriptions',
+                'description': 'Process payments and manage active subscriptions',
+                'icon': 'fa-credit-card',
+                'order': 90,
+            },
+            {
+                'name': 'Support Tickets',
+                'code': 'tickets',
+                'description': 'Customer support and ticket management',
+                'icon': 'fa-ticket-alt',
+                'order': 100,
             },
             {
                 'name': 'Reports & Analytics',
                 'code': 'reports',
+                'description': 'Business reports and analytics',
                 'icon': 'fa-chart-bar',
-                'order': 60,
-                'description': 'View and generate business reports and analytics'
+                'order': 110,
             },
             {
-                'name': 'System Administration',
-                'code': 'admin',
-                'icon': 'fa-cog',
-                'order': 70,
-                'description': 'User management, roles, and system configuration'
+                'name': 'User Management',
+                'code': 'users',
+                'description': 'Manage system users and roles',
+                'icon': 'fa-users-cog',
+                'order': 120,
             },
-            {
-                'name': 'Basic Operations',
-                'code': 'basic',
-                'icon': 'fa-home',
-                'order': 5,
-                'description': 'Basic system access and navigation'
-            }
         ]
         
         created_count = 0

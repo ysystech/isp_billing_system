@@ -10,6 +10,7 @@ from .models import Ticket, TicketComment
 from .forms import TicketForm, TicketCommentForm, TicketFilterForm
 from apps.customers.models import Customer
 from apps.customer_installations.models import CustomerInstallation
+from apps.users.models import CustomUser
 
 
 @login_required
