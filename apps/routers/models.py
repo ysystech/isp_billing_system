@@ -26,8 +26,6 @@ class Router(BaseModel):
     mac_address = models.CharField(
         max_length=17,
         unique=True,
-        null=True,  # Temporarily nullable for migration
-        blank=True,  # Temporarily optional for migration
         validators=[
             RegexValidator(
                 regex=r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$',

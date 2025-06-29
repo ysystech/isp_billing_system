@@ -54,9 +54,12 @@
 
 ## Technical Debt
 
-### 8. MAC Address Field Migration
-- Router model has MAC address field
-- Need to make it non-nullable after updating existing records
+### ~~8. MAC Address Field Migration~~ ✅ COMPLETED (June 29, 2025)
+- ~~Router model has MAC address field~~
+- ~~Need to make it non-nullable after updating existing records~~
+- **DONE**: All existing routers now have MAC addresses
+- **DONE**: Field is now required (non-nullable)
+- Generated MAC addresses use TP-Link OUI prefix (50:C7:BF)
 
 ### 9. Performance Optimization
 - Query optimization for large datasets
@@ -71,3 +74,4 @@
 - Support ticket workflow
 - Acknowledgment receipt generation
 - Reports Permission Simplification (reduced from 20 to 11 permissions - June 29, 2025)
+- MAC Address Field Migration (made non-nullable - June 29, 2025)
