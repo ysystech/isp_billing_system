@@ -1,5 +1,6 @@
 {% extends "web/app/app_base.html" %}
 {% load humanize %}
+{% load role_tags %}
 
 {% block title %}Support Tickets{% endblock %}
 
@@ -8,12 +9,14 @@
   <!-- Header -->
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-gray-800">Support Tickets</h1>
+    {% if user|has_permission:"tickets.create_ticket" %}
     <a href="{% url 'tickets:ticket_create' %}" class="btn btn-primary">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
       New Ticket
     </a>
+    {% endif %}
   </div>
 
   <!-- Statistics Cards -->
@@ -122,6 +125,7 @@
             </td>
             <td>
               <div class="flex gap-1">
+                {% if user|has_permission:"tickets.view_ticket_detail" %}
                 <a href="{% url 'tickets:ticket_detail' pk=ticket.pk %}" 
                    class="btn btn-sm btn-ghost" title="View Details">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -129,7 +133,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 </a>
-                {% if ticket.status != 'resolved' and ticket.status != 'cancelled' %}
+                {% endif %}
+                {% if ticket.status != 'resolved' and ticket.status != 'cancelled' and user|has_permission:"tickets.change_ticket_status" %}
                   <a href="{% url 'tickets:ticket_update' pk=ticket.pk %}" 
                      class="btn btn-sm btn-ghost" title="Edit">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

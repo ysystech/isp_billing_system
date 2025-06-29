@@ -155,7 +155,7 @@ def ticket_detail(request, pk):
 
 
 @login_required
-@permission_required('tickets.change_ticket', raise_exception=True)
+@permission_required('tickets.change_ticket_status', raise_exception=True)
 def ticket_update(request, pk):
     """Update ticket details."""
     ticket = get_object_or_404(Ticket, pk=pk)
@@ -267,7 +267,7 @@ def ticket_update_status(request, pk):
 # AJAX endpoints for dynamic form behavior
 
 @login_required
-@permission_required('tickets.view_ticket', raise_exception=True)
+@permission_required('tickets.view_ticket_list', raise_exception=True)
 def ajax_search_customers(request):
     """AJAX endpoint to search customers."""
     query = request.GET.get('q', '')
@@ -296,7 +296,7 @@ def ajax_search_customers(request):
 
 
 @login_required
-@permission_required('tickets.view_ticket', raise_exception=True)
+@permission_required('tickets.view_ticket_list', raise_exception=True)
 def ajax_get_customer_installations(request):
     """AJAX endpoint to get customer installations."""
     customer_id = request.GET.get('customer_id')
