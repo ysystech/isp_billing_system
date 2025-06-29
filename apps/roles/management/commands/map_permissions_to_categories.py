@@ -39,17 +39,37 @@ class Command(BaseCommand):
             ('tickets', 'view_ticket'),  # We use view_ticket_list
             ('tickets', 'add_ticketcomment'),  # We use add_ticket_comment
             ('routers', 'view_router'),  # We use view_router_list
+            ('routers', 'view_router_detail'),  # Covered by view_router_list
             ('routers', 'manage_router_inventory'),  # Not needed - CRUD is enough
             ('routers', 'export_router_data'),  # Not needed - CRUD is enough
             ('routers', 'bulk_import_routers'),  # Not needed - CRUD is enough
-            ('routers', 'view_router_mac_address'),  # Covered by view_router_detail
+            ('routers', 'view_router_mac_address'),  # Covered by view_router_list
             ('lcp', 'change_lcp'),  # We use manage_lcp_infrastructure
-            ('lcp', 'change_splitter'),  # We use manage_splitter_ports
-            ('lcp', 'change_nap'),  # We use manage_nap_ports
+            ('lcp', 'change_splitter'),  # We use manage_lcp_infrastructure
+            ('lcp', 'change_nap'),  # We use manage_lcp_infrastructure
             ('lcp', 'view_lcp'),  # We use view_lcp_list
-            ('lcp', 'view_splitter'),  # We use view_splitter_list
-            ('lcp', 'view_nap'),  # We use view_nap_list
+            ('lcp', 'view_splitter'),  # We use view_lcp_list
+            ('lcp', 'view_nap'),  # We use view_lcp_list
+            ('lcp', 'view_lcp_map'),  # Covered by view_lcp_detail
+            ('lcp', 'export_lcp_data'),  # Not essential for basic management
+            ('lcp', 'view_splitter_list'),  # Covered by view_lcp_list
+            ('lcp', 'view_splitter_detail'),  # Covered by view_lcp_detail
+            ('lcp', 'add_splitter'),  # Covered by add_lcp
+            ('lcp', 'delete_splitter'),  # Covered by delete_lcp
+            ('lcp', 'manage_splitter_ports'),  # Covered by manage_lcp_infrastructure
+            ('lcp', 'view_nap_list'),  # Covered by view_lcp_list
+            ('lcp', 'view_nap_detail'),  # Covered by view_lcp_detail
+            ('lcp', 'add_nap'),  # Covered by add_lcp
+            ('lcp', 'delete_nap'),  # Covered by delete_lcp
+            ('lcp', 'manage_nap_ports'),  # Covered by manage_lcp_infrastructure
+            ('lcp', 'view_nap_availability'),  # Covered by view_lcp_detail
+            ('network', 'view_network_hierarchy'),  # Covered by view_network_map
+            ('network', 'export_network_data'),  # Covered by view_network_map
+            ('network', 'view_coverage_analysis'),  # Covered by view_network_map
             ('subscriptions', 'view_subscriptionplan'),  # We use view_subscriptionplan_list
+            ('subscriptions', 'change_subscriptionplan_pricing'),  # Covered by change_subscriptionplan
+            ('subscriptions', 'activate_deactivate_plans'),  # Covered by change_subscriptionplan
+            ('subscriptions', 'create_promotional_plans'),  # Not needed - edit plan is enough
             ('barangays', 'view_barangay'),  # We use view_barangay_list
             ('barangays', 'manage_barangay_status'),  # Not needed - CRUD is enough
             ('barangays', 'view_barangay_statistics'),  # Not needed - CRUD is enough
@@ -80,52 +100,24 @@ class Command(BaseCommand):
             ],
             'routers': [
                 # Router permissions - simple CRUD only
-                ('routers', 'view_router_list', 'View Router List', 'Access router listing'),
-                ('routers', 'view_router_detail', 'View Router Details', 'View router details including MAC address'),
+                ('routers', 'view_router_list', 'View Router List', 'Access router listing and details'),
                 ('routers', 'add_router', 'Add Router', 'Add new router to inventory'),
                 ('routers', 'change_router', 'Edit Router', 'Edit router information'),
                 ('routers', 'delete_router', 'Delete Router', 'Delete router records'),
             ],
             'plans': [
-                # Subscription plan permissions - removed view_subscriptionplan as redundant
-                ('subscriptions', 'view_subscriptionplan_list', 'View Plan List', 'Access plan listing'),
+                # Subscription plan permissions - simplified CRUD
+                ('subscriptions', 'view_subscriptionplan_list', 'View Plan List', 'Access plan listing and details'),
                 ('subscriptions', 'add_subscriptionplan', 'Add Plan', 'Create new subscription plan'),
-                ('subscriptions', 'change_subscriptionplan', 'Edit Plan', 'Edit subscription plans'),
-                ('subscriptions', 'change_subscriptionplan_pricing', 'Change Pricing', 'Modify plan pricing'),
+                ('subscriptions', 'change_subscriptionplan', 'Edit Plan', 'Edit subscription plans including pricing and status'),
                 ('subscriptions', 'delete_subscriptionplan', 'Delete Plan', 'Delete subscription plans'),
-                ('subscriptions', 'activate_deactivate_plans', 'Manage Plan Status', 'Activate/deactivate plans'),
-                ('subscriptions', 'create_promotional_plans', 'Create Promotions', 'Create promotional plans'),
             ],            'lcp': [
-                # LCP Infrastructure permissions - removed view_lcp, view_splitter, view_nap as redundant
-                ('lcp', 'view_lcp_list', 'View LCP List', 'Access LCP listing'),
-                ('lcp', 'view_lcp_detail', 'View LCP Details', 'View detailed LCP information'),
-                ('lcp', 'add_lcp', 'Add LCP', 'Create new LCP'),
-                ('lcp', 'delete_lcp', 'Delete LCP', 'Delete LCP records'),
-                ('lcp', 'manage_lcp_infrastructure', 'Manage LCP', 'Manage LCP infrastructure'),
-                ('lcp', 'view_lcp_map', 'View on Map', 'View LCP locations on map'),
-                ('lcp', 'export_lcp_data', 'Export LCP Data', 'Export LCP data'),
-                
-                # Splitter
-                ('lcp', 'view_splitter_list', 'View Splitter List', 'Access splitter listing'),
-                ('lcp', 'view_splitter_detail', 'View Splitter Details', 'View splitter details'),
-                ('lcp', 'add_splitter', 'Add Splitter', 'Create new splitter'),
-                ('lcp', 'delete_splitter', 'Delete Splitter', 'Delete splitter records'),
-                ('lcp', 'manage_splitter_ports', 'Manage Splitter Ports', 'Manage splitter port assignments'),
-                
-                # NAP
-                ('lcp', 'view_nap_list', 'View NAP List', 'Access NAP listing'),
-                ('lcp', 'view_nap_detail', 'View NAP Details', 'View NAP details'),
-                ('lcp', 'add_nap', 'Add NAP', 'Create new NAP'),
-                ('lcp', 'delete_nap', 'Delete NAP', 'Delete NAP records'),
-                ('lcp', 'manage_nap_ports', 'Manage NAP Ports', 'Manage NAP port assignments'),
-                ('lcp', 'view_nap_availability', 'View Availability', 'View NAP port availability'),
-            ],
-            'network': [
-                # Network visualization permissions
-                ('network', 'view_network_map', 'View Network Map', 'Access network visualization map'),
-                ('network', 'view_network_hierarchy', 'View Hierarchy', 'View network hierarchy'),
-                ('network', 'export_network_data', 'Export Network Data', 'Export network data'),
-                ('network', 'view_coverage_analysis', 'View Coverage', 'View network coverage analysis'),
+                # LCP Infrastructure permissions - unified management
+                ('lcp', 'view_lcp_list', 'View List', 'View lists of LCP, Splitter, and NAP in tables'),
+                ('lcp', 'view_lcp_detail', 'View Details', 'View detailed LCP info including Splitters, NAPs and infrastructure hierarchy'),
+                ('lcp', 'add_lcp', 'Create', 'Create LCP, Splitter, and NAP records'),
+                ('lcp', 'manage_lcp_infrastructure', 'Edit', 'Edit LCP records and all infrastructure components'),
+                ('lcp', 'delete_lcp', 'Delete', 'Delete LCP and all related infrastructure'),
             ],
             'installations': [
                 # Customer installation permissions - removed view_customerinstallation as redundant
@@ -187,6 +179,8 @@ class Command(BaseCommand):
                 ('reports', 'access_advanced_analytics', 'Advanced Analytics', 'Access advanced analytics features'),
                 ('reports', 'schedule_reports', 'Schedule Reports', 'Schedule automated reports'),
                 ('reports', 'customize_report_parameters', 'Customize Reports', 'Customize report parameters'),
+                # Network visualization moved here
+                ('network', 'view_network_map', 'View Network Visualization', 'Access network map, hierarchy, and all visualization features'),
             ],
             'users': [
                 # User and role management permissions
@@ -214,7 +208,6 @@ class Command(BaseCommand):
             'routers': PermissionCategory.objects.get(code='routers'),
             'plans': PermissionCategory.objects.get(code='plans'),
             'lcp': PermissionCategory.objects.get(code='lcp'),
-            'network': PermissionCategory.objects.get(code='network'),
             'installations': PermissionCategory.objects.get(code='installations'),
             'subscriptions': PermissionCategory.objects.get(code='subscriptions'),
             'tickets': PermissionCategory.objects.get(code='tickets'),

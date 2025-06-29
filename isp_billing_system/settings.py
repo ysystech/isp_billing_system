@@ -84,6 +84,7 @@ PROJECT_APPS = [
     "apps.tickets.apps.TicketsConfig",
     "apps.reports.apps.ReportsConfig",
     "apps.roles.apps.RolesConfig",
+    "apps.network.apps.NetworkConfig",
     "apps.web",
 ]
 
