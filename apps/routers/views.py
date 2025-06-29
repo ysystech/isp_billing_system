@@ -1,8 +1,8 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
 
@@ -11,6 +11,7 @@ from apps.routers.forms import RouterForm
 
 
 @login_required
+@permission_required('routers.view_router_list', raise_exception=True)
 def router_list(request):
     """List all routers with search and pagination"""
     routers = Router.objects.all()
@@ -43,6 +44,7 @@ def router_list(request):
 
 
 @login_required
+@permission_required('routers.view_router_list', raise_exception=True)
 def router_detail(request, pk):
     """View router details"""
     router = get_object_or_404(Router, pk=pk)
@@ -56,6 +58,7 @@ def router_detail(request, pk):
 
 
 @login_required
+@permission_required('routers.add_router', raise_exception=True)
 def router_create(request):
     """Create a new router"""
     if request.method == "POST":
@@ -81,6 +84,7 @@ def router_create(request):
 
 
 @login_required
+@permission_required('routers.change_router', raise_exception=True)
 def router_update(request, pk):
     """Update a router"""
     router = get_object_or_404(Router, pk=pk)
@@ -112,6 +116,7 @@ def router_update(request, pk):
 
 
 @login_required
+@permission_required('routers.delete_router', raise_exception=True)
 @require_http_methods(["DELETE"])
 def router_delete(request, pk):
     """Delete a router"""
@@ -127,6 +132,7 @@ def router_delete(request, pk):
 
 
 @login_required
+@permission_required('routers.view_router_list', raise_exception=True)
 def router_quick_stats(request):
     """Get quick statistics for routers (for dashboard)"""
     stats = {

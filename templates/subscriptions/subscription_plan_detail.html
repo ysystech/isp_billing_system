@@ -1,5 +1,6 @@
 {% extends "web/app/app_base.html" %}
 {% load static %}
+{% load permission_tags %}
 
 {% block app %}
 <section class="app-card">
@@ -25,12 +26,16 @@
       </div>
     </div>
     <div class="flex space-x-2">
+      {% if user|has_permission:"subscriptions.change_subscriptionplan" %}
       <a href="{% url 'subscriptions:subscription_plan_update' plan.id %}" class="btn btn-primary btn-sm">
         Edit Plan
       </a>
+      {% endif %}
+      {% if user|has_permission:"subscriptions.delete_subscriptionplan" %}
       <button class="btn btn-error btn-sm" onclick="confirmDelete()">
         Delete Plan
       </button>
+      {% endif %}
     </div>
   </div>
 
@@ -92,6 +97,7 @@
 </section>
 
 <script>
+{% if user|has_permission:"subscriptions.delete_subscriptionplan" %}
 function confirmDelete() {
   if (confirm('Are you sure you want to delete "{{ plan.name|escapejs }}"? This action cannot be undone.')) {
     // Create a form and submit it as DELETE
@@ -122,5 +128,6 @@ function confirmDelete() {
     }
   }
 }
+{% endif %}
 </script>
 {% endblock %}

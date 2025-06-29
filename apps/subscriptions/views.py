@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,6 +10,7 @@ from .forms import SubscriptionPlanForm, SubscriptionPlanSearchForm
 
 
 @login_required
+@permission_required('subscriptions.view_subscriptionplan_list', raise_exception=True)
 def subscription_plan_list(request):
     """List all subscription plans with search and filter functionality."""
     form = SubscriptionPlanSearchForm(request.GET)
@@ -44,6 +45,7 @@ def subscription_plan_list(request):
 
 
 @login_required
+@permission_required('subscriptions.add_subscriptionplan', raise_exception=True)
 def subscription_plan_create(request):
     """Create a new subscription plan."""
     if request.method == 'POST':
@@ -70,6 +72,7 @@ def subscription_plan_create(request):
 
 
 @login_required
+@permission_required('subscriptions.change_subscriptionplan', raise_exception=True)
 def subscription_plan_update(request, pk):
     """Update an existing subscription plan."""
     plan = get_object_or_404(SubscriptionPlan, pk=pk)
@@ -99,6 +102,7 @@ def subscription_plan_update(request, pk):
 
 
 @login_required
+@permission_required('subscriptions.delete_subscriptionplan', raise_exception=True)
 @require_http_methods(["DELETE"])
 def subscription_plan_delete(request, pk):
     """Delete a subscription plan."""
@@ -122,6 +126,7 @@ def subscription_plan_delete(request, pk):
 
 
 @login_required
+@permission_required('subscriptions.view_subscriptionplan_list', raise_exception=True)
 def subscription_plan_detail(request, pk):
     """View details of a subscription plan."""
     plan = get_object_or_404(SubscriptionPlan, pk=pk)

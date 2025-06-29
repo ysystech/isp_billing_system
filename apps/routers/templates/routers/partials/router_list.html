@@ -1,3 +1,4 @@
+{% load permission_tags %}
 <div class="overflow-x-auto">
   <table class="table table-zebra">
     <thead>
@@ -25,6 +26,7 @@
         <td>{{ router.created_at|date:"M d, Y" }}</td>
         <td>
           <div class="flex gap-2">
+            {% if user|has_permission:"routers.change_router" %}
             <a href="{% url 'routers:update' router.pk %}"
                class="btn btn-sm btn-ghost"
                hx-get="{% url 'routers:update' router.pk %}"
@@ -32,11 +34,14 @@
                hx-trigger="click">
               <i class="fas fa-edit"></i>
             </a>
+            {% endif %}
+            {% if user|has_permission:"routers.delete_router" %}
             <button class="btn btn-sm btn-ghost text-error"
                     hx-delete="{% url 'routers:delete' router.pk %}"
                     hx-confirm="Are you sure you want to delete this router?">
               <i class="fas fa-trash"></i>
             </button>
+            {% endif %}
           </div>
         </td>
       </tr>

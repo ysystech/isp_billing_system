@@ -1,5 +1,6 @@
 {% extends "web/app/app_base.html" %}
 {% load static %}
+{% load permission_tags %}
 
 {% block title %}Routers - {{ block.super }}{% endblock %}
 
@@ -7,6 +8,7 @@
 <div class="app-card">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold">Routers</h1>
+    {% if user|has_permission:"routers.add_router" %}
     <a href="{% url 'routers:create' %}" 
        class="btn btn-primary"
        hx-get="{% url 'routers:create' %}"
@@ -14,6 +16,7 @@
        hx-trigger="click">
       <i class="fas fa-plus mr-2"></i>Add New Router
     </a>
+    {% endif %}
   </div>
 
   <!-- Search and Filters -->
