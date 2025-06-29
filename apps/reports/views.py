@@ -309,6 +309,10 @@ def monthly_revenue_report(request):
         total=Sum('amount')
     ).order_by('-total')
     
+    # Add percentage to plan revenue
+    for plan in plan_revenue:
+        plan['percentage'] = float(plan['total']) / float(total_revenue) * 100 if total_revenue else 0
+    
     # Revenue by barangay
     barangay_revenue = subscriptions.values(
         'customer_installation__customer__barangay__name'
@@ -316,6 +320,10 @@ def monthly_revenue_report(request):
         count=Count('id'),
         total=Sum('amount')
     ).order_by('-total')[:10]  # Top 10 barangays
+    
+    # Add percentage to barangay revenue
+    for barangay in barangay_revenue:
+        barangay['percentage'] = float(barangay['total']) / float(total_revenue) * 100 if total_revenue else 0
     
     # Daily revenue for chart
     daily_revenue = []
@@ -739,6 +747,7 @@ def customer_acquisition_report(request):
         'total_new_customers': sum(d['new_customers'] for d in monthly_data),
         'total_new_installations': sum(d['new_installations'] for d in monthly_data),
         'yoy_growth': yoy_growth,
+        'monthly_average': sum(d['new_customers'] for d in monthly_data) / 12,
     }
     
     return render(request, 'reports/customer_acquisition.html', context)
@@ -861,6 +870,7 @@ def payment_behavior_report(request):
         'days': days,
         'total_subscriptions': subscriptions.count(),
         'total_revenue': subscriptions.aggregate(total=Sum('amount'))['total'] or 0,
+        'average_payment': (subscriptions.aggregate(total=Sum('amount'))['total'] or 0) / subscriptions.count() if subscriptions.count() else 0,
         'payment_type_data': payment_type_data,
         'renewal_stats': {
             'total': total_renewals,

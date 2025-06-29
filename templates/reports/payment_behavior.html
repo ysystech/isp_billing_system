@@ -40,7 +40,7 @@
     <div class="card bg-base-100 shadow-sm">
       <div class="card-body">
         <h2 class="text-sm text-gray-600">Average Payment</h2>
-        <p class="text-3xl font-bold">₱{{ total_revenue|div:total_subscriptions|default:0|floatformat:2|intcomma }}</p>
+        <p class="text-3xl font-bold">₱{{ average_payment|floatformat:2|intcomma }}</p>
       </div>
     </div>
     
