@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
+from apps.tenants.mixins import tenant_required
 
 from .models import SubscriptionPlan
 from .forms import SubscriptionPlanForm, SubscriptionPlanSearchForm
@@ -14,7 +15,7 @@ from .forms import SubscriptionPlanForm, SubscriptionPlanSearchForm
 def subscription_plan_list(request):
     """List all subscription plans with search and filter functionality."""
     form = SubscriptionPlanSearchForm(request.GET)
-    plans = SubscriptionPlan.objects.all()
+    plans = SubscriptionPlan.objects.filter(tenant=request.tenant)
     
     # Apply search filter
     if form.is_valid():
@@ -51,7 +52,11 @@ def subscription_plan_create(request):
     if request.method == 'POST':
         form = SubscriptionPlanForm(request.POST)
         if form.is_valid():
-            plan = form.save()
+            plan = form.save(commit=False)
+
+            plan.tenant = request.tenant
+
+            plan.save()
             messages.success(request, f'Subscription plan "{plan.name}" created successfully.')
             
             # Return HTMX response
@@ -75,12 +80,16 @@ def subscription_plan_create(request):
 @permission_required('subscriptions.change_subscriptionplan', raise_exception=True)
 def subscription_plan_update(request, pk):
     """Update an existing subscription plan."""
-    plan = get_object_or_404(SubscriptionPlan, pk=pk)
+    plan = get_object_or_404(SubscriptionPlan.objects.filter(tenant=request.tenant), pk=pk
     
     if request.method == 'POST':
         form = SubscriptionPlanForm(request.POST, instance=plan)
         if form.is_valid():
-            plan = form.save()
+            plan = form.save(commit=False)
+
+            plan.tenant = request.tenant
+
+            plan.save()
             messages.success(request, f'Subscription plan "{plan.name}" updated successfully.')
             
             # Return HTMX response
@@ -106,7 +115,7 @@ def subscription_plan_update(request, pk):
 @require_http_methods(["DELETE"])
 def subscription_plan_delete(request, pk):
     """Delete a subscription plan."""
-    plan = get_object_or_404(SubscriptionPlan, pk=pk)
+    plan = get_object_or_404(SubscriptionPlan.objects.filter(tenant=request.tenant), pk=pk
     
     # Check if plan has any active subscriptions (will be implemented later)
     # For now, just delete the plan
@@ -129,7 +138,7 @@ def subscription_plan_delete(request, pk):
 @permission_required('subscriptions.view_subscriptionplan_list', raise_exception=True)
 def subscription_plan_detail(request, pk):
     """View details of a subscription plan."""
-    plan = get_object_or_404(SubscriptionPlan, pk=pk)
+    plan = get_object_or_404(SubscriptionPlan.objects.filter(tenant=request.tenant), pk=pk
     
     return render(request, 'subscriptions/subscription_plan_detail.html', {
         'plan': plan

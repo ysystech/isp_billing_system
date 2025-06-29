@@ -6,9 +6,11 @@ from apps.customers.models import Customer
 from apps.lcp.models import LCP, Splitter, NAP
 from apps.customer_installations.models import CustomerInstallation
 import json
+from apps.tenants.mixins import tenant_required
 
 
 @login_required
+@tenant_required
 def network_map(request):
     """Display all infrastructure and customers on an interactive map"""
     context = {
@@ -39,11 +41,11 @@ def network_map_data(request):
     
     # Get LCPs with coordinates
     if show_lcps:
-        lcps = LCP.objects.filter(
+        lcps = LCP.objects.filter(tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             is_active=True
-        ).annotate(
+        .annotate(
             splitter_count=Count('splitters'),
             nap_count=Count('splitters__naps', distinct=True)
         )
@@ -64,11 +66,11 @@ def network_map_data(request):
     
     # Get Splitters with coordinates
     if show_splitters:
-        splitters = Splitter.objects.filter(
+        splitters = Splitter.objects.filter(tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             is_active=True
-        ).select_related('lcp').annotate(
+        .select_related('lcp').annotate(
             nap_count=Count('naps')
         )
         
@@ -89,11 +91,11 @@ def network_map_data(request):
     
     # Get NAPs with coordinates  
     if show_naps:
-        naps = NAP.objects.filter(
+        naps = NAP.objects.filter(tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             is_active=True
-        ).select_related('splitter__lcp')
+        .select_related('splitter__lcp')
         
         for nap in naps:
             data['naps'].append({
@@ -112,11 +114,11 @@ def network_map_data(request):
     
     # Get Customers with coordinates
     if show_customers:
-        customers = Customer.objects.filter(
+        customers = Customer.objects.filter(tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             status='active'
-        ).select_related('barangay')
+        .select_related('barangay')
         
         for customer in customers:
             data['customers'].append({
@@ -132,11 +134,11 @@ def network_map_data(request):
     
     # Get Installations with coordinates
     if show_installations:
-        installations = CustomerInstallation.objects.filter(
+        installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             status='ACTIVE'
-        ).select_related('customer__barangay', 'router')
+        .select_related('customer__barangay', 'router')
         
         for installation in installations:
             data['installations'].append({
@@ -155,6 +157,7 @@ def network_map_data(request):
 
 
 @login_required
+@tenant_required
 def network_hierarchy(request):
     """Display network hierarchy visualization"""
     context = {

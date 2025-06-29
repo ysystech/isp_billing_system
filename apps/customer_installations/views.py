@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.http import JsonResponse
+from apps.tenants.mixins import tenant_required
 
 from .models import CustomerInstallation
 from .forms import CustomerInstallationForm
@@ -71,7 +72,7 @@ def installation_detail(request, pk):
 def installation_create(request):
     """Create a new customer installation."""
     if request.method == 'POST':
-        form = CustomerInstallationForm(request.POST)
+        form = CustomerInstallationForm(request.POST, tenant=request.tenant)
         if form.is_valid():
             installation = form.save(commit=False)
             installation.is_active = True
@@ -83,7 +84,7 @@ def installation_create(request):
             )
             return redirect('customer_installations:installation_detail', pk=installation.pk)
     else:
-        form = CustomerInstallationForm()
+        form = CustomerInstallationForm(tenant=request.tenant)
     
     context = {
         'form': form,
@@ -99,16 +100,16 @@ def installation_create(request):
 @permission_required('customer_installations.change_installation_status', raise_exception=True)
 def installation_update(request, pk):
     """Update an existing installation."""
-    installation = get_object_or_404(CustomerInstallation, pk=pk)
+    installation = get_object_or_404(CustomerInstallation.objects.filter(tenant=request.tenant), pk=pk
     
     if request.method == 'POST':
-        form = CustomerInstallationForm(request.POST, instance=installation)
+        form = CustomerInstallationForm(request.POST, instance=installation, tenant=request.tenant)
         if form.is_valid():
             form.save()
             messages.success(request, 'Installation updated successfully')
             return redirect('customer_installations:installation_detail', pk=installation.pk)
     else:
-        form = CustomerInstallationForm(instance=installation)
+        form = CustomerInstallationForm(instance=installation, tenant=request.tenant)
     
     context = {
         'form': form,
@@ -126,7 +127,7 @@ def installation_update(request, pk):
 @require_http_methods(["POST"])
 def installation_delete(request, pk):
     """Delete an installation (soft delete by setting status to terminated)."""
-    installation = get_object_or_404(CustomerInstallation, pk=pk)
+    installation = get_object_or_404(CustomerInstallation.objects.filter(tenant=request.tenant), pk=pk
     
     installation.status = 'TERMINATED'
     installation.is_active = False
@@ -147,9 +148,9 @@ def get_nap_ports(request, nap_id):
         nap = NAP.objects.get(id=nap_id)
         
         # Get all occupied ports
-        occupied_ports = CustomerInstallation.objects.filter(
+        occupied_ports = CustomerInstallation.objects.filter(tenant=request.tenant, 
             nap=nap
-        ).values_list('nap_port', flat=True)
+        .values_list('nap_port', flat=True)
         
         # Generate port availability data
         ports = []

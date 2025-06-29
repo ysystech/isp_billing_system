@@ -9,6 +9,7 @@ from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from apps.tenants.mixins import tenant_required
 
 from .models import Role, PermissionCategory, PermissionCategoryMapping
 from .forms import RoleForm, RolePermissionsForm
@@ -35,13 +36,17 @@ def role_list(request):
 def role_create(request):
     """Create a new role."""
     if request.method == 'POST':
-        form = RoleForm(request.POST)
+        form = RoleForm(request.POST, tenant=request.tenant)
         if form.is_valid():
-            role = form.save()
+            role = form.save(commit=False)
+
+            role.tenant = request.tenant
+
+            role.save()
             messages.success(request, f'Role "{role.name}" created successfully.')
             return redirect('roles:role_permissions', pk=role.pk)
     else:
-        form = RoleForm()
+        form = RoleForm(tenant=request.tenant)
     
     return render(request, 'roles/role_form.html', {
         'form': form,
@@ -53,7 +58,7 @@ def role_create(request):
 @permission_required('roles.view_role', raise_exception=True)
 def role_detail(request, pk):
     """View role details."""
-    role = get_object_or_404(Role, pk=pk)
+    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk
     
     # Check if user can access this role
     if not request.user.is_superuser and not can_manage_role(request.user, role):
@@ -77,7 +82,7 @@ def role_detail(request, pk):
 @permission_required('roles.change_role', raise_exception=True)
 def role_edit(request, pk):
     """Edit role basic information."""
-    role = get_object_or_404(Role, pk=pk)
+    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk
     
     # Check if user can access this role
     if not request.user.is_superuser and not can_manage_role(request.user, role):
@@ -89,13 +94,13 @@ def role_edit(request, pk):
         return redirect('roles:role_list')
     
     if request.method == 'POST':
-        form = RoleForm(request.POST, instance=role)
+        form = RoleForm(request.POST, instance=role, tenant=request.tenant)
         if form.is_valid():
             form.save()
             messages.success(request, f'Role "{role.name}" updated successfully.')
             return redirect('roles:role_detail', pk=role.pk)
     else:
-        form = RoleForm(instance=role)
+        form = RoleForm(instance=role, tenant=request.tenant)
     
     return render(request, 'roles/role_form.html', {
         'form': form,
@@ -107,7 +112,7 @@ def role_edit(request, pk):
 @permission_required('roles.delete_role', raise_exception=True)
 def role_delete(request, pk):
     """Delete a role."""
-    role = get_object_or_404(Role, pk=pk)
+    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk
     
     # Check if user can access this role
     if not request.user.is_superuser and not can_manage_role(request.user, role):
@@ -137,7 +142,7 @@ def role_delete(request, pk):
 @permission_required('roles.change_role', raise_exception=True)
 def role_permissions(request, pk):
     """Manage role permissions."""
-    role = get_object_or_404(Role, pk=pk)
+    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk
     
     # Check if user can access this role
     if not request.user.is_superuser and not can_manage_role(request.user, role):

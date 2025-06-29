@@ -8,6 +8,7 @@ import csv
 import json
 from decimal import Decimal
 from django.db import models
+from apps.tenants.mixins import tenant_required
 
 from apps.customer_subscriptions.models import CustomerSubscription
 from apps.customers.models import Customer
@@ -43,9 +44,9 @@ def daily_collection_report(request):
         report_date = timezone.now().date()
     
     # Get subscriptions created on this date
-    subscriptions = CustomerSubscription.objects.filter(
+    subscriptions = CustomerSubscription.objects.filter(tenant=request.tenant, 
         created_at__date=report_date
-    ).select_related(
+    .select_related(
         'customer_installation__customer',
         'subscription_plan',
         'created_by'
@@ -72,15 +73,15 @@ def daily_collection_report(request):
     
     # Get yesterday's data for comparison
     yesterday = report_date - timedelta(days=1)
-    yesterday_total = CustomerSubscription.objects.filter(
+    yesterday_total = CustomerSubscription.objects.filter(tenant=request.tenant, 
         created_at__date=yesterday
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    .aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
     # Get last week same day data
     last_week = report_date - timedelta(days=7)
-    last_week_total = CustomerSubscription.objects.filter(
+    last_week_total = CustomerSubscription.objects.filter(tenant=request.tenant, 
         created_at__date=last_week
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    .aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
     # Handle export
     if request.GET.get('export') == 'csv':
@@ -133,9 +134,9 @@ def subscription_expiry_report(request):
     
     # Get different expiry groups
     # Due in 3 days (urgent)
-    due_3_days = CustomerSubscription.objects.filter(
+    due_3_days = CustomerSubscription.objects.filter(tenant=request.tenant, 
         status='ACTIVE',
-        end_date__date__gt=today.date(),
+        end_date__date__gt=today.date(,
         end_date__date__lte=(today + timedelta(days=3)).date()
     ).select_related(
         'customer_installation__customer',
@@ -144,9 +145,9 @@ def subscription_expiry_report(request):
     ).order_by('end_date')
     
     # Due in 7 days (regular)
-    due_7_days = CustomerSubscription.objects.filter(
+    due_7_days = CustomerSubscription.objects.filter(tenant=request.tenant, 
         status='ACTIVE',
-        end_date__date__gt=(today + timedelta(days=3)).date(),
+        end_date__date__gt=(today + timedelta(days=3).date(),
         end_date__date__lte=(today + timedelta(days=7)).date()
     ).select_related(
         'customer_installation__customer',
@@ -155,9 +156,9 @@ def subscription_expiry_report(request):
     ).order_by('end_date')
     
     # Expired yesterday
-    expired_yesterday = CustomerSubscription.objects.filter(
+    expired_yesterday = CustomerSubscription.objects.filter(tenant=request.tenant, 
         status='EXPIRED',
-        end_date__date=(today - timedelta(days=1)).date()
+        end_date__date=(today - timedelta(days=1).date()
     ).select_related(
         'customer_installation__customer',
         'customer_installation__nap__splitter__lcp',
@@ -165,9 +166,9 @@ def subscription_expiry_report(request):
     ).order_by('customer_installation__customer__barangay__name')
     
     # Expired 3+ days (disconnection candidates)
-    expired_3_plus = CustomerSubscription.objects.filter(
+    expired_3_plus = CustomerSubscription.objects.filter(tenant=request.tenant, 
         status='EXPIRED',
-        end_date__date__lte=(today - timedelta(days=3)).date(),
+        end_date__date__lte=(today - timedelta(days=3).date(),
         end_date__date__gte=(today - timedelta(days=30)).date()  # Last 30 days only
     ).select_related(
         'customer_installation__customer',
@@ -192,7 +193,7 @@ def subscription_expiry_report(request):
         )
     
     # Get all barangays for filter
-    barangays = Barangay.objects.filter(is_active=True).order_by('name')
+    barangays = Barangay.objects.filter(tenant=request.tenant, is_active=True.order_by('name')
     
     # Handle export
     if request.GET.get('export') == 'csv':
@@ -259,10 +260,10 @@ def monthly_revenue_report(request):
         end_date = date(year, month + 1, 1) - timedelta(days=1)
     
     # Get subscriptions for this month
-    subscriptions = CustomerSubscription.objects.filter(
+    subscriptions = CustomerSubscription.objects.filter(tenant=request.tenant, 
         created_at__date__gte=start_date,
         created_at__date__lte=end_date
-    )
+    
     
     # Calculate totals
     total_revenue = subscriptions.aggregate(total=Sum('amount'))['total'] or Decimal('0')
@@ -282,17 +283,17 @@ def monthly_revenue_report(request):
     else:
         prev_end = date(prev_year, prev_month + 1, 1) - timedelta(days=1)
     
-    prev_revenue = CustomerSubscription.objects.filter(
+    prev_revenue = CustomerSubscription.objects.filter(tenant=request.tenant, 
         created_at__date__gte=prev_start,
         created_at__date__lte=prev_end
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    .aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
     # Calculate MoM growth
     mom_growth = ((total_revenue - prev_revenue) / prev_revenue * 100) if prev_revenue else 0
     
     # Get last year same month
-    last_year_revenue = CustomerSubscription.objects.filter(
-        created_at__date__gte=date(year - 1, month, 1),
+    last_year_revenue = CustomerSubscription.objects.filter(tenant=request.tenant, 
+        created_at__date__gte=date(year - 1, month, 1,
         created_at__date__lte=date(year - 1, month, end_date.day)
     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
@@ -341,9 +342,9 @@ def monthly_revenue_report(request):
     # New vs Renewal revenue
     # For simplicity, we'll consider first subscription per customer as new
     customer_first_subs = {}
-    all_subs = CustomerSubscription.objects.filter(
+    all_subs = CustomerSubscription.objects.filter(tenant=request.tenant, 
         created_at__date__lte=end_date
-    ).order_by('created_at').values('customer_installation__customer_id', 'id', 'created_at')
+    .order_by('created_at').values('customer_installation__customer_id', 'id', 'created_at')
     
     for sub in all_subs:
         customer_id = sub['customer_installation__customer_id']
@@ -395,10 +396,10 @@ def ticket_analysis_report(request):
     start_date = end_date - timedelta(days=days)
     
     # Get tickets in date range
-    tickets = Ticket.objects.filter(
+    tickets = Ticket.objects.filter(tenant=request.tenant, 
         created_at__date__gte=start_date,
         created_at__date__lte=end_date
-    ).select_related('customer', 'assigned_to', 'customer_installation__customer__barangay')
+    .select_related('customer', 'assigned_to', 'customer_installation__customer__barangay')
     
     # Overall statistics
     total_tickets = tickets.count()
@@ -549,18 +550,18 @@ def technician_performance_report(request):
     technician_stats = []
     for tech in technicians:
         # Installations completed
-        installations = CustomerInstallation.objects.filter(
+        installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
             installation_technician=tech,
             installation_date__gte=start_date,
             installation_date__lte=end_date
-        )
+        
         
         # Tickets handled
-        tickets = Ticket.objects.filter(
+        tickets = Ticket.objects.filter(tenant=request.tenant, 
             assigned_to=tech,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date
-        )
+        
         
         resolved_tickets = tickets.filter(status='resolved')
         
@@ -606,13 +607,13 @@ def technician_performance_report(request):
     for i in range(min(days, 30)):  # Limit to 30 days for performance
         day_date = end_date - timedelta(days=i)
         
-        day_installations = CustomerInstallation.objects.filter(
+        day_installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
             installation_date=day_date
-        ).count()
+        .count()
         
-        day_tickets = Ticket.objects.filter(
+        day_tickets = Ticket.objects.filter(tenant=request.tenant, 
             created_at__date=day_date
-        ).count()
+        .count()
         
         daily_activity.append({
             'date': day_date.strftime('%Y-%m-%d'),
@@ -651,22 +652,22 @@ def customer_acquisition_report(request):
             end_date = date(year, month + 1, 1) - timedelta(days=1)
         
         # New customers this month
-        new_customers = Customer.objects.filter(
+        new_customers = Customer.objects.filter(tenant=request.tenant, 
             created_at__date__gte=start_date,
             created_at__date__lte=end_date
-        )
+        
         
         # Installations this month
-        new_installations = CustomerInstallation.objects.filter(
+        new_installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
             installation_date__gte=start_date,
             installation_date__lte=end_date
-        )
+        
         
         # First subscriptions (activation)
-        first_subs = CustomerSubscription.objects.filter(
+        first_subs = CustomerSubscription.objects.filter(tenant=request.tenant, 
             created_at__date__gte=start_date,
             created_at__date__lte=end_date
-        ).values('customer_installation__customer').annotate(
+        .values('customer_installation__customer').annotate(
             first_sub_date=models.Min('created_at')
         )
         
@@ -685,21 +686,21 @@ def customer_acquisition_report(request):
         data['cumulative'] = cumulative_customers
     
     # Acquisition by barangay
-    barangay_data = Customer.objects.filter(
+    barangay_data = Customer.objects.filter(tenant=request.tenant, 
         created_at__year=year
-    ).values('barangay__name').annotate(
+    .values('barangay__name').annotate(
         count=Count('id')
     ).order_by('-count')[:10]
     
     # Popular plans for new customers
     # Get first subscription for each customer in the year
-    new_customer_ids = Customer.objects.filter(
+    new_customer_ids = Customer.objects.filter(tenant=request.tenant, 
         created_at__year=year
-    ).values_list('id', flat=True)
+    .values_list('id', flat=True)
     
-    first_plans = CustomerSubscription.objects.filter(
+    first_plans = CustomerSubscription.objects.filter(tenant=request.tenant, 
         customer_installation__customer__in=new_customer_ids
-    ).values(
+    .values(
         'customer_installation__customer',
         'subscription_plan__name',
         'subscription_plan__speed'
@@ -712,10 +713,10 @@ def customer_acquisition_report(request):
     
     # Installation to activation time
     activation_times = []
-    installations_with_subs = CustomerInstallation.objects.filter(
+    installations_with_subs = CustomerInstallation.objects.filter(tenant=request.tenant, 
         installation_date__year=year,
         subscriptions__isnull=False
-    ).distinct()
+    .distinct()
     
     for installation in installations_with_subs[:100]:  # Sample for performance
         first_sub = installation.subscriptions.order_by('created_at').first()
@@ -726,13 +727,13 @@ def customer_acquisition_report(request):
     avg_activation_time = sum(activation_times) / len(activation_times) if activation_times else 0
     
     # Year over year comparison
-    prev_year_customers = Customer.objects.filter(
+    prev_year_customers = Customer.objects.filter(tenant=request.tenant, 
         created_at__year=year-1
-    ).count()
+    .count()
     
-    current_year_customers = Customer.objects.filter(
+    current_year_customers = Customer.objects.filter(tenant=request.tenant, 
         created_at__year=year
-    ).count()
+    .count()
     
     yoy_growth = ((current_year_customers - prev_year_customers) / prev_year_customers * 100) if prev_year_customers else 0
     
@@ -763,10 +764,10 @@ def payment_behavior_report(request):
     start_date = end_date - timedelta(days=days)
     
     # Get all subscriptions in date range
-    subscriptions = CustomerSubscription.objects.filter(
+    subscriptions = CustomerSubscription.objects.filter(tenant=request.tenant, 
         created_at__date__gte=start_date,
         created_at__date__lte=end_date
-    ).select_related('customer_installation__customer', 'subscription_plan')
+    .select_related('customer_installation__customer', 'subscription_plan')
     
     # Payment type distribution
     payment_types = subscriptions.values('subscription_type').annotate(
@@ -900,7 +901,7 @@ def payment_behavior_report(request):
 def area_performance_dashboard(request):
     """Area performance dashboard for geographic business insights."""
     # Get all active barangays
-    barangays = Barangay.objects.filter(is_active=True).order_by('name')
+    barangays = Barangay.objects.filter(tenant=request.tenant, is_active=True.order_by('name')
     
     # Selected barangay
     selected_barangay_id = request.GET.get('barangay')
@@ -918,38 +919,38 @@ def area_performance_dashboard(request):
     
     if selected_barangay:
         # Detailed stats for selected barangay
-        customers = Customer.objects.filter(barangay=selected_barangay)
+        customers = Customer.objects.filter(tenant=request.tenant, barangay=selected_barangay
         
         # Revenue
-        revenue = CustomerSubscription.objects.filter(
+        revenue = CustomerSubscription.objects.filter(tenant=request.tenant, 
             customer_installation__customer__barangay=selected_barangay,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        .aggregate(total=Sum('amount'))['total'] or Decimal('0')
         
         # Active subscriptions
-        active_subs = CustomerSubscription.objects.filter(
+        active_subs = CustomerSubscription.objects.filter(tenant=request.tenant, 
             customer_installation__customer__barangay=selected_barangay,
             status='ACTIVE'
-        ).count()
+        .count()
         
         # Service issues
-        tickets = Ticket.objects.filter(
+        tickets = Ticket.objects.filter(tenant=request.tenant, 
             customer_installation__customer__barangay=selected_barangay,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date
-        )
+        
         
         # Infrastructure
-        naps_in_area = NAP.objects.filter(
+        naps_in_area = NAP.objects.filter(tenant=request.tenant, 
             splitter__lcp__barangay=selected_barangay
-        )
+        
         
         total_ports = sum(nap.port_capacity for nap in naps_in_area)
-        used_ports = CustomerInstallation.objects.filter(
+        used_ports = CustomerInstallation.objects.filter(tenant=request.tenant, 
             nap__in=naps_in_area,
             status='ACTIVE'
-        ).count()
+        .count()
         
         # Growth (new customers)
         new_customers = customers.filter(
@@ -963,11 +964,11 @@ def area_performance_dashboard(request):
             month_start = end_date.replace(day=1) - timedelta(days=i*30)
             month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
             
-            month_revenue = CustomerSubscription.objects.filter(
+            month_revenue = CustomerSubscription.objects.filter(tenant=request.tenant, 
                 customer_installation__customer__barangay=selected_barangay,
                 created_at__date__gte=month_start,
                 created_at__date__lte=month_end
-            ).aggregate(total=Sum('amount'))['total'] or 0
+            .aggregate(total=Sum('amount'))['total'] or 0
             
             monthly_trend.append({
                 'month': month_start.strftime('%B'),
@@ -990,32 +991,32 @@ def area_performance_dashboard(request):
             'port_utilization': (used_ports / total_ports * 100) if total_ports else 0,
             'new_customers': new_customers,
             'monthly_trend': json.dumps(monthly_trend),
-            'popular_plans': CustomerSubscription.objects.filter(
+            'popular_plans': CustomerSubscription.objects.filter(tenant=request.tenant, 
                 customer_installation__customer__barangay=selected_barangay,
                 created_at__date__gte=start_date
-            ).values('subscription_plan__name').annotate(
+            .values('subscription_plan__name').annotate(
                 count=Count('id')
             ).order_by('-count')[:5]
         }
     else:
         # Overview of all areas
         for barangay in barangays:
-            customers = Customer.objects.filter(barangay=barangay)
+            customers = Customer.objects.filter(tenant=request.tenant, barangay=barangay
             active_customers = customers.filter(
                 installation__status='ACTIVE'
             ).distinct().count()
             
-            revenue = CustomerSubscription.objects.filter(
+            revenue = CustomerSubscription.objects.filter(tenant=request.tenant, 
                 customer_installation__customer__barangay=barangay,
                 created_at__date__gte=start_date,
                 created_at__date__lte=end_date
-            ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            .aggregate(total=Sum('amount'))['total'] or Decimal('0')
             
-            tickets = Ticket.objects.filter(
+            tickets = Ticket.objects.filter(tenant=request.tenant, 
                 customer_installation__customer__barangay=barangay,
                 created_at__date__gte=start_date,
                 created_at__date__lte=end_date
-            ).count()
+            .count()
             
             # Calculate potential (based on households estimate)
             # This is a rough estimate - you might want to add actual household data

@@ -6,14 +6,16 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
 
+from apps.tenants.mixins import tenant_required
 from apps.barangays.models import Barangay
 from apps.barangays.forms import BarangayForm
 
 
 @login_required
+@tenant_required
 def barangay_list(request):
     """List all barangays with search and pagination"""
-    barangays = Barangay.objects.annotate(
+    barangays = Barangay.objects.filter(tenant=request.tenant).annotate(
         active_customers=Count("customers", filter=Q(customers__status="active")),
         total_customers=Count("customers")
     )
@@ -53,10 +55,11 @@ def barangay_list(request):
 
 
 @login_required
+@tenant_required
 def barangay_detail(request, pk):
     """View barangay details"""
     barangay = get_object_or_404(
-        Barangay.objects.annotate(
+        Barangay.objects.filter(tenant=request.tenant).annotate(
             active_customers=Count("customers", filter=Q(customers__status="active")),
             total_customers=Count("customers")
         ),
@@ -76,12 +79,15 @@ def barangay_detail(request, pk):
 
 
 @login_required
+@tenant_required
 def barangay_create(request):
     """Create a new barangay"""
     if request.method == "POST":
         form = BarangayForm(request.POST)
         if form.is_valid():
-            barangay = form.save()
+            barangay = form.save(commit=False)
+            barangay.tenant = request.tenant
+            barangay.save()
             messages.success(request, f"Barangay '{barangay.name}' created successfully!")
             
             if request.headers.get("HX-Request"):
@@ -101,9 +107,10 @@ def barangay_create(request):
 
 
 @login_required
+@tenant_required
 def barangay_update(request, pk):
     """Update a barangay"""
-    barangay = get_object_or_404(Barangay, pk=pk)
+    barangay = get_object_or_404(Barangay.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == "POST":
         form = BarangayForm(request.POST, instance=barangay)
@@ -132,10 +139,11 @@ def barangay_update(request, pk):
 
 
 @login_required
+@tenant_required
 @require_http_methods(["DELETE"])
 def barangay_delete(request, pk):
     """Delete a barangay (soft delete by setting is_active=False)"""
-    barangay = get_object_or_404(Barangay, pk=pk)
+    barangay = get_object_or_404(Barangay.objects.filter(tenant=request.tenant), pk=pk)
     
     # Check if barangay has customers
     if barangay.customers.exists():
@@ -155,12 +163,16 @@ def barangay_delete(request, pk):
 
 
 @login_required
+@tenant_required
 def barangay_quick_stats(request):
     """Get quick statistics for barangays (for dashboard)"""
     stats = {
-        "total": Barangay.objects.count(),
-        "active": Barangay.objects.filter(is_active=True).count(),
-        "with_customers": Barangay.objects.filter(customers__isnull=False).distinct().count(),
+        "total": Barangay.objects.filter(tenant=request.tenant).count(),
+        "active": Barangay.objects.filter(tenant=request.tenant, is_active=True).count(),
+        "with_customers": Barangay.objects.filter(
+            tenant=request.tenant, 
+            customers__isnull=False
+        ).distinct().count(),
     }
     
     return render(request, "barangays/partials/barangay_stats.html", {"stats": stats})

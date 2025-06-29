@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
+from apps.tenants.mixins import tenant_required
 
 from apps.routers.models import Router
 from apps.routers.forms import RouterForm
@@ -14,7 +15,7 @@ from apps.routers.forms import RouterForm
 @permission_required('routers.view_router_list', raise_exception=True)
 def router_list(request):
     """List all routers with search and pagination"""
-    routers = Router.objects.all()
+    routers = Router.objects.filter(tenant=request.tenant)
     
     # Search functionality
     search = request.GET.get("search", "")
@@ -47,7 +48,7 @@ def router_list(request):
 @permission_required('routers.view_router_list', raise_exception=True)
 def router_detail(request, pk):
     """View router details"""
-    router = get_object_or_404(Router, pk=pk)
+    router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk
     
     context = {
         "router": router,
@@ -64,7 +65,11 @@ def router_create(request):
     if request.method == "POST":
         form = RouterForm(request.POST)
         if form.is_valid():
-            router = form.save()
+            router = form.save(commit=False)
+
+            router.tenant = request.tenant
+
+            router.save()
             messages.success(request, f"Router '{router}' created successfully!")
             
             if request.headers.get("HX-Request"):
@@ -87,12 +92,16 @@ def router_create(request):
 @permission_required('routers.change_router', raise_exception=True)
 def router_update(request, pk):
     """Update a router"""
-    router = get_object_or_404(Router, pk=pk)
+    router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk
     
     if request.method == "POST":
         form = RouterForm(request.POST, instance=router)
         if form.is_valid():
-            router = form.save()
+            router = form.save(commit=False)
+
+            router.tenant = request.tenant
+
+            router.save()
             messages.success(request, f"Router '{router}' updated successfully!")
             
             if request.headers.get("HX-Request"):
@@ -120,7 +129,7 @@ def router_update(request, pk):
 @require_http_methods(["DELETE"])
 def router_delete(request, pk):
     """Delete a router"""
-    router = get_object_or_404(Router, pk=pk)
+    router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk
     
     router_str = str(router)
     router.delete()

@@ -12,7 +12,7 @@ class CustomerInstallationForm(forms.ModelForm):
     """Form for creating and updating customer installations."""
     
     customer = forms.ModelChoiceField(
-        queryset=Customer.objects.filter(installation__isnull=True, status='active'),
+        queryset=Customer.objects.none(),  # Will be set in __init__
         widget=forms.Select(attrs={
             'class': 'select select-bordered w-full',
             'data-placeholder': 'Select a customer'
@@ -21,7 +21,7 @@ class CustomerInstallationForm(forms.ModelForm):
     )
     
     router = forms.ModelChoiceField(
-        queryset=Router.objects.all(),
+        queryset=Router.objects.none(),  # Will be set in __init__
         widget=forms.Select(attrs={
             'class': 'select select-bordered w-full',
             'data-placeholder': 'Select a router'
@@ -75,24 +75,32 @@ class CustomerInstallationForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        self.tenant = kwargs.pop('tenant', None)
         super().__init__(*args, **kwargs)
         
-        # If editing, allow the current customer
-        if self.instance and self.instance.pk:
-            self.fields['customer'].queryset = Customer.objects.filter(
-                models.Q(installation__isnull=True) | models.Q(installation=self.instance)
-            ).filter(status='active')
-        
-        # If editing, allow the current customer
-        if self.instance and self.instance.pk:
-            self.fields['customer'].queryset = Customer.objects.filter(
-                models.Q(installation__isnull=True) | models.Q(installation=self.instance)
-            ).filter(status='active')
-        
-        # Set up NAP field with active NAPs only
-        self.fields['nap'].queryset = NAP.objects.filter(
-            is_active=True
-        ).select_related('splitter__lcp').order_by('splitter__lcp__code', 'code')
+        # Filter querysets by tenant
+        if self.tenant:
+            # Filter customers by tenant
+            if self.instance and self.instance.pk:
+                self.fields['customer'].queryset = Customer.objects.filter(
+                    tenant=self.tenant,
+                    models.Q(installation__isnull=True) | models.Q(installation=self.instance)
+                ).filter(status='active')
+            else:
+                self.fields['customer'].queryset = Customer.objects.filter(
+                    tenant=self.tenant,
+                    installation__isnull=True, 
+                    status='active'
+                )
+            
+            # Filter routers by tenant
+            self.fields['router'].queryset = Router.objects.filter(tenant=self.tenant)
+            
+            # Filter NAPs by tenant
+            self.fields['nap'].queryset = NAP.objects.filter(
+                tenant=self.tenant,
+                is_active=True
+            ).select_related('splitter__lcp').order_by('splitter__lcp__code', 'code')
         
         # Format NAP display
         self.fields['nap'].label_from_instance = lambda obj: f"{obj.splitter.lcp.code} → {obj.splitter.code} → {obj.code} ({obj.name})"

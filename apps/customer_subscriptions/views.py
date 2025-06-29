@@ -9,6 +9,7 @@ from decimal import Decimal
 import json
 from weasyprint import HTML
 import tempfile
+from apps.tenants.mixins import tenant_required
 
 from .models import CustomerSubscription
 from .forms import CustomerSubscriptionForm
@@ -85,16 +86,20 @@ def subscription_create(request):
             pass
     
     if request.method == 'POST':
-        form = CustomerSubscriptionForm(request.POST, user=request.user)
+        form = CustomerSubscriptionForm(request.POST, user=request.user, tenant=request.tenant)
         if form.is_valid():
-            subscription = form.save()
+            subscription = form.save(commit=False)
+
+            subscription.tenant = request.tenant
+
+            subscription.save()
             messages.success(
                 request,
                 f'Subscription created successfully for {subscription.customer_installation.customer.full_name}'
             )
             return redirect('customer_subscriptions:subscription_detail', pk=subscription.pk)
     else:
-        form = CustomerSubscriptionForm(initial=initial, user=request.user)
+        form = CustomerSubscriptionForm(initial=initial, user=request.user, tenant=request.tenant)
     
     context = {
         'form': form,
@@ -136,7 +141,7 @@ def subscription_detail(request, pk):
 @permission_required('customer_subscriptions.cancel_subscription', raise_exception=True)
 def subscription_cancel(request, pk):
     """Cancel a subscription."""
-    subscription = get_object_or_404(CustomerSubscription, pk=pk)
+    subscription = get_object_or_404(CustomerSubscription.objects.filter(tenant=request.tenant), pk=pk
     
     if request.method == 'POST':
         subscription.status = 'CANCELLED'
@@ -242,18 +247,18 @@ def api_get_plan_price(request):
 def active_subscriptions(request):
     """View all active subscriptions per customer."""
     # Get all active installations with current active subscriptions
-    active_installations = CustomerInstallation.objects.filter(
+    active_installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
         status='ACTIVE'
-    ).select_related(
+    .select_related(
         'customer',
         'installation_technician',
         'nap__splitter__lcp'
     ).prefetch_related(
         Prefetch(
             'subscriptions',
-            queryset=CustomerSubscription.objects.filter(
+            queryset=CustomerSubscription.objects.filter(tenant=request.tenant, 
                 status='ACTIVE'
-            ).select_related('subscription_plan').order_by('-end_date'),
+            .select_related('subscription_plan').order_by('-end_date'),
             to_attr='active_subscriptions'
         )
     )
@@ -302,9 +307,9 @@ def active_subscriptions(request):
 def customer_payment_history(request, customer_id):
     """View all payment history for a specific customer."""
     # Get all installations for this customer
-    installations = CustomerInstallation.objects.filter(
+    installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
         customer_id=customer_id
-    ).prefetch_related(
+    .prefetch_related(
         Prefetch(
             'subscriptions',
             queryset=CustomerSubscription.objects.select_related(
@@ -359,8 +364,8 @@ def generate_receipt(request, subscription_id):
     
     # Generate receipt number (format: AR-YYYY-MMDD-XXXX)
     receipt_date = subscription.created_at
-    receipt_count = CustomerSubscription.objects.filter(
-        created_at__date=receipt_date.date(),
+    receipt_count = CustomerSubscription.objects.filter(tenant=request.tenant, 
+        created_at__date=receipt_date.date(,
         created_at__lt=receipt_date
     ).count() + 1
     receipt_number = f"AR-{receipt_date.strftime('%Y-%m%d')}-{receipt_count:04d}"

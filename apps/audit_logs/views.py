@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import csv
 from apps.audit_logs.models import AuditLogEntry
 from apps.users.models import CustomUser
+from apps.tenants.mixins import tenant_required
 
 
 ACTION_FLAGS = {

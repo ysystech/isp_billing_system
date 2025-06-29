@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.urls import reverse
 from .models import LCP, Splitter, NAP
 from .forms import LCPForm, SplitterForm, NAPForm
+from apps.tenants.mixins import tenant_required
 
 
 @login_required
@@ -67,7 +68,11 @@ def lcp_create(request):
     if request.method == 'POST':
         form = LCPForm(request.POST)
         if form.is_valid():
-            lcp = form.save()
+            lcp = form.save(commit=False)
+
+            lcp.tenant = request.tenant
+
+            lcp.save()
             messages.success(request, f'LCP {lcp.code} created successfully!')
             return redirect('lcp:lcp_detail', pk=lcp.pk)
     else:
@@ -83,12 +88,16 @@ def lcp_create(request):
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def lcp_edit(request, pk):
-    lcp = get_object_or_404(LCP, pk=pk)
+    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=pk
     
     if request.method == 'POST':
         form = LCPForm(request.POST, instance=lcp)
         if form.is_valid():
-            lcp = form.save()
+            lcp = form.save(commit=False)
+
+            lcp.tenant = request.tenant
+
+            lcp.save()
             messages.success(request, f'LCP {lcp.code} updated successfully!')
             return redirect('lcp:lcp_detail', pk=lcp.pk)
     else:
@@ -105,7 +114,7 @@ def lcp_edit(request, pk):
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def lcp_delete(request, pk):
-    lcp = get_object_or_404(LCP, pk=pk)
+    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=pk
     
     if request.method == 'POST':
         code = lcp.code
@@ -124,7 +133,7 @@ def lcp_delete(request, pk):
 @login_required
 @permission_required('lcp.add_lcp', raise_exception=True)
 def splitter_create(request, lcp_pk):
-    lcp = get_object_or_404(LCP, pk=lcp_pk)
+    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=lcp_pk
     
     if request.method == 'POST':
         form = SplitterForm(request.POST)
@@ -153,7 +162,11 @@ def splitter_edit(request, pk):
     if request.method == 'POST':
         form = SplitterForm(request.POST, instance=splitter)
         if form.is_valid():
-            splitter = form.save()
+            splitter = form.save(commit=False)
+
+            splitter.tenant = request.tenant
+
+            splitter.save()
             messages.success(request, f'Splitter {splitter.code} updated successfully!')
             return redirect('lcp:lcp_detail', pk=splitter.lcp.pk)
     else:
@@ -220,7 +233,11 @@ def nap_edit(request, pk):
     if request.method == 'POST':
         form = NAPForm(request.POST, instance=nap, splitter=nap.splitter)
         if form.is_valid():
-            nap = form.save()
+            nap = form.save(commit=False)
+
+            nap.tenant = request.tenant
+
+            nap.save()
             messages.success(request, f'NAP {nap.code} updated successfully!')
             return redirect('lcp:lcp_detail', pk=nap.splitter.lcp.pk)
     else:
@@ -265,7 +282,7 @@ from django.views.decorators.http import require_http_methods
 @require_http_methods(["GET"])
 def api_get_lcps(request):
     """Get all active LCPs for dropdown selection."""
-    lcps = LCP.objects.filter(is_active=True).values('id', 'name', 'code').order_by('code')
+    lcps = LCP.objects.filter(tenant=request.tenant, is_active=True.values('id', 'name', 'code').order_by('code')
     return JsonResponse(list(lcps), safe=False)
 
 
@@ -274,7 +291,7 @@ def api_get_lcps(request):
 @require_http_methods(["GET"])
 def api_get_splitters(request, lcp_id):
     """Get all splitters for a specific LCP."""
-    splitters = Splitter.objects.filter(lcp_id=lcp_id).annotate(
+    splitters = Splitter.objects.filter(tenant=request.tenant, lcp_id=lcp_id.annotate(
         nap_count=Count('naps')
     )
     
@@ -300,7 +317,7 @@ def api_get_splitters(request, lcp_id):
 @require_http_methods(["GET"])
 def api_get_naps(request, splitter_id):
     """Get all NAPs for a specific splitter."""
-    naps = NAP.objects.filter(splitter_id=splitter_id, is_active=True)
+    naps = NAP.objects.filter(tenant=request.tenant, splitter_id=splitter_id, is_active=True
     
     # Build the response with calculated properties
     nap_list = []

@@ -7,16 +7,18 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 
+from apps.tenants.mixins import tenant_required
 from .forms import CustomerForm, CustomerSearchForm
 from .models import Customer
 
 
 @login_required
+@tenant_required
 @permission_required('customers.view_customer_list', raise_exception=True)
 def customer_list(request):
     """List all customers with search and filtering"""
-    form = CustomerSearchForm(request.GET or None)
-    customers = Customer.objects.select_related("user", "barangay").all()
+    form = CustomerSearchForm(request.GET or None, tenant=request.tenant)
+    customers = Customer.objects.select_related("user", "barangay").filter(tenant=request.tenant)
     
     # Apply search filter
     search_query = request.GET.get("search", "")
@@ -50,17 +52,22 @@ def customer_list(request):
         })
     
     return render(request, "customers/list.html", {
-        "form": form,
         "page_obj": page_obj,
+        "form": form,
+        "search_query": search_query,
         "active_tab": "customers",
     })
 
 
 @login_required
+@tenant_required
 @permission_required('customers.view_customer_detail', raise_exception=True)
 def customer_detail(request, pk):
     """Display customer details"""
-    customer = get_object_or_404(Customer.objects.select_related("user", "barangay"), pk=pk)
+    customer = get_object_or_404(
+        Customer.objects.select_related("user", "barangay").filter(tenant=request.tenant), 
+        pk=pk
+    )
     return render(request, "customers/detail.html", {
         "customer": customer,
         "active_tab": "customers",
@@ -68,123 +75,99 @@ def customer_detail(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('customers.create_customer', raise_exception=True)
 def customer_create(request):
     """Create a new customer"""
     if request.method == "POST":
-        form = CustomerForm(request.POST)
+        form = CustomerForm(request.POST, tenant=request.tenant)
         if form.is_valid():
-            customer = form.save()
+            customer = form.save(commit=False)
+            customer.tenant = request.tenant
+            customer.save()
             messages.success(request, f"Customer {customer.get_full_name()} created successfully!")
-            
-            # Check if this is an HTMX request
-            if request.headers.get("HX-Request"):
-                response = render(request, "customers/partials/customer_row.html", {
-                    "customer": customer,
-                })
-                response["HX-Redirect"] = reverse("customers:customer_detail", kwargs={"pk": customer.pk})
-                return response
-            
-            return redirect("customers:customer_detail", pk=customer.pk)
+            return redirect("customers:detail", pk=customer.pk)
     else:
-        form = CustomerForm()
+        form = CustomerForm(tenant=request.tenant)
     
     return render(request, "customers/form.html", {
         "form": form,
-        "title": "Add New Customer",
+        "title": "Create Customer",
         "active_tab": "customers",
     })
 
 
 @login_required
-@permission_required('customers.change_customer_basic', raise_exception=True)
+@tenant_required
+@permission_required('customers.update_customer', raise_exception=True)
 def customer_update(request, pk):
-    """Update customer information"""
-    customer = get_object_or_404(Customer, pk=pk)
+    """Update an existing customer"""
+    customer = get_object_or_404(Customer.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == "POST":
-        form = CustomerForm(request.POST, instance=customer)
+        form = CustomerForm(request.POST, instance=customer, tenant=request.tenant)
         if form.is_valid():
             customer = form.save()
             messages.success(request, f"Customer {customer.get_full_name()} updated successfully!")
-            
-            if request.headers.get("HX-Request"):
-                return render(request, "customers/partials/customer_row.html", {
-                    "customer": customer,
-                })
-            
-            return redirect("customers:customer_detail", pk=customer.pk)
+            return redirect("customers:detail", pk=customer.pk)
     else:
-        form = CustomerForm(instance=customer)
+        form = CustomerForm(instance=customer, tenant=request.tenant)
     
     return render(request, "customers/form.html", {
         "form": form,
         "customer": customer,
-        "title": f"Edit Customer: {customer.get_full_name()}",
+        "title": "Update Customer",
         "active_tab": "customers",
     })
 
 
 @login_required
-@permission_required('customers.remove_customer', raise_exception=True)
-@require_http_methods(["POST", "DELETE"])
+@tenant_required
+@permission_required('customers.delete_customer', raise_exception=True)
 def customer_delete(request, pk):
-    """Delete (deactivate) a customer"""
-    customer = get_object_or_404(Customer, pk=pk)
+    """Delete a customer"""
+    customer = get_object_or_404(Customer.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == "POST":
-        # Soft delete - just change status to terminated
-        customer.status = Customer.TERMINATED
-        customer.save()
-        messages.success(request, f"Customer {customer.get_full_name()} has been deactivated.")
-        
-        if request.headers.get("HX-Request"):
-            response = render(request, "customers/partials/customer_row.html", {
-                "customer": customer,
-            })
-            response["HX-Trigger"] = "customerDeleted"
-            return response
-        
-        return redirect("customers:customer_list")
-
-
-@login_required
-@permission_required('customers.view_customer_list', raise_exception=True)
-def customer_quick_stats(request):
-    """Get quick statistics for dashboard"""
-    stats = {
-        "total": Customer.objects.count(),
-        "active": Customer.objects.filter(status=Customer.ACTIVE).count(),
-        "inactive": Customer.objects.filter(status=Customer.INACTIVE).count(),
-        "suspended": Customer.objects.filter(status=Customer.SUSPENDED).count(),
-    }
+        customer_name = customer.get_full_name()
+        customer.delete()
+        messages.success(request, f"Customer {customer_name} deleted successfully!")
+        return redirect("customers:list")
     
-    if request.headers.get("HX-Request"):
-        return render(request, "customers/partials/quick_stats.html", {
-            "stats": stats,
-        })
-    
-    return render(request, "customers/stats.html", {
-        "stats": stats,
+    return render(request, "customers/confirm_delete.html", {
+        "customer": customer,
         "active_tab": "customers",
     })
 
 
 @login_required
+@tenant_required
+@require_http_methods(["GET"])
+def customer_quick_stats(request):
+    """Return quick statistics for customers"""
+    stats = {
+        "total": Customer.objects.filter(tenant=request.tenant).count(),
+        "active": Customer.objects.filter(tenant=request.tenant, status=Customer.ACTIVE).count(),
+        "inactive": Customer.objects.filter(tenant=request.tenant, status=Customer.INACTIVE).count(),
+        "suspended": Customer.objects.filter(tenant=request.tenant, status=Customer.SUSPENDED).count(),
+    }
+    return JsonResponse(stats)
+
+
+@login_required
+@tenant_required
 def customer_coordinates_api(request):
-    """API endpoint to get customer coordinates"""
-    if request.method == 'POST':
-        import json
-        try:
-            data = json.loads(request.body)
-            customer_ids = data.get('customer_ids', [])
-            
-            customers = Customer.objects.filter(
-                id__in=customer_ids
-            ).values('id', 'latitude', 'longitude', 'location_notes')
-            
-            return JsonResponse(list(customers), safe=False)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+    """API endpoint to get all customer coordinates for mapping"""
+    customers = Customer.objects.filter(
+        tenant=request.tenant,
+        latitude__isnull=False, 
+        longitude__isnull=False
+    ).values(
+        'id', 'first_name', 'last_name', 'latitude', 'longitude', 
+        'status', 'street_address', 'barangay__name'
+    )
     
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return JsonResponse({
+        'customers': list(customers),
+        'total': customers.count()
+    })

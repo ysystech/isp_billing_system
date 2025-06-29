@@ -36,15 +36,23 @@ class CustomerForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        # Extract tenant from kwargs
+        self.tenant = kwargs.pop('tenant', None)
         super().__init__(*args, **kwargs)
-        # Only show active barangays in the dropdown
-        self.fields["barangay"].queryset = Barangay.objects.filter(is_active=True)
+        # Only show active barangays in the dropdown for this tenant
+        if self.tenant:
+            self.fields["barangay"].queryset = Barangay.objects.filter(
+                tenant=self.tenant,
+                is_active=True
+            )
     
     def clean_email(self):
         email = self.cleaned_data.get("email")
         if email:
-            # Check for duplicate email, excluding current instance in update
+            # Check for duplicate email within the same tenant, excluding current instance in update
             qs = Customer.objects.filter(email__iexact=email)
+            if self.tenant:
+                qs = qs.filter(tenant=self.tenant)
             if self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
@@ -54,6 +62,18 @@ class CustomerForm(forms.ModelForm):
 
 class CustomerSearchForm(forms.Form):
     """Form for searching customers"""
+    
+    def __init__(self, *args, **kwargs):
+        # Extract tenant from kwargs
+        tenant = kwargs.pop('tenant', None)
+        super().__init__(*args, **kwargs)
+        # Filter barangays by tenant
+        if tenant:
+            self.fields["barangay"].queryset = Barangay.objects.filter(
+                tenant=tenant,
+                is_active=True
+            )
+    
     search = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={

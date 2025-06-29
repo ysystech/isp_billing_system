@@ -67,15 +67,30 @@ class TicketForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
+        self.tenant = kwargs.pop('tenant', None)
         super().__init__(*args, **kwargs)
         
         # Set the logged-in user as reported_by (will be set in view)
         self.user = user
         
-        # Limit assigned_to choices to staff users
-        self.fields['assigned_to'].queryset = CustomUser.objects.filter(
-            is_staff=True
-        ).order_by('first_name', 'last_name')
+        # Filter querysets by tenant
+        if self.tenant:
+            # Filter customers by tenant
+            self.fields['customer'].queryset = Customer.objects.filter(
+                tenant=self.tenant,
+                status='active'
+            )
+            
+            # Filter customer installations by tenant
+            self.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(
+                tenant=self.tenant
+            )
+            
+            # Limit assigned_to choices to staff users in the same tenant
+            self.fields['assigned_to'].queryset = CustomUser.objects.filter(
+                tenant=self.tenant,
+                is_staff=True
+            ).order_by('first_name', 'last_name')
         
         # Set required fields
         self.fields['customer'].required = True
@@ -90,9 +105,12 @@ class TicketForm(forms.ModelForm):
         
         # If editing, pre-populate customer installations
         if self.instance.pk and self.instance.customer:
-            self.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(
+            installations_qs = CustomerInstallation.objects.filter(
                 customer=self.instance.customer
             )
+            if self.tenant:
+                installations_qs = installations_qs.filter(tenant=self.tenant)
+            self.fields['customer_installation'].queryset = installations_qs
     
     def clean(self):
         cleaned_data = super().clean()

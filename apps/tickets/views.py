@@ -5,6 +5,7 @@ from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from apps.tenants.mixins import tenant_required
 
 from .models import Ticket, TicketComment
 from .forms import TicketForm, TicketCommentForm, TicketFilterForm
@@ -22,7 +23,7 @@ def ticket_list(request):
     ).prefetch_related('comments')
     
     # Apply filters
-    filter_form = TicketFilterForm(request.GET)
+    filter_form = TicketFilterForm(request.GET, tenant=request.tenant)
     
     if filter_form.is_valid():
         # Status filter
@@ -74,9 +75,13 @@ def ticket_list(request):
 def ticket_create(request):
     """Create a new ticket."""
     if request.method == 'POST':
-        form = TicketForm(request.POST, user=request.user)
+        form = TicketForm(request.POST, user=request.user, tenant=request.tenant)
         if form.is_valid():
-            ticket = form.save()
+            ticket = form.save(commit=False)
+
+            ticket.tenant = request.tenant
+
+            ticket.save()
             
             # Add initial comment if provided
             initial_comment = request.POST.get('initial_comment')
@@ -93,7 +98,7 @@ def ticket_create(request):
             )
             return redirect('tickets:ticket_detail', pk=ticket.pk)
     else:
-        form = TicketForm(user=request.user)
+        form = TicketForm(user=request.user, tenant=request.tenant)
         
         # Pre-populate customer if passed in URL
         customer_id = request.GET.get('customer_id')
@@ -102,9 +107,9 @@ def ticket_create(request):
                 customer = Customer.objects.get(pk=customer_id)
                 form.initial['customer'] = customer
                 # Also load their installations
-                form.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(
+                form.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(tenant=request.tenant, 
                     customer=customer
-                )
+                
             except Customer.DoesNotExist:
                 pass
     
@@ -133,7 +138,7 @@ def ticket_detail(request, pk):
     
     # Handle comment form
     if request.method == 'POST':
-        comment_form = TicketCommentForm(request.POST)
+        comment_form = TicketCommentForm(request.POST, tenant=request.tenant)
         if comment_form.is_valid():
             comment = comment_form.save(commit=False)
             comment.ticket = ticket
@@ -142,7 +147,7 @@ def ticket_detail(request, pk):
             messages.success(request, 'Comment added successfully!')
             return redirect('tickets:ticket_detail', pk=ticket.pk)
     else:
-        comment_form = TicketCommentForm()
+        comment_form = TicketCommentForm(tenant=request.tenant)
     
     context = {
         'ticket': ticket,
@@ -158,14 +163,18 @@ def ticket_detail(request, pk):
 @permission_required('tickets.edit_ticket', raise_exception=True)
 def ticket_update(request, pk):
     """Update ticket details."""
-    ticket = get_object_or_404(Ticket, pk=pk)
+    ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk
     
     if request.method == 'POST':
-        form = TicketForm(request.POST, instance=ticket, user=request.user)
+        form = TicketForm(request.POST, instance=ticket, user=request.user, tenant=request.tenant)
         if form.is_valid():
             # Track status changes
             old_status = ticket.status
-            ticket = form.save()
+            ticket = form.save(commit=False)
+
+            ticket.tenant = request.tenant
+
+            ticket.save()
             
             # Add comment for status change
             if old_status != ticket.status:
@@ -178,11 +187,11 @@ def ticket_update(request, pk):
             messages.success(request, 'Ticket updated successfully!')
             return redirect('tickets:ticket_detail', pk=ticket.pk)
     else:
-        form = TicketForm(instance=ticket, user=request.user)
+        form = TicketForm(instance=ticket, user=request.user, tenant=request.tenant)
         # Load customer installations
-        form.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(
+        form.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(tenant=request.tenant, 
             customer=ticket.customer
-        )
+        
     
     context = {
         'form': form,
@@ -199,7 +208,7 @@ def ticket_update(request, pk):
 @require_POST
 def ticket_quick_assign(request, pk):
     """Quick assign ticket to a technician."""
-    ticket = get_object_or_404(Ticket, pk=pk)
+    ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk
     technician_id = request.POST.get('technician_id')
     
     if technician_id:
@@ -234,7 +243,7 @@ def ticket_quick_assign(request, pk):
 @require_POST
 def ticket_update_status(request, pk):
     """Quick update ticket status."""
-    ticket = get_object_or_404(Ticket, pk=pk)
+    ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk
     new_status = request.POST.get('status')
     
     if new_status in dict(Ticket.STATUS_CHOICES):
@@ -273,8 +282,8 @@ def ajax_search_customers(request):
     query = request.GET.get('q', '')
     
     if len(query) >= 2:
-        customers = Customer.objects.filter(
-            Q(first_name__icontains=query) |
+        customers = Customer.objects.filter(tenant=request.tenant, 
+            Q(first_name__icontains=query |
             Q(last_name__icontains=query) |
             Q(email__icontains=query) |
             Q(phone_primary__icontains=query)
@@ -302,9 +311,9 @@ def ajax_get_customer_installations(request):
     customer_id = request.GET.get('customer_id')
     
     if customer_id:
-        installations = CustomerInstallation.objects.filter(
+        installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
             customer_id=customer_id
-        ).select_related('nap', 'router')
+        .select_related('nap', 'router')
         
         results = []
         for installation in installations:
