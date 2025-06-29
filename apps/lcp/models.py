@@ -1,14 +1,13 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-from apps.utils.models import BaseModel, GeoLocatedModel
+from apps.utils.models import TenantAwareModel, GeoLocatedModel
 
 
-class LCP(BaseModel, GeoLocatedModel):
+class LCP(TenantAwareModel, GeoLocatedModel):
     """Local Convergence Point - Main distribution point"""
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     code = models.CharField(
-        max_length=50, 
-        unique=True,
+        max_length=50,
         help_text="Unique identifier (e.g., LCP-001)"
     )
     location = models.TextField(help_text="Physical address or description")
@@ -28,6 +27,10 @@ class LCP(BaseModel, GeoLocatedModel):
         verbose_name = "LCP"
         verbose_name_plural = "LCPs"
         ordering = ['code']
+        unique_together = [
+            ["tenant", "name"],
+            ["tenant", "code"],
+        ]
         permissions = [
             ("view_lcp_list", "Can view LCP list"),
             ("view_lcp_detail", "Can view LCP details"),
@@ -40,7 +43,7 @@ class LCP(BaseModel, GeoLocatedModel):
         return f"{self.code} - {self.name}"
 
 
-class Splitter(BaseModel, GeoLocatedModel):
+class Splitter(TenantAwareModel, GeoLocatedModel):
     """Optical splitter that divides fiber signal"""
     lcp = models.ForeignKey(
         LCP, 
@@ -97,7 +100,7 @@ class Splitter(BaseModel, GeoLocatedModel):
         return self.port_capacity - self.used_ports
 
 
-class NAP(BaseModel, GeoLocatedModel):
+class NAP(TenantAwareModel, GeoLocatedModel):
     """Network Access Point - Secondary distribution point"""
     splitter = models.ForeignKey(
         Splitter, 

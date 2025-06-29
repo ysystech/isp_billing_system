@@ -1,14 +1,13 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-from apps.utils.models import BaseModel
+from apps.utils.models import TenantAwareModel
 
 
-class SubscriptionPlan(BaseModel):
+class SubscriptionPlan(TenantAwareModel):
     """Model for internet subscription plans."""
     
     name = models.CharField(
         max_length=100,
-        unique=True,
         help_text="Name of the subscription plan"
     )
     description = models.TextField(
@@ -39,6 +38,7 @@ class SubscriptionPlan(BaseModel):
         ordering = ['price', 'name']
         verbose_name = "Subscription Plan"
         verbose_name_plural = "Subscription Plans"
+        unique_together = [["tenant", "name"]]
         permissions = [
             ("view_subscriptionplan_list", "Can view subscription plan list"),
             ("change_subscriptionplan_pricing", "Can change plan pricing"),

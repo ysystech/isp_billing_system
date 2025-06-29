@@ -1,31 +1,64 @@
 # ISP Billing System - TODO List
 
-## High Priority Features
+## 🚨 CRITICAL: Multi-Tenant SaaS Conversion (In Progress)
 
-### ~~1. Audit Log System~~ ✅ COMPLETED (June 29, 2025)
-- ~~**Status**: Permission exists (`view_logentry`) but no implementation~~
-- ~~**Description**: Need to create a user-facing audit log viewer~~
-- **DONE**: Full implementation completed with:
-  - ✅ User-facing audit log viewer at `/audit-logs/`
-  - ✅ Tracks all CRUD operations automatically
-  - ✅ Shows who/what/when with IP addresses and user agents
-  - ✅ Filterable by user, date, action type, and model
-  - ✅ Searchable interface
-  - ✅ Exportable to CSV
-  - ✅ Integrated into User Management section
-  - ✅ Permission-based access (`admin.view_logentry`)
+### Multi-Tenant Conversion Phases
+- ✅ **Phase 1: Core Infrastructure** (COMPLETED - June 29, 2025)
+  - Tenant model, User updates, Middleware
+  - Authentication backend, Registration flow
+  - Management commands, Tests
 
-### 2. ~~Reports Simplification~~ ✅ COMPLETED (June 29, 2025)
-- ~~Currently 16 permissions in Reports & Analytics~~
-- ~~Could be simplified to 11 permissions (1 per report page)~~
-- ~~Waiting for decision on implementation~~
-- **DONE**: Successfully reduced from 20 to 11 permissions
-  - 1 dashboard permission
-  - 7 individual report permissions
-  - 2 performance dashboard permissions
-  - 1 export permission
+- 🚧 **Phase 2: Model Updates** (IN PROGRESS)
+  - Update all models to inherit from TenantAwareModel
+  - Create and run migrations for tenant fields
 
-## Medium Priority
+- 📋 **Phase 3: View Layer Updates** (TODO)
+  - Add TenantRequiredMixin to all Class-Based Views
+  - Add @tenant_required decorator to Function-Based Views
+  - Update all querysets to filter by tenant
+
+- 📋 **Phase 4: Permission System Updates** (TODO)
+  - Update permission checks for is_tenant_owner
+  - Make RBAC system tenant-aware
+  - Scope role assignment by tenant
+
+- 📋 **Phase 5: API Endpoints Updates** (TODO)
+  - Filter all API views by tenant
+  - Add tenant validation to serializers
+
+- 📋 **Phase 6: Template Updates** (TODO)
+  - Add tenant name display in UI
+  - Remove cross-tenant data displays
+
+- 📋 **Phase 7: Data Isolation Verification** (TODO)
+  - Create query logging middleware
+  - Add tenant isolation tests
+
+- 📋 **Phase 8: Background Tasks & Signals** (TODO)
+  - Update Celery tasks for tenant awareness
+  - Ensure signals respect tenant boundaries
+
+- 📋 **Phase 9: Reporting System Updates** (TODO)
+  - Filter all reports by tenant
+  - Remove global statistics
+
+- 📋 **Phase 10: Testing & Migration** (TODO)
+  - Comprehensive test suite
+  - Fresh migration strategy
+
+## High Priority Features (Post Multi-Tenant)
+
+### 1. Multi-Tenant Billing System
+- Tenant subscription plans
+- Payment integration
+- Usage tracking
+- Billing cycles
+
+### 2. Tenant Management Features
+- Tenant settings page
+- User invitation system
+- Tenant data export
+- Tenant deletion/archival
 
 ### 3. Email Notifications
 - Automated customer communications
@@ -41,7 +74,7 @@
 - Scheduled backups
 - Backup retention policy
 
-## Low Priority
+## Medium Priority
 
 ### 6. Customer Portal
 - Self-service interface
@@ -53,21 +86,17 @@
 - Installation management
 - Ticket updates
 
-## Technical Debt
+## Low Priority
 
-### ~~8. MAC Address Field Migration~~ ✅ COMPLETED (June 29, 2025)
-- ~~Router model has MAC address field~~
-- ~~Need to make it non-nullable after updating existing records~~
-- **DONE**: All existing routers now have MAC addresses
-- **DONE**: Field is now required (non-nullable)
-- Generated MAC addresses use TP-Link OUI prefix (50:C7:BF)
-
-### 9. Performance Optimization
+### 8. Performance Optimization
 - Query optimization for large datasets
 - Implement caching strategies
 - Database indexing review
+- Multi-tenant query optimization
 
 ## Completed Features ✅
+
+### Single-Tenant Features (Pre-Conversion)
 - RBAC Permission System (simplified from 107 to 70 permissions)
 - Geo-location for infrastructure
 - Hierarchical network selection
@@ -77,3 +106,11 @@
 - Reports Permission Simplification (reduced from 20 to 11 permissions - June 29, 2025)
 - MAC Address Field Migration (made non-nullable - June 29, 2025)
 - Audit Log System (full UI implementation - June 29, 2025)
+
+### Multi-Tenant Infrastructure
+- Multi-Tenant Phase 1: Core Infrastructure (June 29, 2025)
+  - Tenant model and admin
+  - User model updates
+  - TenantAwareModel abstract class
+  - Middleware and authentication backend
+  - Registration creates tenant automatically

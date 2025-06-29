@@ -95,3 +95,24 @@ class GeoLocatedModel(models.Model):
         
         distance = (lat_meters ** 2 + lng_meters ** 2) ** 0.5
         return round(distance, 2)
+        
+        distance = (lat_meters ** 2 + lng_meters ** 2) ** 0.5
+        return round(distance, 2)
+
+
+class TenantAwareModel(BaseModel):
+    """
+    Abstract base model that adds tenant awareness to any model.
+    All models that need to be isolated by tenant should inherit from this.
+    """
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
+        on_delete=models.CASCADE,
+        related_name='%(class)s_set'
+    )
+    
+    class Meta:
+        abstract = True
+        indexes = [
+            models.Index(fields=['tenant']),
+        ]

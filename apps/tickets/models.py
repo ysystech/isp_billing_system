@@ -1,12 +1,12 @@
 from django.db import models
 from django.utils import timezone
-from apps.utils.models import BaseModel
+from apps.utils.models import TenantAwareModel, BaseModel
 from apps.customers.models import Customer
 from apps.customer_installations.models import CustomerInstallation
 from apps.users.models import CustomUser
 
 
-class Ticket(BaseModel):
+class Ticket(TenantAwareModel):
     """Support ticket model for tracking customer issues and requests."""
     
     CATEGORY_CHOICES = [

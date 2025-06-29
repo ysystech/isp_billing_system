@@ -20,6 +20,19 @@ class CustomUser(AbstractUser):
     """
     
     avatar = models.FileField(upload_to=_get_avatar_filename, blank=True, validators=[validate_profile_picture])
+    
+    # Multi-tenant fields
+    tenant = models.ForeignKey(
+        'tenants.Tenant',
+        on_delete=models.PROTECT,
+        related_name='users',
+        null=True,  # Temporarily nullable for migration
+        blank=True
+    )
+    is_tenant_owner = models.BooleanField(
+        default=False,
+        help_text="Tenant owners bypass all permissions"
+    )
 
     def __str__(self):
         return f"{self.get_full_name()} <{self.email or self.username}>"

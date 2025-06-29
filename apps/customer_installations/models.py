@@ -1,13 +1,13 @@
 from django.db import models
 from django.utils import timezone
-from apps.utils.models import BaseModel, GeoLocatedModel
+from apps.utils.models import TenantAwareModel, GeoLocatedModel
 from apps.customers.models import Customer
 from apps.routers.models import Router
 from apps.users.models import CustomUser
 from apps.lcp.models import NAP
 
 
-class CustomerInstallation(BaseModel, GeoLocatedModel):
+class CustomerInstallation(TenantAwareModel, GeoLocatedModel):
     """Model for tracking customer installations and their status."""
     
     # Status choices

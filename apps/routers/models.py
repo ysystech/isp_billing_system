@@ -1,9 +1,9 @@
 from django.db import models
 from django.core.validators import RegexValidator
-from apps.utils.models import BaseModel
+from apps.utils.models import TenantAwareModel
 
 
-class Router(BaseModel):
+class Router(TenantAwareModel):
     """Model for tracking routers deployed to customers"""
     
     # Basic Information
@@ -18,14 +18,12 @@ class Router(BaseModel):
     )
     serial_number = models.CharField(
         max_length=100,
-        unique=True,
         help_text="Unique serial number from manufacturer"
     )
     
     # MAC Address field with validation
     mac_address = models.CharField(
         max_length=17,
-        unique=True,
         validators=[
             RegexValidator(
                 regex=r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$',
@@ -44,7 +42,12 @@ class Router(BaseModel):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["serial_number"]),
+            models.Index(fields=["tenant", "serial_number"]),
+            models.Index(fields=["tenant", "mac_address"]),
+        ]
+        unique_together = [
+            ["tenant", "serial_number"],
+            ["tenant", "mac_address"],
         ]
         permissions = [
             ("view_router_list", "Can view router list"),

@@ -59,9 +59,19 @@ class UploadAvatarForm(forms.Form):
 
 
 class TermsSignupForm(TurnstileSignupForm):
-    """Custom signup form to add a checkbox for accepting the terms."""
+    """Custom signup form to add a checkbox for accepting the terms and company name."""
 
     terms_agreement = forms.BooleanField(required=True)
+    company_name = forms.CharField(
+        max_length=100,
+        required=True,
+        label=_("Company Name"),
+        help_text=_("Enter your company or organization name"),
+        widget=forms.TextInput(attrs={
+            'class': 'input input-bordered w-full',
+            'placeholder': 'e.g., ABC Internet Services'
+        })
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -72,6 +82,43 @@ class TermsSignupForm(TurnstileSignupForm):
             _("Terms and Conditions"),
         )
         self.fields["terms_agreement"].label = mark_safe(_("I agree to the {terms_link}").format(terms_link=link))
+        
+        # Move company_name to be after email but before password
+        field_order = ['email', 'company_name', 'password1', 'password2', 'terms_agreement']
+        if 'turnstile_token' in self.fields:
+            field_order.append('turnstile_token')
+        
+        # Reorder fields
+        new_fields = {}
+        for field_name in field_order:
+            if field_name in self.fields:
+                new_fields[field_name] = self.fields[field_name]
+        # Add any remaining fields
+        for field_name, field in self.fields.items():
+            if field_name not in new_fields:
+                new_fields[field_name] = field
+        self.fields = new_fields
+    
+    def save(self, request):
+        # First save the user via parent
+        user = super().save(request)
+        
+        # Create tenant for the new user
+        from apps.tenants.models import Tenant
+        company_name = self.cleaned_data.get('company_name')
+        
+        if company_name and user:
+            tenant = Tenant.objects.create(
+                name=company_name,
+                created_by=user
+            )
+            
+            # Update user with tenant and make them tenant owner
+            user.tenant = tenant
+            user.is_tenant_owner = True
+            user.save()
+        
+        return user
 
 class UserManagementCreateForm(forms.ModelForm):
     """Form for creating new users in the admin panel."""

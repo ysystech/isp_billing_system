@@ -74,6 +74,7 @@ THIRD_PARTY_APPS = [
 PROJECT_APPS = [
     "apps.users.apps.UserConfig",
     "apps.dashboard.apps.DashboardConfig",
+    "apps.tenants.apps.TenantsConfig",
     "apps.barangays.apps.BarangaysConfig",
     "apps.routers.apps.RoutersConfig",
     "apps.customers.apps.CustomersConfig",
@@ -101,6 +102,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.tenants.middleware.TenantMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -262,8 +264,8 @@ SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN", default=None)
 ACCOUNT_EMAIL_VERIFICATION = env("ACCOUNT_EMAIL_VERIFICATION", default="none")
 
 AUTHENTICATION_BACKENDS = (
-    # Needed to login by username in Django admin, regardless of `allauth`
-    "django.contrib.auth.backends.ModelBackend",
+    # Custom tenant-aware backend (replaces ModelBackend)
+    "apps.tenants.backends.TenantAwareBackend",
     # `allauth` specific authentication methods, such as login by e-mail
     "allauth.account.auth_backends.AuthenticationBackend",
 )

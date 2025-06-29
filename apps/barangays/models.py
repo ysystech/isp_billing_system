@@ -1,18 +1,16 @@
 from django.db import models
-from apps.utils.models import BaseModel
+from apps.utils.models import TenantAwareModel
 
 
-class Barangay(BaseModel):
+class Barangay(TenantAwareModel):
     """Model for storing Barangay information"""
     
     name = models.CharField(
         max_length=100,
-        unique=True,
         help_text="Name of the barangay"
     )
     code = models.CharField(
         max_length=20,
-        unique=True,
         blank=True,
         null=True,
         help_text="Optional barangay code for reporting"
@@ -36,8 +34,12 @@ class Barangay(BaseModel):
             ("view_barangay_statistics", "Can view barangay statistics"),
         ]
         indexes = [
-            models.Index(fields=["name"]),
+            models.Index(fields=["tenant", "name"]),
             models.Index(fields=["is_active"]),
+        ]
+        unique_together = [
+            ["tenant", "name"],
+            ["tenant", "code"],
         ]
     
     def __str__(self):

@@ -3,12 +3,12 @@ from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from apps.utils.models import BaseModel
+from apps.utils.models import TenantAwareModel
 from apps.customer_installations.models import CustomerInstallation
 from apps.subscriptions.models import SubscriptionPlan
 
 
-class CustomerSubscription(BaseModel):
+class CustomerSubscription(TenantAwareModel):
     """
     Prepaid subscription model where customers pay upfront for service time.
     Supports full month, half month (15 days), or custom payment amounts.
