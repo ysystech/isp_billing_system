@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FiberBill - ISP Billing Made Simple</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind + DaisyUI (CDN for preview) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/daisyui@3.8.0/dist/full.js"></script>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2QPKNjMmqx7HgUhs0RYhZCjQPkKcF2TN9ZL+3vY="
+    crossorigin=""
+  />
+</head>
+<body class="bg-base-100 text-base-content">
+
+  <!-- Top Navigation -->
+  <nav class="navbar bg-base-100 px-6 shadow sticky top-0 z-50">
+    <div class="flex-1">
+      <a href="/" class="text-2xl font-bold text-indigo-600 flex items-center gap-2">
+        <!-- Replace this span with an <img> tag if you have a logo -->
+        <!-- <img src="{% static 'images/fiberbill-logo.svg' %}" alt="Logo" class="h-8 w-8" /> -->
+        <span>FiberBill</span>
+      </a>
+    </div>
+    <div class="flex-none">
+      <div class="flex gap-2">
+        <a href="/accounts/login/" class="btn btn-ghost">Login</a>
+        <a href="/accounts/signup/" class="btn btn-primary">Register</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-600 to-blue-500 text-white text-center px-6 py-20">
+    <div class="max-w-2xl">
+      <h1 class="text-5xl font-bold mb-4">FiberBill</h1>
+      <p class="text-xl mb-6">Smart Billing & Network Management for Local ISPs in the Philippines.</p>
+      <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
+        <a href="#demo-map" class="btn btn-primary btn-wide">📍 View Demo Map</a>
+        <a href="#features" class="btn btn-outline btn-wide">📦 View Features</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why FiberBill Section -->
+  <section class="py-16 px-6 bg-base-200 text-center">
+    <h2 class="text-3xl font-bold mb-10">Why Choose FiberBill?</h2>
+    <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div class="p-6 bg-white rounded-xl shadow">❌ Manual port tracking? <br /> ✅ Visual NAP port grid</div>
+      <div class="p-6 bg-white rounded-xl shadow">❌ Lost receipts? <br /> ✅ Auto-generated PDFs</div>
+      <div class="p-6 bg-white rounded-xl shadow">❌ Subscription confusion? <br /> ✅ Smart prepaid queueing</div>
+      <div class="p-6 bg-white rounded-xl shadow">❌ Customer chaos? <br /> ✅ Built-in ticket system</div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-20 px-6 bg-white">
+    <h2 class="text-3xl font-bold text-center mb-12">Features</h2>
+    <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div class="card bg-base-100 shadow"><div class="card-body"><h3 class="card-title">📍 Geo-Located Infra</h3><p>Map-based LCP, Splitter, NAP, and Installations.</p></div></div>
+      <div class="card bg-base-100 shadow"><div class="card-body"><h3 class="card-title">💳 Prepaid Billing</h3><p>Auto-expiring plans with real-time stacking.</p></div></div>
+      <div class="card bg-base-100 shadow"><div class="card-body"><h3 class="card-title">🧾 Receipt Generator</h3><p>Printable PDFs with acknowledgment codes.</p></div></div>
+      <div class="card bg-base-100 shadow"><div class="card-body"><h3 class="card-title">🎫 Ticket System</h3><p>Track issues, assign techs, and resolve tickets.</p></div></div>
+      <div class="card bg-base-100 shadow"><div class="card-body"><h3 class="card-title">🔐 RBAC</h3><p>Role-based permissions for users and staff.</p></div></div>
+      <div class="card bg-base-100 shadow"><div class="card-body"><h3 class="card-title">📊 Reports</h3><p>Daily revenue, customer stats, and expiry logs.</p></div></div>
+    </div>
+  </section>
+
+  <!-- Demo Map -->
+  <section id="demo-map" class="py-20 px-6 bg-base-100">
+    <div class="text-center mb-10">
+      <h2 class="text-3xl font-bold">📍 Live Infrastructure Preview</h2>
+      <p class="text-gray-500 mt-2">Explore a sample network map with LCPs, Splitters, and Customers.</p>
+    </div>
+    <div id="map" class="w-full h-[500px] rounded-xl shadow-lg mx-auto max-w-5xl"></div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-base-200 text-base-content py-10 text-center">
+    <div class="text-sm">
+      © 2025 FiberBill. Made with ❤️ in Cagayan de Oro.<br />
+      <a href="#" class="link link-hover">Privacy Policy</a> | <a href="#" class="link link-hover">Terms of Service</a>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o9N1jEonQHcTTNPFJHg3THji6N5T0Vw3D2v3k6PSk34="
+    crossorigin=""
+  ></script>
+
+  <!-- Demo Map Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const map = L.map("map").setView([8.4812, 124.6489], 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      L.circle([8.4812, 124.6489], {
+        radius: 300,
+        color: "#4f46e5",
+        fillColor: "#6366f1",
+        fillOpacity: 0.3,
+      }).bindPopup("LCP: Main Distribution Point").addTo(map);
+
+      L.marker([8.483, 124.6495]).bindPopup("Splitter 1: 1:8").addTo(map);
+      L.marker([8.4842, 124.6512]).bindPopup("NAP 3: Port 4").addTo(map);
+      L.marker([8.4851, 124.653]).bindPopup("Customer: Juan Dela Cruz").addTo(map);
+    });
+  </script>
+
+</body>
+</html>

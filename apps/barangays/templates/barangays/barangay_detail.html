@@ -112,7 +112,7 @@
             {% for customer in recent_customers %}
             <tr>
               <td>
-                <a href="{% url 'customers:detail' customer.pk %}" 
+                <a href="{% url 'customers:customer_detail' customer.pk %}" 
                    class="link link-primary">
                   {{ customer.get_full_name }}
                 </a>
@@ -131,7 +131,7 @@
         </table>
       </div>
       <div class="mt-4">
-        <a href="{% url 'customers:list' %}?barangay={{ barangay.pk }}" 
+        <a href="{% url 'customers:customer_list' %}?barangay={{ barangay.pk }}" 
            class="btn btn-sm btn-ghost">
           View all customers in {{ barangay.name }} →
         </a>
