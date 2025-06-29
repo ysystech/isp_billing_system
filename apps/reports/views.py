@@ -19,7 +19,7 @@ from apps.lcp.models import NAP
 
 
 @login_required
-@permission_required('reports.view_reports', raise_exception=True)
+@permission_required('reports.view_reports_dashboard', raise_exception=True)
 def reports_dashboard(request):
     """Main reports dashboard showing available reports."""
     context = {

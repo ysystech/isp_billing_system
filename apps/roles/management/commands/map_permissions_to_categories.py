@@ -90,15 +90,27 @@ class Command(BaseCommand):
             ('barangays', 'view_barangay'),  # We use view_barangay_list
             ('barangays', 'manage_barangay_status'),  # Not needed - CRUD is enough
             ('barangays', 'view_barangay_statistics'),  # Not needed - CRUD is enough
+            # Reports permissions removed during simplification
+            ('reports', 'view_reports'),  # Replaced by view_reports_dashboard
+            ('reports', 'view_customer_statistics'),  # Removed - simplified
+            ('reports', 'view_financial_statistics'),  # Removed - simplified
+            ('reports', 'view_infrastructure_statistics'),  # Removed - simplified
+            ('reports', 'view_system_statistics'),  # Removed - simplified
+            ('reports', 'access_advanced_analytics'),  # Removed - simplified
+            ('reports', 'customize_report_parameters'),  # Removed - simplified
+            ('reports', 'export_business_reports'),  # Consolidated to export_reports
+            ('reports', 'export_operational_reports'),  # Consolidated to export_reports
+            ('reports', 'schedule_reports'),  # Removed - simplified
+            ('reports', 'view_active_subscriptions'),  # Removed - part of dashboard
         ]
         
         permission_mappings = {
             'dashboard': [
                 ('dashboard', 'view_dashboard', 'View Dashboard', 'Access main dashboard'),
-                ('reports', 'view_customer_statistics', 'Customer Stats', 'View customer statistics'),
-                ('reports', 'view_infrastructure_statistics', 'Infrastructure Stats', 'View infrastructure statistics'),
-                ('reports', 'view_financial_statistics', 'Financial Stats', 'View financial statistics'),
-                ('reports', 'view_system_statistics', 'System Stats', 'View system statistics'),
+                ('dashboard', 'view_customer_overview', 'Customer Overview', 'View customer overview widget'),
+                ('dashboard', 'view_subscription_overview', 'Subscription Overview', 'View subscription overview widget'),
+                ('dashboard', 'view_financial_overview', 'Financial Overview', 'View financial overview widget'),
+                ('dashboard', 'view_technical_overview', 'Technical Overview', 'View technical overview widget'),
             ],            'customers': [
                 # Customer-specific permissions - simplified to essential permissions only
                 ('customers', 'view_customer_list', 'View Customer List', 'Access customer listing page'),
@@ -161,22 +173,18 @@ class Command(BaseCommand):
                 ('tickets', 'remove_ticket', 'Delete Ticket', 'Delete ticket records'),
                 ('tickets', 'export_ticket_data', 'Export Ticket Data', 'Export ticket data and reports'),
             ],            'reports': [
-                # Reports and analytics permissions - view_reports is a master permission for accessing the reports section
-                ('reports', 'view_reports', 'Access Reports', 'Access reports dashboard'),
+                # Reports and analytics permissions - simplified to 11 permissions
+                ('reports', 'view_reports_dashboard', 'Access Reports', 'Access reports dashboard'),
                 ('reports', 'view_daily_collection_report', 'Daily Collection', 'View daily collection report'),
                 ('reports', 'view_subscription_expiry_report', 'Subscription Expiry', 'View subscription expiry report'),
-                ('reports', 'export_operational_reports', 'Export Operational', 'Export operational reports'),
                 ('reports', 'view_monthly_revenue_report', 'Monthly Revenue', 'View monthly revenue report'),
                 ('reports', 'view_ticket_analysis_report', 'Ticket Analysis', 'View ticket analysis report'),
                 ('reports', 'view_technician_performance_report', 'Technician Performance', 'View technician performance'),
                 ('reports', 'view_customer_acquisition_report', 'Customer Acquisition', 'View customer acquisition trends'),
                 ('reports', 'view_payment_behavior_report', 'Payment Behavior', 'View payment behavior analysis'),
-                ('reports', 'export_business_reports', 'Export Business Reports', 'Export business intelligence reports'),
                 ('reports', 'view_area_performance_dashboard', 'Area Performance', 'View area performance dashboard'),
                 ('reports', 'view_financial_dashboard', 'Financial Dashboard', 'View financial dashboard'),
-                ('reports', 'access_advanced_analytics', 'Advanced Analytics', 'Access advanced analytics features'),
-                ('reports', 'schedule_reports', 'Schedule Reports', 'Schedule automated reports'),
-                ('reports', 'customize_report_parameters', 'Customize Reports', 'Customize report parameters'),
+                ('reports', 'export_reports', 'Export Reports', 'Export all reports to files'),
                 # Network visualization moved here
                 ('network', 'view_network_map', 'View Network Visualization', 'Access network map, hierarchy, and all visualization features'),
             ],
@@ -240,10 +248,22 @@ class Command(BaseCommand):
                     continue
                     
                 try:
-                    permission = Permission.objects.get(
+                    # Try to get the most specific permission first
+                    permissions_qs = Permission.objects.filter(
                         content_type__app_label=app_label,
                         codename=codename
                     )
+                    
+                    if permissions_qs.count() > 1:
+                        # If multiple permissions exist, prefer the one with the matching model name
+                        permission = permissions_qs.filter(
+                            content_type__model=app_label.rstrip('s')  # Simple pluralization handling
+                        ).first() or permissions_qs.first()
+                    else:
+                        permission = permissions_qs.first()
+                    
+                    if not permission:
+                        raise Permission.DoesNotExist
                     
                     mapping, created = PermissionCategoryMapping.objects.update_or_create(
                         category=category,
