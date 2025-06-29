@@ -27,17 +27,34 @@ class Command(BaseCommand):
             ('customers', 'change_customer_address'),  # Covered by change_customer_basic
             ('customers', 'import_customers'),  # Feature not implemented yet
             ('customer_subscriptions', 'add_customersubscription'),  # We use create_subscription
-            ('customer_subscriptions', 'change_customersubscription'),  # We use specific permissions
+            ('customer_subscriptions', 'change_customersubscription'),  # We use cancel_subscription for management
             ('customer_subscriptions', 'delete_customersubscription'),  # We use cancel_subscription
             ('customer_subscriptions', 'view_customersubscription'),  # We use view_subscription_list
+            ('customer_subscriptions', 'view_subscription_detail'),  # Covered by view_subscription_list
+            ('customer_subscriptions', 'process_payment'),  # Covered by create_subscription
+            ('customer_subscriptions', 'view_payment_history'),  # Covered by view_subscription_list
+            ('customer_subscriptions', 'view_financial_summary'),  # Covered by view_subscription_list
+            ('customer_subscriptions', 'process_refund'),  # Covered by cancel_subscription
+            ('reports', 'view_active_subscriptions'),  # Covered by view_subscription_list
             ('customer_installations', 'add_customerinstallation'),  # We use create_installation
-            ('customer_installations', 'change_customerinstallation'),  # We use specific permissions
+            ('customer_installations', 'change_customerinstallation'),  # We use change_installation_status
             ('customer_installations', 'view_customerinstallation'),  # We use view_installation_list
+            ('customer_installations', 'view_installation_detail'),  # Covered by view_installation_list
+            ('customer_installations', 'assign_technician'),  # Covered by change_installation_status
+            ('customer_installations', 'view_installation_technical_details'),  # Covered by view_installation_list
+            ('customer_installations', 'manage_nap_assignments'),  # Covered by change_installation_status
             ('tickets', 'add_ticket'),  # We use create_ticket
             ('tickets', 'change_ticket'),  # We use specific permissions
             ('tickets', 'delete_ticket'),  # We use remove_ticket
             ('tickets', 'view_ticket'),  # We use view_ticket_list
             ('tickets', 'add_ticketcomment'),  # We use add_ticket_comment
+            ('tickets', 'view_ticket_detail'),  # Covered by view_ticket_list
+            ('tickets', 'change_ticket_priority'),  # Covered by change_ticket_status
+            ('tickets', 'view_all_tickets'),  # Covered by view_ticket_list
+            ('tickets', 'view_ticketcomment'),  # Covered by view_ticket_list
+            ('tickets', 'change_ticketcomment'),  # Not needed in simplified workflow
+            ('tickets', 'delete_ticketcomment'),  # Not needed in simplified workflow
+            ('tickets', 'delete_any_comment'),  # Not needed in simplified workflow
             ('routers', 'view_router'),  # We use view_router_list
             ('routers', 'view_router_detail'),  # Covered by view_router_list
             ('routers', 'manage_router_inventory'),  # Not needed - CRUD is enough
@@ -120,48 +137,29 @@ class Command(BaseCommand):
                 ('lcp', 'delete_lcp', 'Delete', 'Delete LCP and all related infrastructure'),
             ],
             'installations': [
-                # Customer installation permissions - removed view_customerinstallation as redundant
-                ('customer_installations', 'view_installation_list', 'View Installation List', 'Access installation listing'),
-                ('customer_installations', 'view_installation_detail', 'View Installation Details', 'View installation details'),
-                ('customer_installations', 'create_installation', 'Create Installation', 'Process new installation'),
-                ('customer_installations', 'change_installation_status', 'Change Status', 'Change installation status'),
-                ('customer_installations', 'delete_customerinstallation', 'Delete Installation', 'Delete installation'),
-                ('customer_installations', 'assign_technician', 'Assign Technician', 'Assign technician to installation'),
-                ('customer_installations', 'view_installation_technical_details', 'View Technical Details', 'View technical installation details'),
-                ('customer_installations', 'manage_nap_assignments', 'Manage NAP', 'Manage NAP port assignments'),
-                ('customer_installations', 'export_installation_data', 'Export Data', 'Export installation data'),
+                # Customer installation permissions - simplified to 5 core permissions
+                ('customer_installations', 'view_installation_list', 'View Installations', 'View installation list, details, and technical information'),
+                ('customer_installations', 'create_installation', 'Create Installation', 'Process new customer installations'),
+                ('customer_installations', 'change_installation_status', 'Edit Installation', 'Edit installations including status, technician assignment, and NAP management'),
+                ('customer_installations', 'delete_customerinstallation', 'Delete Installation', 'Delete installation records'),
+                ('customer_installations', 'export_installation_data', 'Export Installation Data', 'Export installation data to file'),
             ],            'subscriptions': [
-                # Customer subscription permissions - removed view_customersubscription as redundant
-                ('customer_subscriptions', 'view_subscription_list', 'View Subscription List', 'Access subscription listing'),
-                ('customer_subscriptions', 'view_subscription_detail', 'View Subscription Details', 'View subscription details'),
-                ('customer_subscriptions', 'create_subscription', 'Create Subscription', 'Process new subscription'),
-                ('customer_subscriptions', 'process_payment', 'Process Payment', 'Process subscription payments'),
-                ('customer_subscriptions', 'generate_receipt', 'Generate Receipt', 'Generate payment receipts'),
-                ('customer_subscriptions', 'cancel_subscription', 'Cancel Subscription', 'Cancel active subscriptions'),
-                ('customer_subscriptions', 'view_payment_history', 'View Payment History', 'View customer payment history'),
-                ('customer_subscriptions', 'view_financial_summary', 'View Financial Summary', 'View financial summaries'),
-                ('customer_subscriptions', 'process_refund', 'Process Refund', 'Process subscription refunds'),
-                ('customer_subscriptions', 'export_subscription_data', 'Export Data', 'Export subscription data'),
-                ('reports', 'view_active_subscriptions', 'View Active Subscriptions', 'View currently active subscriptions'),
+                # Customer subscription permissions - simplified to 5 core permissions
+                ('customer_subscriptions', 'view_subscription_list', 'View Subscriptions', 'View all subscription data including list, details, history, and financial summary'),
+                ('customer_subscriptions', 'create_subscription', 'Create Subscription', 'Create new subscriptions and process payments'),
+                ('customer_subscriptions', 'cancel_subscription', 'Manage Subscription', 'Cancel subscriptions, process refunds, and modify subscription details'),
+                ('customer_subscriptions', 'generate_receipt', 'Generate Receipt', 'Generate and print acknowledgment receipts'),
+                ('customer_subscriptions', 'export_subscription_data', 'Export Subscription Data', 'Export subscription data and reports'),
             ],
             'tickets': [
-                # Support ticket permissions - removed view_ticket and add_ticketcomment as redundant
-                ('tickets', 'view_ticket_list', 'View Ticket List', 'Access ticket listing'),
-                ('tickets', 'view_ticket_detail', 'View Ticket Details', 'View ticket details'),
-                ('tickets', 'create_ticket', 'Create Ticket', 'Create support ticket'),
-                ('tickets', 'remove_ticket', 'Remove Ticket', 'Remove ticket records'),
-                ('tickets', 'assign_ticket', 'Assign Ticket', 'Assign ticket to technician'),
-                ('tickets', 'change_ticket_status', 'Change Status', 'Change ticket status'),
-                ('tickets', 'change_ticket_priority', 'Change Priority', 'Change ticket priority'),
-                ('tickets', 'add_ticket_comment', 'Add Comment', 'Add comments to tickets'),
-                ('tickets', 'view_all_tickets', 'View All Tickets', 'View all tickets (not just assigned)'),
-                ('tickets', 'export_ticket_data', 'Export Tickets', 'Export ticket data'),
-                
-                # Ticket comments - removed duplicate add_ticketcomment
-                ('tickets', 'view_ticketcomment', 'View Comments', 'View ticket comments'),
-                ('tickets', 'change_ticketcomment', 'Edit Comment', 'Edit own comments'),
-                ('tickets', 'delete_ticketcomment', 'Delete Comment', 'Delete own comments'),
-                ('tickets', 'delete_any_comment', 'Delete Any Comment', 'Delete any comment'),
+                # Support ticket permissions - workflow-based structure
+                ('tickets', 'view_ticket_list', 'View Tickets', 'View ticket list, details, and all comments'),
+                ('tickets', 'create_ticket', 'Create Ticket', 'Create new support tickets'),
+                ('tickets', 'assign_ticket', 'Assign Technician', 'Assign or reassign tickets to technicians'),
+                ('tickets', 'change_ticket_status', 'Update Ticket Status', 'Change ticket status and priority'),
+                ('tickets', 'add_ticket_comment', 'Add Comments', 'Add comments to tickets'),
+                ('tickets', 'remove_ticket', 'Delete Ticket', 'Delete ticket records'),
+                ('tickets', 'export_ticket_data', 'Export Ticket Data', 'Export ticket data and reports'),
             ],            'reports': [
                 # Reports and analytics permissions - view_reports is a master permission for accessing the reports section
                 ('reports', 'view_reports', 'Access Reports', 'Access reports dashboard'),
