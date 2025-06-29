@@ -118,7 +118,7 @@
                 </a>
               </td>
               <td>{{ customer.email }}</td>
-              <td>{{ customer.phone }}</td>
+              <td>{{ customer.phone_primary }}</td>
               <td>
                 <span class="badge badge-sm {% if customer.status == 'active' %}badge-success{% else %}badge-ghost{% endif %}">
                   {{ customer.get_status_display }}

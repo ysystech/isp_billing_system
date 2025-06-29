@@ -64,7 +64,7 @@
   {% endif %}
 </ul>
 {% endif %}
-{% if user|has_any_permission:"users.view_customuser,roles.view_role,auth.view_group" %}
+{% if user|has_any_permission:"users.view_customuser,roles.view_role,auth.view_group,admin.view_logentry" %}
 <li class="menu-title">
   <span>{% translate "User Management" %}</span>
 </li>
@@ -82,6 +82,14 @@
     <a href="{% url 'roles:role_list' %}" {% if active_tab == 'roles' %}class="menu-active"{% endif %}>
       <i class="fa fa-shield-alt h-4 w-4"></i>
       {% translate "User Roles" %}
+    </a>
+  </li>
+  {% endif %}
+  {% if user|has_permission:"admin.view_logentry" %}
+  <li>
+    <a href="{% url 'audit_logs:list' %}" {% if active_tab == 'audit-logs' %}class="menu-active"{% endif %}>
+      <i class="fa fa-history h-4 w-4"></i>
+      {% translate "Audit Logs" %}
     </a>
   </li>
   {% endif %}

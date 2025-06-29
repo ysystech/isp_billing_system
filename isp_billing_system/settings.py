@@ -85,6 +85,7 @@ PROJECT_APPS = [
     "apps.reports.apps.ReportsConfig",
     "apps.roles.apps.RolesConfig",
     "apps.network.apps.NetworkConfig",
+    "apps.audit_logs.apps.AuditLogsConfig",
     "apps.web",
 ]
 
@@ -105,6 +106,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "waffle.middleware.WaffleMiddleware",
+    "apps.audit_logs.middleware.AuditLogMiddleware",
+    "apps.audit_logs.middleware.AuditLogRequestMiddleware",
 ]
 
 

@@ -1,0 +1,211 @@
+{% extends "web/app/app_base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Audit Logs - {{ block.super }}{% endblock %}
+
+{% block app %}
+<section class="app-card">
+    <!-- Breadcrumb -->
+    <div class="text-sm breadcrumbs mb-4">
+        <ul>
+            <li><a href="{% url 'web:home' %}">Dashboard</a></li>
+            <li>User Management</li>
+            <li>Audit Logs</li>
+        </ul>
+    </div>
+
+    <div class="mb-6 flex justify-between items-center">
+        <h1 class="pg-title">Audit Logs</h1>
+        <div class="space-x-2">
+            <button onclick="document.getElementById('export-form').submit()" 
+                    class="btn btn-secondary">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Export to CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Filters</h2>
+            <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- User Filter -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">User</span>
+                    </label>
+                    <select name="user" class="select select-bordered">
+                        <option value="">All Users</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}" {% if user.id|stringformat:"s" == selected_user %}selected{% endif %}>
+                                {{ user.get_full_name }} ({{ user.username }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Action Filter -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Action</span>
+                    </label>
+                    <select name="action" class="select select-bordered">
+                        <option value="">All Actions</option>
+                        {% for flag, label in action_flags %}
+                            <option value="{{ flag }}" {% if flag|stringformat:"s" == selected_action %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Content Type Filter -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Object Type</span>
+                    </label>
+                    <select name="content_type" class="select select-bordered">
+                        <option value="">All Types</option>
+                        {% for ct in content_types %}
+                            <option value="{{ ct.id }}" {% if ct.id|stringformat:"s" == selected_content_type %}selected{% endif %}>
+                                {{ ct.app_label|title }} - {{ ct.model|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <!-- Date From -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date From</span>
+                    </label>
+                    <input type="date" name="date_from" value="{{ date_from }}" 
+                           class="input input-bordered">
+                </div>
+
+                <!-- Date To -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date To</span>
+                    </label>
+                    <input type="date" name="date_to" value="{{ date_to }}" 
+                           class="input input-bordered">
+                </div>
+
+                <!-- Search -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Search</span>
+                    </label>
+                    <input type="text" name="search" value="{{ search }}" 
+                           placeholder="Search logs..." 
+                           class="input input-bordered">
+                </div>
+
+                <!-- Filter Buttons -->
+                <div class="form-control lg:col-span-3 flex flex-row gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{% url 'audit_logs:list' %}" class="btn btn-ghost">Clear Filters</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="mb-4">
+        <p class="text-sm text-gray-600">
+            Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ total_count }} entries
+        </p>
+    </div>
+
+    <!-- Audit Log Table -->
+    <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+            <thead>
+                <tr>
+                    <th>Date/Time</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Object Type</th>
+                    <th>Object</th>
+                    <th>Details</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in page_obj %}
+                <tr>
+                    <td class="whitespace-nowrap">
+                        {{ log.action_time|date:"Y-m-d H:i:s" }}
+                    </td>
+                    <td>
+                        {% if log.user %}
+                            {{ log.user.get_full_name }}<br>
+                            <span class="text-sm text-gray-500">{{ log.user.username }}</span>
+                        {% else %}
+                            System
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge 
+                            {% if log.action_flag == 1 %}badge-success{% elif log.action_flag == 2 %}badge-info{% else %}badge-error{% endif %}">
+                            {{ log.action_label }}
+                        </span>
+                    </td>
+                    <td>{{ log.content_type.app_label|title }}.{{ log.content_type.model|title }}</td>
+                    <td>{{ log.object_repr|truncatechars:50 }}</td>
+                    <td>{{ log.change_message|truncatechars:50 }}</td>
+                    <td>
+                        {% if log.audit_metadata %}
+                            {{ log.audit_metadata.ip_address|default:"-" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-8">
+                        No audit logs found matching your criteria.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="mt-6 flex justify-center">
+        <div class="btn-group">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" 
+                   class="btn btn-sm">«</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" 
+                   class="btn btn-sm">‹</a>
+            {% endif %}
+            
+            <button class="btn btn-sm btn-active">{{ page_obj.number }}</button>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" 
+                   class="btn btn-sm">›</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" 
+                   class="btn btn-sm">»</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Hidden Export Form -->
+<form id="export-form" method="get" action="{% url 'audit_logs:export' %}" style="display: none;">
+    {% for key, value in request.GET.items %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+</form>
+{% endblock %}
