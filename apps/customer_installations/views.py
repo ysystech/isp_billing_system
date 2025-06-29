@@ -48,7 +48,7 @@ def installation_list(request):
 
 
 @login_required
-@permission_required('customer_installations.view_installation_detail', raise_exception=True)
+@permission_required('customer_installations.view_installation_list', raise_exception=True)
 def installation_detail(request, pk):
     """Display installation details."""
     installation = get_object_or_404(
@@ -96,7 +96,7 @@ def installation_create(request):
 
 
 @login_required
-@permission_required('customer_installations.change_customerinstallation', raise_exception=True)
+@permission_required('customer_installations.change_installation_status', raise_exception=True)
 def installation_update(request, pk):
     """Update an existing installation."""
     installation = get_object_or_404(CustomerInstallation, pk=pk)
@@ -140,7 +140,7 @@ def installation_delete(request, pk):
 
 
 @login_required
-@permission_required('customer_installations.view_installation_technical_details', raise_exception=True)
+@permission_required('customer_installations.view_installation_list', raise_exception=True)
 def get_nap_ports(request, nap_id):
     """API endpoint to get NAP port availability"""
     try:

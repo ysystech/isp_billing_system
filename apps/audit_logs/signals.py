@@ -48,7 +48,7 @@ def create_audit_log(user, obj, action_flag, change_message=''):
                 ip_address=request.audit_metadata.get('ip_address'),
                 user_agent=request.audit_metadata.get('user_agent'),
                 request_method=request.audit_metadata.get('request_method'),
-                session_key=request.audit_metadata.get('session_key'),
+                session_key=request.audit_metadata.get('session_key') or None,
             )
 
 

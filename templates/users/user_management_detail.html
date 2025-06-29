@@ -99,6 +99,26 @@
     </div>
   </div>
 
+  <!-- Roles Section -->
+  <div class="card bg-base-200 mt-6">
+    <div class="card-body">
+      <h2 class="card-title">Assigned Roles</h2>
+      {% if user_obj.groups.all %}
+        <div class="flex flex-wrap gap-2">
+          {% for group in user_obj.groups.all %}
+            {% if group.role %}
+              <span class="badge badge-primary">{{ group.role.name }}</span>
+            {% else %}
+              <span class="badge badge-secondary">{{ group.name }}</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-gray-500">No roles assigned to this user.</p>
+      {% endif %}
+    </div>
+  </div>
+
   <!-- Future Activity Log -->
   <div class="mt-6">
     <div class="alert alert-info">

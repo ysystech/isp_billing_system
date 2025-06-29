@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .helpers import validate_profile_picture
 from .models import CustomUser
+from apps.roles.models import Role
 
 
 class TurnstileSignupForm(SignupForm):
@@ -110,9 +111,18 @@ class UserManagementCreateForm(forms.ModelForm):
         label="Confirm Password"
     )
     
+    roles = forms.ModelMultipleChoiceField(
+        queryset=Role.objects.filter(is_active=True),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'checkbox checkbox-primary'
+        }),
+        help_text="Select roles to assign to this user"
+    )
+    
     class Meta:
         model = CustomUser
-        fields = ['full_name', 'email']
+        fields = ['full_name', 'email', 'roles']
         widgets = {
         }
     
@@ -152,6 +162,12 @@ class UserManagementCreateForm(forms.ModelForm):
         
         if commit:
             user.save()
+            
+            # Add user to selected role groups
+            selected_roles = self.cleaned_data.get('roles', [])
+            for role in selected_roles:
+                user.groups.add(role.group)
+        
         return user
 
 
@@ -175,9 +191,18 @@ class UserManagementUpdateForm(forms.ModelForm):
         })
     )
     
+    roles = forms.ModelMultipleChoiceField(
+        queryset=Role.objects.filter(is_active=True),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'checkbox checkbox-primary'
+        }),
+        help_text="Select roles to assign to this user"
+    )
+    
     class Meta:
         model = CustomUser
-        fields = ['full_name', 'email', 'is_active']
+        fields = ['full_name', 'email', 'is_active', 'roles']
         widgets = {
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'checkbox checkbox-primary'
@@ -189,6 +214,8 @@ class UserManagementUpdateForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             # Set full name from first and last name
             self.fields['full_name'].initial = self.instance.get_full_name()
+            # Set initial roles
+            self.fields['roles'].initial = Role.objects.filter(group__user=self.instance)
     
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -211,6 +238,16 @@ class UserManagementUpdateForm(forms.ModelForm):
         
         if commit:
             user.save()
+            
+            # Update roles
+            # First, remove user from all role groups
+            user.groups.clear()
+            
+            # Then add user to selected role groups
+            selected_roles = self.cleaned_data.get('roles', [])
+            for role in selected_roles:
+                user.groups.add(role.group)
+        
         return user
 
 

@@ -13,11 +13,23 @@ class AuditLogMiddleware(MiddlewareMixin):
     """
     def process_request(self, request):
         """Store request metadata in thread-local storage"""
+        # Get session key safely
+        session_key = None
+        if hasattr(request, 'session') and request.session:
+            try:
+                # Ensure session is created if it doesn't exist
+                if not request.session.session_key:
+                    request.session.create()
+                session_key = request.session.session_key
+            except:
+                # If there's any issue with the session, just skip it
+                pass
+                
         request.audit_metadata = {
             'ip_address': self.get_client_ip(request),
             'user_agent': request.META.get('HTTP_USER_AGENT', ''),
             'request_method': request.method,
-            'session_key': request.session.session_key if hasattr(request, 'session') else '',
+            'session_key': session_key or '',
         }
         
     def get_client_ip(self, request):

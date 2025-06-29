@@ -42,6 +42,7 @@ class AuditLogEntry(BaseModel):
     session_key = models.CharField(
         max_length=40,
         blank=True,
+        null=True,
         help_text="Django session key"
     )
     

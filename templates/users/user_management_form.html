@@ -108,6 +108,37 @@
           {% endif %}
         </div>
         {% endif %}
+
+        {% if form.roles %}
+        <!-- Roles -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Roles</span>
+          </label>
+          <div class="card bg-base-200">
+            <div class="card-body">
+              {% if form.roles.help_text %}
+              <p class="text-sm text-gray-600 mb-3">{{ form.roles.help_text }}</p>
+              {% endif %}
+              <div class="space-y-2">
+                {% for role_id, role_label in form.roles.field.choices %}
+                  <label class="label cursor-pointer justify-start">
+                    <input type="checkbox" name="{{ form.roles.name }}" value="{{ role_id }}" 
+                           class="checkbox checkbox-primary"
+                           {% if role_id in form.roles.value %}checked{% endif %}>
+                    <span class="label-text ml-3">{{ role_label }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+              {% if form.roles.errors %}
+              <label class="label">
+                <span class="label-text-alt text-error">{{ form.roles.errors.0 }}</span>
+              </label>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </div>
 
       <!-- Non-field errors -->

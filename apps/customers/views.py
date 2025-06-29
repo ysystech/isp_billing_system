@@ -97,7 +97,7 @@ def customer_create(request):
 
 
 @login_required
-@permission_required('customers.change_customer', raise_exception=True)
+@permission_required('customers.change_customer_basic', raise_exception=True)
 def customer_update(request, pk):
     """Update customer information"""
     customer = get_object_or_404(Customer, pk=pk)

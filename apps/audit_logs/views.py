@@ -30,6 +30,10 @@ def audit_log_list(request):
         'user', 'content_type', 'audit_metadata'
     ).order_by('-action_time')
     
+    # Set default date range if not provided
+    today = timezone.now().date()
+    three_days_ago = today - timedelta(days=3)
+    
     # Filter by user
     user_id = request.GET.get('user')
     if user_id:
@@ -45,22 +49,29 @@ def audit_log_list(request):
     if content_type_id:
         logs = logs.filter(content_type_id=content_type_id)
     
-    # Filter by date range
+    # Filter by date range - use defaults if not provided
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
+    
+    # If no date filters are provided at all, use the 3-day default
+    if not date_from and not date_to and not request.GET.get('search') and not user_id and not action and not content_type_id:
+        date_from = three_days_ago.strftime('%Y-%m-%d')
+        date_to = today.strftime('%Y-%m-%d')
+    
     if date_from:
         try:
-            date_from = datetime.strptime(date_from, '%Y-%m-%d')
-            logs = logs.filter(action_time__gte=date_from)
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            logs = logs.filter(action_time__gte=date_from_obj)
         except ValueError:
-            pass
+            date_from = None
+    
     if date_to:
         try:
-            date_to = datetime.strptime(date_to, '%Y-%m-%d')
-            date_to = date_to.replace(hour=23, minute=59, second=59)
-            logs = logs.filter(action_time__lte=date_to)
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+            date_to_obj = date_to_obj.replace(hour=23, minute=59, second=59)
+            logs = logs.filter(action_time__lte=date_to_obj)
         except ValueError:
-            pass
+            date_to = None
     
     # Search functionality
     search = request.GET.get('search')
@@ -99,8 +110,8 @@ def audit_log_list(request):
         'selected_user': user_id,
         'selected_action': action,
         'selected_content_type': content_type_id,
-        'date_from': request.GET.get('date_from', ''),
-        'date_to': request.GET.get('date_to', ''),
+        'date_from': date_from or '',
+        'date_to': date_to or '',
         'search': search or '',
         'total_count': logs.count(),
         'active_tab': 'audit-logs',
@@ -119,6 +130,10 @@ def export_audit_logs(request):
         'user', 'content_type', 'audit_metadata'
     ).order_by('-action_time')
     
+    # Set default date range if not provided
+    today = timezone.now().date()
+    three_days_ago = today - timedelta(days=3)
+    
     # Apply the same filters
     user_id = request.GET.get('user')
     if user_id:
@@ -134,17 +149,24 @@ def export_audit_logs(request):
     
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
+    
+    # If no date filters are provided at all, use the 3-day default
+    if not date_from and not date_to and not request.GET.get('search') and not user_id and not action and not content_type_id:
+        date_from = three_days_ago.strftime('%Y-%m-%d')
+        date_to = today.strftime('%Y-%m-%d')
+    
     if date_from:
         try:
-            date_from = datetime.strptime(date_from, '%Y-%m-%d')
-            logs = logs.filter(action_time__gte=date_from)
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            logs = logs.filter(action_time__gte=date_from_obj)
         except ValueError:
             pass
+    
     if date_to:
         try:
-            date_to = datetime.strptime(date_to, '%Y-%m-%d')
-            date_to = date_to.replace(hour=23, minute=59, second=59)
-            logs = logs.filter(action_time__lte=date_to)
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+            date_to_obj = date_to_obj.replace(hour=23, minute=59, second=59)
+            logs = logs.filter(action_time__lte=date_to_obj)
         except ValueError:
             pass
     

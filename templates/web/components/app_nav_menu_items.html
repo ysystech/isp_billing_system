@@ -1,156 +1,157 @@
+{% load static %}
 {% load i18n %}
-{% load role_tags %}
-<li class="menu-title">
-  <span>{% translate "Application" %}</span>
-</li>
-<li>
-  <a href="{% url 'web:home' %}" {% if active_tab == 'dashboard' %}class="menu-active"{% endif %}>
-    <i class="fa fa-home h-4 w-4"></i>
-    {% translate "Dashboard" %}
-  </a>
-</li>
-{% if user|has_any_permission:"customers.view_customer_list,barangays.view_barangay,subscriptions.view_subscriptionplan,routers.view_router,lcp.view_lcp,network.view_network_map" %}
-<li class="menu-title">
-  <span>{% translate "Admin Setup" %}</span>
-</li>
-<ul class="menu-list">
-  {% if user|has_permission:"customers.view_customer_list" %}
+{% load permission_tags %}
+
+<ul class="menu menu-compact mt-4">
   <li>
-    <a href="{% url 'customers:customer_list' %}" {% if active_tab == 'customers' %}class="menu-active"{% endif %}>
-      <i class="fa fa-users h-4 w-4"></i>
-      {% translate "Customers" %}
+    <a href="{% url 'web:home' %}" {% if active_tab == 'dashboard' %}class="menu-active"{% endif %}>
+      <i class="fa fa-home h-4 w-4"></i>
+      {% translate "Dashboard" %}
     </a>
   </li>
+  {% if user|has_any_permission:"customers.view_customer_list,barangays.view_barangay_list,subscriptions.view_subscriptionplan_list,routers.view_router_list,lcp.view_lcp_list,network.view_network_map" %}
+  <li class="menu-title">
+    <span>{% translate "Admin Setup" %}</span>
+  </li>
+  <ul class="menu-list">
+    {% if user|has_permission:"customers.view_customer_list" %}
+    <li>
+      <a href="{% url 'customers:customer_list' %}" {% if active_tab == 'customers' %}class="menu-active"{% endif %}>
+        <i class="fa fa-users h-4 w-4"></i>
+        {% translate "Customers" %}
+      </a>
+    </li>
+    {% endif %}
+    {% if user|has_permission:"barangays.view_barangay_list" %}
+    <li>
+      <a href="{% url 'barangays:list' %}" {% if active_tab == 'barangays' %}class="menu-active"{% endif %}>
+        <i class="fa fa-map-marker-alt h-4 w-4"></i>
+        {% translate "Barangays" %}
+      </a>
+    </li>
+    {% endif %}
+    {% if user|has_permission:"subscriptions.view_subscriptionplan_list" %}
+    <li>
+      <a href="{% url 'subscriptions:subscription_plan_list' %}" {% if active_tab == 'subscription-plans' %}class="menu-active"{% endif %}>
+        <i class="fa fa-list-alt h-4 w-4"></i>
+        {% translate "Subscription Plans" %}
+      </a>
+    </li>
+    {% endif %}
+    {% if user|has_permission:"routers.view_router_list" %}
+    <li>
+      <a href="{% url 'routers:list' %}" {% if active_tab == 'routers' %}class="menu-active"{% endif %}>
+        <i class="fa fa-wifi h-4 w-4"></i>
+        {% translate "Routers" %}
+      </a>
+    </li>
+    {% endif %}
+    {% if user|has_permission:"lcp.view_lcp_list" %}
+    <li>
+      <a href="{% url 'lcp:lcp_list' %}" {% if active_tab == 'lcp' %}class="menu-active"{% endif %}>
+        <i class="fa fa-broadcast-tower h-4 w-4"></i>
+        {% translate "LCP" %}
+      </a>
+    </li>
+    {% endif %}
+    {% if user|has_permission:"network.view_network_map" %}
+    <li>
+      <a href="{% url 'network:network_map' %}" {% if active_tab == 'network_map' %}class="menu-active"{% endif %}>
+        <i class="fa fa-map h-4 w-4"></i>
+        {% translate "Network Map" %}
+      </a>
+    </li>
+    {% endif %}
+  </ul>
   {% endif %}
-  {% if user|has_permission:"barangays.view_barangay" %}
-  <li>
-    <a href="{% url 'barangays:list' %}" {% if active_tab == 'barangays' %}class="menu-active"{% endif %}>
-      <i class="fa fa-map-marker-alt h-4 w-4"></i>
-      {% translate "Barangays" %}
-    </a>
+  {% if user|has_any_permission:"users.view_customuser,roles.view_role,admin.view_logentry" %}
+  <li class="menu-title">
+    <span>{% translate "User Management" %}</span>
   </li>
+  <ul class="menu-list">
+    {% if user|has_permission:"users.view_customuser" %}
+    <li>
+      <a href="{% url 'users:user_management_list' %}" {% if active_tab == 'user-management' %}class="menu-active"{% endif %}>
+        <i class="fa fa-users-cog h-4 w-4"></i>
+        {% translate "User Lists" %}
+      </a>
+    </li>
+    {% endif %}
+    {% if user|has_permission:"roles.view_role" %}
+    <li>
+      <a href="{% url 'roles:role_list' %}" {% if active_tab == 'roles' %}class="menu-active"{% endif %}>
+        <i class="fa fa-shield-alt h-4 w-4"></i>
+        {% translate "User Roles" %}
+      </a>
+    </li>
+    {% endif %}
+    {% if user|has_permission:"admin.view_logentry" %}
+    <li>
+      <a href="{% url 'audit_logs:list' %}" {% if active_tab == 'audit-logs' %}class="menu-active"{% endif %}>
+        <i class="fa fa-history h-4 w-4"></i>
+        {% translate "Audit Logs" %}
+      </a>
+    </li>
+    {% endif %}
+  </ul>
   {% endif %}
-  {% if user|has_permission:"subscriptions.view_subscriptionplan" %}
-  <li>
-    <a href="{% url 'subscriptions:subscription_plan_list' %}" {% if active_tab == 'subscription-plans' %}class="menu-active"{% endif %}>
-      <i class="fa fa-list-alt h-4 w-4"></i>
-      {% translate "Subscription Plans" %}
-    </a>
+  {% if user|has_any_permission:"customer_installations.view_installation_list,tickets.view_ticket_list" %}
+  <li class="menu-title">
+    <span>{% translate "Technician/Installer" %}</span>
   </li>
+  <ul class="menu-list">
+    {% if user|has_permission:"customer_installations.view_installation_list" %}
+    <li>
+      <a href="{% url 'customer_installations:installation_list' %}" {% if active_tab == 'installations' %}class="menu-active"{% endif %}>
+        <i class="fa fa-tools h-4 w-4"></i>
+        {% translate "Installations" %}
+      </a>
+    </li>
+    {% endif %}
+    {% if user|has_permission:"tickets.view_ticket_list" %}
+    <li>
+      <a href="{% url 'tickets:ticket_list' %}" {% if active_tab == 'tickets' %}class="menu-active"{% endif %}>
+        <i class="fa fa-ticket-alt h-4 w-4"></i>
+        {% translate "Tickets" %}
+      </a>
+    </li>
+    {% endif %}
+  </ul>
   {% endif %}
-  {% if user|has_permission:"routers.view_router" %}
-  <li>
-    <a href="{% url 'routers:list' %}" {% if active_tab == 'routers' %}class="menu-active"{% endif %}>
-      <i class="fa fa-wifi h-4 w-4"></i>
-      {% translate "Routers" %}
-    </a>
+  {% if user|has_any_permission:"customer_subscriptions.view_subscription_list" %}
+  <li class="menu-title">
+    <span>{% translate "Billing" %}</span>
   </li>
+  <ul class="menu-list">
+    {% if user|has_permission:"customer_subscriptions.view_subscription_list" %}
+    <li>
+      <a href="{% url 'customer_subscriptions:subscription_list' %}" {% if active_tab == 'subscriptions' %}class="menu-active"{% endif %}>
+        <i class="fa fa-credit-card h-4 w-4"></i>
+        {% translate "Subscriptions" %}
+      </a>
+    </li>
+    {% endif %}
+    {% if user|has_permission:"customer_subscriptions.view_subscription_list" %}
+    <li>
+      <a href="{% url 'customer_subscriptions:active_subscriptions' %}" {% if active_tab == 'active_subscriptions' %}class="menu-active"{% endif %}>
+        <i class="fa fa-check-circle h-4 w-4"></i>
+        {% translate "Active Subscriptions" %}
+      </a>
+    </li>
+    {% endif %}
+  </ul>
   {% endif %}
-  {% if user|has_permission:"lcp.view_lcp" %}
-  <li>
-    <a href="{% url 'lcp:lcp_list' %}" {% if active_tab == 'lcp' %}class="menu-active"{% endif %}>
-      <i class="fa fa-broadcast-tower h-4 w-4"></i>
-      {% translate "LCP" %}
-    </a>
+  {% if user|has_permission:"reports.view_reports_dashboard" %}
+  <li class="menu-title">
+    <span>{% translate "Reports" %}</span>
   </li>
-  {% endif %}
-  {% if user|has_permission:"network.view_network_map" %}
-  <li>
-    <a href="{% url 'network:network_map' %}" {% if active_tab == 'network_map' %}class="menu-active"{% endif %}>
-      <i class="fa fa-map h-4 w-4"></i>
-      {% translate "Network Map" %}
-    </a>
-  </li>
+  <ul class="menu-list">
+    <li>
+      <a href="{% url 'reports:dashboard' %}" {% if active_tab == 'reports' %}class="menu-active"{% endif %}>
+        <i class="fa fa-chart-bar h-4 w-4"></i>
+        {% translate "View Reports" %}
+      </a>
+    </li>
+  </ul>
   {% endif %}
 </ul>
-{% endif %}
-{% if user|has_any_permission:"users.view_customuser,roles.view_role,auth.view_group,admin.view_logentry" %}
-<li class="menu-title">
-  <span>{% translate "User Management" %}</span>
-</li>
-<ul class="menu-list">
-  {% if user|has_permission:"users.view_customuser" %}
-  <li>
-    <a href="{% url 'users:user_management_list' %}" {% if active_tab == 'user-management' %}class="menu-active"{% endif %}>
-      <i class="fa fa-users-cog h-4 w-4"></i>
-      {% translate "User Lists" %}
-    </a>
-  </li>
-  {% endif %}
-  {% if user|has_permission:"roles.view_role" %}
-  <li>
-    <a href="{% url 'roles:role_list' %}" {% if active_tab == 'roles' %}class="menu-active"{% endif %}>
-      <i class="fa fa-shield-alt h-4 w-4"></i>
-      {% translate "User Roles" %}
-    </a>
-  </li>
-  {% endif %}
-  {% if user|has_permission:"admin.view_logentry" %}
-  <li>
-    <a href="{% url 'audit_logs:list' %}" {% if active_tab == 'audit-logs' %}class="menu-active"{% endif %}>
-      <i class="fa fa-history h-4 w-4"></i>
-      {% translate "Audit Logs" %}
-    </a>
-  </li>
-  {% endif %}
-</ul>
-{% endif %}
-{% if user|has_any_permission:"customer_installations.view_customerinstallation,tickets.view_ticket" %}
-<li class="menu-title">
-  <span>{% translate "Technician/Installer" %}</span>
-</li>
-<ul class="menu-list">
-  {% if user|has_permission:"customer_installations.view_customerinstallation" %}
-  <li>
-    <a href="{% url 'customer_installations:installation_list' %}" {% if active_tab == 'installations' %}class="menu-active"{% endif %}>
-      <i class="fa fa-tools h-4 w-4"></i>
-      {% translate "Installations" %}
-    </a>
-  </li>
-  {% endif %}
-  {% if user|has_permission:"tickets.view_ticket" %}
-  <li>
-    <a href="{% url 'tickets:ticket_list' %}" {% if active_tab == 'tickets' %}class="menu-active"{% endif %}>
-      <i class="fa fa-ticket-alt h-4 w-4"></i>
-      {% translate "Tickets" %}
-    </a>
-  </li>
-  {% endif %}
-</ul>
-{% endif %}
-{% if user|has_any_permission:"customer_subscriptions.view_customersubscription,customer_subscriptions.view_active_subscriptions" %}
-<li class="menu-title">
-  <span>{% translate "Billing" %}</span>
-</li>
-<ul class="menu-list">
-  {% if user|has_permission:"customer_subscriptions.view_customersubscription" %}
-  <li>
-    <a href="{% url 'customer_subscriptions:subscription_list' %}" {% if active_tab == 'subscriptions' %}class="menu-active"{% endif %}>
-      <i class="fa fa-credit-card h-4 w-4"></i>
-      {% translate "All Subscriptions" %}
-    </a>
-  </li>
-  {% endif %}
-  {% if user|has_permission:"customer_subscriptions.view_active_subscriptions" %}
-  <li>
-    <a href="{% url 'customer_subscriptions:active_subscriptions' %}" {% if active_tab == 'active_subscriptions' %}class="menu-active"{% endif %}>
-      <i class="fa fa-check-circle h-4 w-4"></i>
-      {% translate "Active Subscriptions" %}
-    </a>
-  </li>
-  {% endif %}
-</ul>
-{% endif %}
-{% if user|has_permission:"reports.view_reports" %}
-<li class="menu-title">
-  <span>{% translate "Reports" %}</span>
-</li>
-<ul class="menu-list">
-  <li>
-    <a href="{% url 'reports:dashboard' %}" {% if active_tab == 'reports' %}class="menu-active"{% endif %}>
-      <i class="fa fa-chart-bar h-4 w-4"></i>
-      {% translate "Reports Dashboard" %}
-    </a>
-  </li>
-</ul>
-{% endif %}

@@ -18,6 +18,20 @@
     <div class="mb-6 flex justify-between items-center">
         <h1 class="pg-title">Audit Logs</h1>
         <div class="space-x-2">
+            <!-- Filter Button -->
+            <button onclick="document.getElementById('filter-modal').showModal()" 
+                    class="btn btn-outline">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                </svg>
+                Filters
+                {% if search or selected_user or selected_action or selected_content_type or date_from or date_to %}
+                    <span class="badge badge-primary">Active</span>
+                {% endif %}
+            </button>
+            
+            <!-- Export Button -->
             <button onclick="document.getElementById('export-form').submit()" 
                     class="btn btn-secondary">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,91 +43,44 @@
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-        <div class="card-body">
-            <h2 class="card-title mb-4">Filters</h2>
-            <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- User Filter -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">User</span>
-                    </label>
-                    <select name="user" class="select select-bordered">
-                        <option value="">All Users</option>
-                        {% for user in users %}
-                            <option value="{{ user.id }}" {% if user.id|stringformat:"s" == selected_user %}selected{% endif %}>
-                                {{ user.get_full_name }} ({{ user.username }})
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Action Filter -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Action</span>
-                    </label>
-                    <select name="action" class="select select-bordered">
-                        <option value="">All Actions</option>
-                        {% for flag, label in action_flags %}
-                            <option value="{{ flag }}" {% if flag|stringformat:"s" == selected_action %}selected{% endif %}>
-                                {{ label }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Content Type Filter -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Object Type</span>
-                    </label>
-                    <select name="content_type" class="select select-bordered">
-                        <option value="">All Types</option>
-                        {% for ct in content_types %}
-                            <option value="{{ ct.id }}" {% if ct.id|stringformat:"s" == selected_content_type %}selected{% endif %}>
-                                {{ ct.app_label|title }} - {{ ct.model|title }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <!-- Date From -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date From</span>
-                    </label>
-                    <input type="date" name="date_from" value="{{ date_from }}" 
-                           class="input input-bordered">
-                </div>
-
-                <!-- Date To -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Date To</span>
-                    </label>
-                    <input type="date" name="date_to" value="{{ date_to }}" 
-                           class="input input-bordered">
-                </div>
-
-                <!-- Search -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Search</span>
-                    </label>
-                    <input type="text" name="search" value="{{ search }}" 
-                           placeholder="Search logs..." 
-                           class="input input-bordered">
-                </div>
-
-                <!-- Filter Buttons -->
-                <div class="form-control lg:col-span-3 flex flex-row gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    <a href="{% url 'audit_logs:list' %}" class="btn btn-ghost">Clear Filters</a>
-                </div>
-            </form>
-        </div>
+    <!-- Active Filters Display -->
+    {% if search or selected_user or selected_action or selected_content_type or date_from or date_to %}
+    <div class="mb-4 flex flex-wrap gap-2">
+        <span class="text-sm text-gray-600">Active filters:</span>
+        {% if search %}
+            <span class="badge badge-outline">Search: {{ search }}</span>
+        {% endif %}
+        {% if selected_user %}
+            {% for user in users %}
+                {% if user.id|stringformat:"s" == selected_user %}
+                    <span class="badge badge-outline">User: {{ user.get_full_name }}</span>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        {% if selected_action %}
+            <span class="badge badge-outline">Action: {% for flag, label in action_flags %}{% if flag|stringformat:"s" == selected_action %}{{ label }}{% endif %}{% endfor %}</span>
+        {% endif %}
+        {% if selected_content_type %}
+            {% for ct in content_types %}
+                {% if ct.id|stringformat:"s" == selected_content_type %}
+                    <span class="badge badge-outline">Type: {{ ct.app_label|title }}.{{ ct.model|title }}</span>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        {% if date_from %}
+            <span class="badge badge-outline">From: {{ date_from }}</span>
+        {% endif %}
+        {% if date_to %}
+            <span class="badge badge-outline">To: {{ date_to }}</span>
+        {% endif %}
+        <a href="{% url 'audit_logs:list' %}" class="badge badge-error cursor-pointer">
+            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Clear all
+        </a>
     </div>
+    {% endif %}
 
     <!-- Results Summary -->
     <div class="mb-4">
@@ -201,6 +168,104 @@
     </div>
     {% endif %}
 </section>
+
+<!-- Filter Modal -->
+<dialog id="filter-modal" class="modal">
+    <div class="modal-box max-w-3xl">
+        <h3 class="font-bold text-lg mb-4">Filter Audit Logs</h3>
+        
+        <form method="get">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- User Filter -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">User</span>
+                    </label>
+                    <select name="user" class="select select-bordered w-full">
+                        <option value="">All Users</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}" {% if user.id|stringformat:"s" == selected_user %}selected{% endif %}>
+                                {{ user.get_full_name }} ({{ user.username }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Action Filter -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Action</span>
+                    </label>
+                    <select name="action" class="select select-bordered w-full">
+                        <option value="">All Actions</option>
+                        {% for flag, label in action_flags %}
+                            <option value="{{ flag }}" {% if flag|stringformat:"s" == selected_action %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Content Type Filter -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Object Type</span>
+                    </label>
+                    <select name="content_type" class="select select-bordered w-full">
+                        <option value="">All Types</option>
+                        {% for ct in content_types %}
+                            <option value="{{ ct.id }}" {% if ct.id|stringformat:"s" == selected_content_type %}selected{% endif %}>
+                                {{ ct.app_label|title }} - {{ ct.model|title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date From -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date From</span>
+                    </label>
+                    <input type="date" name="date_from" value="{{ date_from }}" 
+                           class="input input-bordered w-full">
+                </div>
+
+                <!-- Date To -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date To</span>
+                    </label>
+                    <input type="date" name="date_to" value="{{ date_to }}" 
+                           class="input input-bordered w-full">
+                </div>
+
+                <!-- Search -->
+                <div class="form-control md:col-span-2">
+                    <label class="label">
+                        <span class="label-text">Search</span>
+                    </label>
+                    <input type="text" name="search" value="{{ search }}" 
+                           placeholder="Search logs..." 
+                           class="input input-bordered w-full">
+                </div>
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="modal-action">
+                <a href="{% url 'audit_logs:list' %}" class="btn btn-ghost">Clear Filters</a>
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <form method="dialog" style="display: inline;">
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Click outside to close -->
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
 
 <!-- Hidden Export Form -->
 <form id="export-form" method="get" action="{% url 'audit_logs:export' %}" style="display: none;">
