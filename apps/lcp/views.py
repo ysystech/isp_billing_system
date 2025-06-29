@@ -62,7 +62,7 @@ def lcp_detail(request, pk):
 
 
 @login_required
-@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
+@permission_required('lcp.add_lcp', raise_exception=True)
 def lcp_create(request):
     if request.method == 'POST':
         form = LCPForm(request.POST)
@@ -122,7 +122,7 @@ def lcp_delete(request, pk):
 
 # Splitter views
 @login_required
-@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
+@permission_required('lcp.add_lcp', raise_exception=True)
 def splitter_create(request, lcp_pk):
     lcp = get_object_or_404(LCP, pk=lcp_pk)
     
@@ -146,6 +146,7 @@ def splitter_create(request, lcp_pk):
 
 
 @login_required
+@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def splitter_edit(request, pk):
     splitter = get_object_or_404(Splitter.objects.select_related('lcp'), pk=pk)
     
@@ -168,6 +169,7 @@ def splitter_edit(request, pk):
 
 
 @login_required
+@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def splitter_delete(request, pk):
     splitter = get_object_or_404(Splitter.objects.select_related('lcp'), pk=pk)
     lcp = splitter.lcp
@@ -187,6 +189,7 @@ def splitter_delete(request, pk):
 
 # NAP views
 @login_required
+@permission_required('lcp.add_lcp', raise_exception=True)
 def nap_create(request, splitter_pk):
     splitter = get_object_or_404(Splitter.objects.select_related('lcp'), pk=splitter_pk)
     
@@ -210,6 +213,7 @@ def nap_create(request, splitter_pk):
 
 
 @login_required
+@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def nap_edit(request, pk):
     nap = get_object_or_404(NAP.objects.select_related('splitter__lcp'), pk=pk)
     
@@ -232,6 +236,7 @@ def nap_edit(request, pk):
 
 
 @login_required
+@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def nap_delete(request, pk):
     nap = get_object_or_404(NAP.objects.select_related('splitter__lcp'), pk=pk)
     lcp = nap.splitter.lcp
@@ -256,6 +261,7 @@ from django.views.decorators.http import require_http_methods
 
 
 @login_required
+@permission_required('lcp.view_lcp_list', raise_exception=True)
 @require_http_methods(["GET"])
 def api_get_lcps(request):
     """Get all active LCPs for dropdown selection."""
@@ -264,6 +270,7 @@ def api_get_lcps(request):
 
 
 @login_required
+@permission_required('lcp.view_lcp_list', raise_exception=True)
 @require_http_methods(["GET"])
 def api_get_splitters(request, lcp_id):
     """Get all splitters for a specific LCP."""
@@ -289,6 +296,7 @@ def api_get_splitters(request, lcp_id):
 
 
 @login_required
+@permission_required('lcp.view_lcp_list', raise_exception=True)
 @require_http_methods(["GET"])
 def api_get_naps(request, splitter_id):
     """Get all NAPs for a specific splitter."""
@@ -311,6 +319,7 @@ def api_get_naps(request, splitter_id):
 
 
 @login_required
+@permission_required('lcp.view_lcp_list', raise_exception=True)
 @require_http_methods(["GET"])
 def api_get_nap_hierarchy(request, nap_id):
     """Get the full hierarchy for a specific NAP (for edit mode)."""

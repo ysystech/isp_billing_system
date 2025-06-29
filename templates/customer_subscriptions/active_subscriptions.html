@@ -1,5 +1,6 @@
 {% extends "web/app/app_base.html" %}
 {% load humanize %}
+{% load role_tags %}
 
 {% block title %}Active Subscriptions{% endblock %}
 
@@ -97,6 +98,7 @@
                   </svg>
                   History
                 </a>
+                {% if user|has_permission:"customer_subscriptions.create_subscription" %}
                 <a href="{% url 'customer_subscriptions:subscription_create' %}?installation_id={{ installation.id }}" 
                    class="btn btn-sm btn-success"
                    title="Add New Subscription">
@@ -104,16 +106,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                   </svg>
                   Renew
-                </a>
-                {% if subscription %}
-                <a href="{% url 'customer_subscriptions:generate_receipt' subscription.pk %}" 
-                   class="btn btn-sm btn-outline btn-success"
-                   title="Print Last Receipt"
-                   target="_blank">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                  </svg>
-                  Receipt
                 </a>
                 {% endif %}
               </div>

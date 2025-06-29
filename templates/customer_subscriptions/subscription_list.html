@@ -103,7 +103,7 @@
             {% endif %}
           </td>
           <td>
-            {% if user|has_permission:"customer_subscriptions.view_subscription_detail" %}
+            {% if user|has_permission:"customer_subscriptions.view_subscription_list" %}
             <a href="{% url 'customer_subscriptions:subscription_detail' subscription.pk %}" 
                class="btn btn-sm btn-info">View</a>
             {% endif %}

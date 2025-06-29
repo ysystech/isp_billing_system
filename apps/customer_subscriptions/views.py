@@ -107,7 +107,7 @@ def subscription_create(request):
 
 
 @login_required
-@permission_required('customer_subscriptions.view_subscription_detail', raise_exception=True)
+@permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def subscription_detail(request, pk):
     """View subscription details."""
     subscription = get_object_or_404(
@@ -238,7 +238,7 @@ def api_get_plan_price(request):
 
 
 @login_required
-@permission_required('customer_subscriptions.view_active_subscriptions', raise_exception=True)
+@permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def active_subscriptions(request):
     """View all active subscriptions per customer."""
     # Get all active installations with current active subscriptions

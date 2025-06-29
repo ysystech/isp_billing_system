@@ -1,5 +1,6 @@
 {% extends "web/app/app_base.html" %}
 {% load static %}
+{% load permission_tags %}
 
 {% block app %}
 <section class="app-card">
@@ -19,12 +20,14 @@
       <p class="text-gray-600">{{ lcp.code }}</p>
     </div>
     <div class="btn-group">
+      {% if user|has_permission:"lcp.manage_lcp_infrastructure" %}
       <a href="{% url 'lcp:lcp_edit' lcp.pk %}" class="btn btn-warning">
         <i class="fa fa-edit mr-2"></i> Edit
       </a>
       <a href="{% url 'lcp:lcp_delete' lcp.pk %}" class="btn btn-error">
         <i class="fa fa-trash mr-2"></i> Delete
       </a>
+      {% endif %}
     </div>
   </div>
 
@@ -83,9 +86,11 @@
   <div class="mb-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">Splitters</h2>
+      {% if user|has_permission:"lcp.manage_lcp_infrastructure" or user|has_permission:"lcp.add_lcp" %}
       <a href="{% url 'lcp:splitter_create' lcp.pk %}" class="btn btn-primary btn-sm">
         <i class="fa fa-plus mr-2"></i> Add Splitter
       </a>
+      {% endif %}
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -113,23 +118,27 @@
 
           {% if splitter.available_ports > 0 %}
           <div class="card-actions justify-end mt-4">
+            {% if user|has_permission:"lcp.manage_lcp_infrastructure" or user|has_permission:"lcp.add_lcp" %}
             <a href="{% url 'lcp:nap_create' splitter.pk %}" class="btn btn-success btn-sm">
               <i class="fa fa-plus"></i> Add NAP
             </a>
             <a href="{% url 'lcp:splitter_edit' splitter.pk %}" class="btn btn-warning btn-sm">
               <i class="fa fa-edit"></i> Edit
             </a>
+            {% endif %}
           </div>
           {% else %}
           <div class="alert alert-warning mt-4">
             <i class="fa fa-info-circle"></i>
             <span>All ports are in use. No more NAPs can be added to this splitter.</span>
           </div>
+          {% if user|has_permission:"lcp.manage_lcp_infrastructure" or user|has_permission:"lcp.add_lcp" %}
           <div class="card-actions justify-end mt-4">
             <a href="{% url 'lcp:splitter_edit' splitter.pk %}" class="btn btn-warning btn-sm">
               <i class="fa fa-edit"></i> Edit
             </a>
           </div>
+          {% endif %}
           {% endif %}
 
           <!-- NAPs List -->
@@ -156,12 +165,14 @@
                     <td>{{ nap.port_capacity }}</td>
                     <td>
                       <div class="btn-group">
+                        {% if user|has_permission:"lcp.manage_lcp_infrastructure" or user|has_permission:"lcp.add_lcp" %}
                         <a href="{% url 'lcp:nap_edit' nap.pk %}" class="btn btn-xs btn-warning">
                           <i class="fa fa-edit"></i>
                         </a>
                         <a href="{% url 'lcp:nap_delete' nap.pk %}" class="btn btn-xs btn-error">
                           <i class="fa fa-trash"></i>
                         </a>
+                        {% endif %}
                       </div>
                     </td>
                   </tr>

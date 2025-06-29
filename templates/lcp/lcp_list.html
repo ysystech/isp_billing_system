@@ -1,13 +1,16 @@
 {% extends "web/app/app_base.html" %}
 {% load static %}
+{% load permission_tags %}
 
 {% block app %}
 <section class="app-card">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold">LCP Management</h1>
+    {% if user|has_permission:"lcp.manage_lcp_infrastructure" or user|has_permission:"lcp.add_lcp" %}
     <a href="{% url 'lcp:lcp_create' %}" class="btn btn-primary">
       <i class="fa fa-plus mr-2"></i> Add LCP
     </a>
+    {% endif %}
   </div>
 
   <!-- Search and Filter -->
@@ -69,9 +72,16 @@
               <a href="{% url 'lcp:lcp_detail' lcp.pk %}" class="btn btn-sm btn-info">
                 <i class="fa fa-eye"></i>
               </a>
+              {% if user|has_permission:"lcp.manage_lcp_infrastructure" %}
               <a href="{% url 'lcp:lcp_edit' lcp.pk %}" class="btn btn-sm btn-warning">
                 <i class="fa fa-edit"></i>
               </a>
+              {% endif %}
+              {% if user|has_permission:"lcp.delete_lcp" or user|has_permission:"lcp.manage_lcp_infrastructure" %}
+              <a href="{% url 'lcp:lcp_delete' lcp.pk %}" class="btn btn-sm btn-error">
+                <i class="fa fa-trash"></i>
+              </a>
+              {% endif %}
             </div>
           </td>
         </tr>
