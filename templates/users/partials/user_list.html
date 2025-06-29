@@ -1,5 +1,11 @@
 {% load role_tags %}
 
+<!-- Debug info - remove in production -->
+<div class="text-xs text-gray-500 mb-4">
+  <p>Current user ID: {{ request.user.id }}</p>
+  <p>Current user email: {{ request.user.email }}</p>
+  <p>Has delete permission: {% if request.user|has_permission:"users.delete_customuser" %}Yes{% else %}No{% endif %}</p>
+</div>
 {% if users %}
 <div class="overflow-x-auto">
   <table class="table table-zebra">
@@ -13,32 +19,32 @@
       </tr>
     </thead>
     <tbody>
-      {% for user in users %}
-      <tr id="user-{{ user.id }}">
+      {% for user_item in users %}
+      <tr id="user-{{ user_item.id }}">
         <td>
-          <div class="font-medium">{{ user.get_full_name|default:"No name" }}</div>
+          <div class="font-medium">{{ user_item.get_full_name|default:"No name" }}</div>
         </td>
         <td>
-          <div class="text-sm">{{ user.email }}</div>
+          <div class="text-sm">{{ user_item.email }}</div>
         </td>
         <td>
-          {% if user.is_active %}
+          {% if user_item.is_active %}
           <span class="badge badge-success">Active</span>
           {% else %}
           <span class="badge badge-ghost">Inactive</span>
           {% endif %}
         </td>
         <td>
-          <div class="text-sm">{{ user.date_joined|date:"M d, Y" }}</div>
+          <div class="text-sm">{{ user_item.date_joined|date:"M d, Y" }}</div>
         </td>
         <td>
           <div class="flex space-x-2" x-data="userActions">
-            <a href="{% url 'users:user_management_detail' user.id %}" 
+            <a href="{% url 'users:user_management_detail' user_item.id %}" 
                class="btn btn-ghost btn-xs">
               View
             </a>
-            {% if user|has_permission:"users.change_customuser" %}
-            <a href="{% url 'users:user_management_update' user.id %}" 
+            {% if request.user|has_permission:"users.change_customuser" and user_item.id != request.user.id %}
+            <a href="{% url 'users:user_management_update' user_item.id %}" 
               class="btn btn-ghost btn-xs"
               title="Edit">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -46,10 +52,10 @@
               </svg>
             </a>
             {% endif %}
-            {% if user.is_active and user|has_permission:"users.delete_customuser" %}
+            {% if user_item.is_active and request.user|has_permission:"users.delete_customuser" and user_item.id != request.user.id %}
             <button class="btn btn-ghost btn-xs text-error"
-                    @click="confirmDelete({{ user.id }}, '{{ user.get_full_name|escapejs }}')">
-              Deactivate
+                    @click="confirmDelete({{ user_item.id }}, '{{ user_item.get_full_name|escapejs }}')">
+              Delete User
             </button>
             {% endif %}
           </div>

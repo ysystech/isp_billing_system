@@ -1,5 +1,6 @@
 {% extends "web/app/app_base.html" %}
 {% load static %}
+{% load role_tags %}
 
 {% block app %}
 <section class="app-card">
@@ -25,12 +26,14 @@
       </div>
     </div>
     <div class="flex space-x-2">
+      {% if request.user|has_permission:"users.change_customuser" and user_obj.id != request.user.id %}
       <a href="{% url 'users:user_management_update' user_obj.id %}" class="btn btn-primary btn-sm">
         Edit User
       </a>
-      {% if user_obj.is_active %}
+      {% endif %}
+      {% if user_obj.is_active and request.user|has_permission:"users.delete_customuser" and user_obj.id != request.user.id %}
       <button class="btn btn-error btn-sm" onclick="confirmDeactivate()">
-        Deactivate User
+        Delete User
       </button>
       {% endif %}
     </div>
@@ -128,9 +131,10 @@
   </div>
 </section>
 
+{% if user|has_permission:"users.delete_customuser" %}
 <script>
 function confirmDeactivate() {
-  if (confirm('Are you sure you want to deactivate "{{ user_obj.get_full_name|escapejs }}"? The user will no longer be able to log in.')) {
+  if (confirm('Are you sure you want to delete "{{ user_obj.get_full_name|escapejs }}"? This user will be deactivated and unable to log in.')) {
     // Use HTMX to submit if available
     if (typeof htmx !== 'undefined') {
       // HTMX will automatically include the CSRF token from body hx-headers
@@ -139,4 +143,5 @@ function confirmDeactivate() {
   }
 }
 </script>
+{% endif %}
 {% endblock %}

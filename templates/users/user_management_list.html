@@ -61,7 +61,7 @@
   document.addEventListener('alpine:init', () => {
     Alpine.data('userActions', () => ({
       confirmDelete(userId, userName) {
-        if (confirm(`Are you sure you want to deactivate "${userName}"?`)) {
+        if (confirm(`Are you sure you want to delete "${userName}"? This user will be deactivated and unable to log in.`)) {
           // HTMX will automatically include the CSRF token from body hx-headers
           htmx.ajax('DELETE', `/users/management/${userId}/delete/`);
         }

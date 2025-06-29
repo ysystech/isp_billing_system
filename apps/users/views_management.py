@@ -22,6 +22,15 @@ def user_management_list(request):
     # Exclude superusers from the list
     users = CustomUser.objects.filter(is_superuser=False)
     
+    # Debug info
+    print(f"Current user: {request.user.username} (ID: {request.user.id})")
+    print(f"Current user has delete permission: {request.user.has_perm('users.delete_customuser')}")
+    
+    # Print all permissions for current user
+    print("All permissions for current user:")
+    for perm in request.user.get_all_permissions():
+        print(f"  - {perm}")
+    
     # Apply search filter
     if form.is_valid():
         search_query = form.cleaned_data.get('search')
@@ -38,7 +47,8 @@ def user_management_list(request):
         if is_active:
             users = users.filter(is_active=(is_active == 'true'))
     
-    users = users.order_by('-date_joined')
+    # Ensure staff users are visible
+    users = users.filter(Q(is_staff=True) | Q(is_staff=False)).order_by('-date_joined')
     
     # Handle HTMX request
     if request.htmx:
@@ -118,11 +128,22 @@ def user_management_delete(request, pk):
     """Deactivate a user (soft delete)."""
     user = get_object_or_404(CustomUser, pk=pk, is_superuser=False)
     
+    # Prevent users from deleting themselves
+    if user.id == request.user.id:
+        messages.error(request, "You cannot delete your own account.")
+        # Return HTMX response
+        if request.htmx:
+            return HttpResponse(
+                status=403,
+                headers={'HX-Redirect': '/users/management/'}
+            )
+        return redirect('users:user_management_list')
+    
     # Soft delete by deactivating the user
     user.is_active = False
     user.save()
     
-    messages.success(request, f'User "{user.get_full_name()}" deactivated successfully.')
+    messages.success(request, f'User "{user.get_full_name()}" deleted successfully.')
     
     # Return HTMX response
     if request.htmx:
