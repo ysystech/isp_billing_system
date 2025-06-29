@@ -118,7 +118,7 @@ def ticket_create(request):
 
 
 @login_required
-@permission_required('tickets.view_ticket_detail', raise_exception=True)
+@permission_required('tickets.view_ticket_list', raise_exception=True)
 def ticket_detail(request, pk):
     """View ticket details and add comments."""
     ticket = get_object_or_404(
@@ -155,7 +155,7 @@ def ticket_detail(request, pk):
 
 
 @login_required
-@permission_required('tickets.change_ticket_status', raise_exception=True)
+@permission_required('tickets.edit_ticket', raise_exception=True)
 def ticket_update(request, pk):
     """Update ticket details."""
     ticket = get_object_or_404(Ticket, pk=pk)
@@ -195,7 +195,7 @@ def ticket_update(request, pk):
 
 
 @login_required
-@permission_required('tickets.assign_ticket', raise_exception=True)
+@permission_required('tickets.edit_ticket', raise_exception=True)
 @require_POST
 def ticket_quick_assign(request, pk):
     """Quick assign ticket to a technician."""

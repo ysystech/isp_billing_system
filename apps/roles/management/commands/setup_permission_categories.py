@@ -83,19 +83,20 @@ class Command(BaseCommand):
                 'order': 100,
             },
             {
-                'name': 'Reports & Analytics',
-                'code': 'reports',
-                'description': 'Business reports and analytics',
-                'icon': 'fa-chart-bar',
-                'order': 110,
-            },
-            {
                 'name': 'User Management',
                 'code': 'users',
                 'description': 'Manage system users and roles',
                 'icon': 'fa-users-cog',
+                'order': 110,
+            },
+            {
+                'name': 'Reports & Analytics',
+                'code': 'reports',
+                'description': 'Business reports and analytics',
+                'icon': 'fa-chart-bar',
                 'order': 120,
             },
+            
         ]
         
         created_count = 0

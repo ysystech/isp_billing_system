@@ -44,7 +44,7 @@ class Command(BaseCommand):
             ('customer_installations', 'view_installation_technical_details'),  # Covered by view_installation_list
             ('customer_installations', 'manage_nap_assignments'),  # Covered by change_installation_status
             ('tickets', 'add_ticket'),  # We use create_ticket
-            ('tickets', 'change_ticket'),  # We use specific permissions
+            ('tickets', 'change_ticket'),  # We use edit_ticket now
             ('tickets', 'delete_ticket'),  # We use remove_ticket
             ('tickets', 'view_ticket'),  # We use view_ticket_list
             ('tickets', 'add_ticketcomment'),  # We use add_ticket_comment
@@ -55,6 +55,7 @@ class Command(BaseCommand):
             ('tickets', 'change_ticketcomment'),  # Not needed in simplified workflow
             ('tickets', 'delete_ticketcomment'),  # Not needed in simplified workflow
             ('tickets', 'delete_any_comment'),  # Not needed in simplified workflow
+            ('tickets', 'assign_ticket'),  # Removed as requested
             ('routers', 'view_router'),  # We use view_router_list
             ('routers', 'view_router_detail'),  # Covered by view_router_list
             ('routers', 'manage_router_inventory'),  # Not needed - CRUD is enough
@@ -167,8 +168,8 @@ class Command(BaseCommand):
                 # Support ticket permissions - workflow-based structure
                 ('tickets', 'view_ticket_list', 'View Tickets', 'View ticket list, details, and all comments'),
                 ('tickets', 'create_ticket', 'Create Ticket', 'Create new support tickets'),
-                ('tickets', 'assign_ticket', 'Assign Technician', 'Assign or reassign tickets to technicians'),
-                ('tickets', 'change_ticket_status', 'Update Ticket Status', 'Change ticket status and priority'),
+                ('tickets', 'edit_ticket', 'Edit Ticket', 'Edit all ticket information except status'),
+                ('tickets', 'change_ticket_status', 'Update Ticket Status', 'Change ticket status via the dedicated status control'),
                 ('tickets', 'add_ticket_comment', 'Add Comments', 'Add comments to tickets'),
                 ('tickets', 'remove_ticket', 'Delete Ticket', 'Delete ticket records'),
                 ('tickets', 'export_ticket_data', 'Export Ticket Data', 'Export ticket data and reports'),

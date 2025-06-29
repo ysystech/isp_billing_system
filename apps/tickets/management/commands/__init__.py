@@ -1,1 +1,1 @@
-# Commands package
+# Initialize commands package
