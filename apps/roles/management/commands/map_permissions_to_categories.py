@@ -18,9 +18,14 @@ class Command(BaseCommand):
         skip_permissions = [
             # Skip these default permissions as we have custom equivalents
             ('customers', 'add_customer'),  # We use create_customer
-            ('customers', 'change_customer'),  # We use change_customer_basic, change_customer_status, etc.
+            ('customers', 'change_customer'),  # We use change_customer_basic
             ('customers', 'delete_customer'),  # We use remove_customer
             ('customers', 'view_customer'),  # We use view_customer_list
+            ('customers', 'view_customer_sensitive_info'),  # Covered by view_customer_detail
+            ('customers', 'view_customer_coordinates'),  # Covered by view_customer_detail
+            ('customers', 'change_customer_status'),  # Covered by change_customer_basic
+            ('customers', 'change_customer_address'),  # Covered by change_customer_basic
+            ('customers', 'import_customers'),  # Feature not implemented yet
             ('customer_subscriptions', 'add_customersubscription'),  # We use create_subscription
             ('customer_subscriptions', 'change_customersubscription'),  # We use specific permissions
             ('customer_subscriptions', 'delete_customersubscription'),  # We use cancel_subscription
@@ -33,8 +38,11 @@ class Command(BaseCommand):
             ('tickets', 'delete_ticket'),  # We use remove_ticket
             ('tickets', 'view_ticket'),  # We use view_ticket_list
             ('tickets', 'add_ticketcomment'),  # We use add_ticket_comment
-            ('routers', 'change_router'),  # We have specific permissions
             ('routers', 'view_router'),  # We use view_router_list
+            ('routers', 'manage_router_inventory'),  # Not needed - CRUD is enough
+            ('routers', 'export_router_data'),  # Not needed - CRUD is enough
+            ('routers', 'bulk_import_routers'),  # Not needed - CRUD is enough
+            ('routers', 'view_router_mac_address'),  # Covered by view_router_detail
             ('lcp', 'change_lcp'),  # We use manage_lcp_infrastructure
             ('lcp', 'change_splitter'),  # We use manage_splitter_ports
             ('lcp', 'change_nap'),  # We use manage_nap_ports
@@ -43,6 +51,8 @@ class Command(BaseCommand):
             ('lcp', 'view_nap'),  # We use view_nap_list
             ('subscriptions', 'view_subscriptionplan'),  # We use view_subscriptionplan_list
             ('barangays', 'view_barangay'),  # We use view_barangay_list
+            ('barangays', 'manage_barangay_status'),  # Not needed - CRUD is enough
+            ('barangays', 'view_barangay_statistics'),  # Not needed - CRUD is enough
         ]
         
         permission_mappings = {
@@ -53,38 +63,28 @@ class Command(BaseCommand):
                 ('reports', 'view_financial_statistics', 'Financial Stats', 'View financial statistics'),
                 ('reports', 'view_system_statistics', 'System Stats', 'View system statistics'),
             ],            'customers': [
-                # Customer-specific permissions only - removed view_customer as redundant
+                # Customer-specific permissions - simplified to essential permissions only
                 ('customers', 'view_customer_list', 'View Customer List', 'Access customer listing page'),
-                ('customers', 'view_customer_detail', 'View Customer Details', 'View detailed customer information'),
-                ('customers', 'view_customer_sensitive_info', 'View Sensitive Info', 'View sensitive customer data like coordinates'),
+                ('customers', 'view_customer_detail', 'View Customer Details', 'View detailed customer information including coordinates and sensitive data'),
                 ('customers', 'create_customer', 'Create Customer', 'Create new customer records'),
-                ('customers', 'change_customer_basic', 'Edit Basic Info', 'Edit customer basic information'),
-                ('customers', 'change_customer_status', 'Change Status', 'Change customer account status'),
-                ('customers', 'change_customer_address', 'Edit Address', 'Edit customer address information'),
+                ('customers', 'change_customer_basic', 'Edit Customer', 'Edit all customer information including basic info, status, and address'),
                 ('customers', 'remove_customer', 'Remove Customer', 'Remove customer records'),
                 ('customers', 'export_customers', 'Export Customers', 'Export customer data to file'),
-                ('customers', 'import_customers', 'Import Customers', 'Import customer data from file'),
-                ('customers', 'view_customer_coordinates', 'View Coordinates', 'View customer GPS coordinates'),
             ],
             'barangays': [
-                # Barangay permissions - removed view_barangay as redundant
+                # Barangay permissions - simple CRUD only
                 ('barangays', 'view_barangay_list', 'View Barangay List', 'Access barangay listing'),
                 ('barangays', 'add_barangay', 'Add Barangay', 'Create new barangay'),
                 ('barangays', 'change_barangay', 'Edit Barangay', 'Edit barangay information'),
                 ('barangays', 'delete_barangay', 'Delete Barangay', 'Delete barangay records'),
-                ('barangays', 'manage_barangay_status', 'Manage Status', 'Activate/deactivate barangays'),
-                ('barangays', 'view_barangay_statistics', 'View Statistics', 'View barangay statistics'),
             ],
             'routers': [
-                # Router permissions - removed view_router as redundant
+                # Router permissions - simple CRUD only
                 ('routers', 'view_router_list', 'View Router List', 'Access router listing'),
-                ('routers', 'view_router_detail', 'View Router Details', 'View router details'),
+                ('routers', 'view_router_detail', 'View Router Details', 'View router details including MAC address'),
                 ('routers', 'add_router', 'Add Router', 'Add new router to inventory'),
+                ('routers', 'change_router', 'Edit Router', 'Edit router information'),
                 ('routers', 'delete_router', 'Delete Router', 'Delete router records'),
-                ('routers', 'manage_router_inventory', 'Manage Inventory', 'Manage router inventory'),
-                ('routers', 'export_router_data', 'Export Router Data', 'Export router data'),
-                ('routers', 'bulk_import_routers', 'Bulk Import', 'Bulk import routers'),
-                ('routers', 'view_router_mac_address', 'View MAC Address', 'View router MAC addresses'),
             ],
             'plans': [
                 # Subscription plan permissions - removed view_subscriptionplan as redundant
