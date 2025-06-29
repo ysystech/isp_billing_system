@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from .helpers import validate_profile_picture
 from .models import CustomUser
 from apps.roles.models import Role
+from apps.roles.helpers.permissions import get_accessible_roles
 
 
 class TurnstileSignupForm(SignupForm):
@@ -112,12 +113,12 @@ class UserManagementCreateForm(forms.ModelForm):
     )
     
     roles = forms.ModelMultipleChoiceField(
-        queryset=Role.objects.filter(is_active=True),
+        queryset=Role.objects.none(),  # Will be set in __init__
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={
             'class': 'checkbox checkbox-primary'
         }),
-        help_text="Select roles to assign to this user"
+        help_text="Select roles to assign to this user (only showing roles you have permission to manage)"
     )
     
     class Meta:
@@ -126,11 +127,66 @@ class UserManagementCreateForm(forms.ModelForm):
         widgets = {
         }
     
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Store the user for permission validation
+        self.user = user
+        
+        # Filter roles to only show ones the current user can manage
+        if user:
+            self.fields['roles'].queryset = get_accessible_roles(user)
+        else:
+            self.fields['roles'].queryset = Role.objects.filter(is_active=True)
+    
+    def clean_roles(self):
+        roles = self.cleaned_data.get('roles', [])
+        user = getattr(self, 'user', None)
+        
+        # Skip validation for superusers or if no user is provided
+        if not user or user.is_superuser:
+            return roles
+        
+        # Get all accessible roles for the current user
+        accessible_roles = set(get_accessible_roles(user).values_list('id', flat=True))
+        
+        # Check if all selected roles are accessible
+        for role in roles:
+            if role.id not in accessible_roles:
+                raise forms.ValidationError(
+                    f"You do not have permission to assign the role '{role.name}'. "
+                    f"You can only assign roles that contain permissions you have."
+                )
+        
+        return roles
+    
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if CustomUser.objects.filter(email=email).exists():
             raise forms.ValidationError("A user with this email already exists.")
         return email
+    
+    def clean_roles(self):
+        roles = self.cleaned_data.get('roles', [])
+        user = getattr(self, 'user', None)
+        
+        # Skip validation for superusers or if no user is provided
+        if not user or user.is_superuser:
+            return roles
+        
+        # Get all accessible roles for the current user
+        accessible_roles = set(get_accessible_roles(user).values_list('id', flat=True))
+        
+        # Check if all selected roles are accessible
+        for role in roles:
+            if role.id not in accessible_roles:
+                raise forms.ValidationError(
+                    f"You do not have permission to assign the role '{role.name}'. "
+                    f"You can only assign roles that contain permissions you have."
+                )
+        
+        return roles
     
     def clean(self):
         cleaned_data = super().clean()
@@ -192,12 +248,12 @@ class UserManagementUpdateForm(forms.ModelForm):
     )
     
     roles = forms.ModelMultipleChoiceField(
-        queryset=Role.objects.filter(is_active=True),
+        queryset=Role.objects.none(),  # Will be set in __init__
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={
             'class': 'checkbox checkbox-primary'
         }),
-        help_text="Select roles to assign to this user"
+        help_text="Select roles to assign to this user (only showing roles you have permission to manage)"
     )
     
     class Meta:
@@ -210,12 +266,49 @@ class UserManagementUpdateForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        # Store the user for permission validation
+        self.user = user
+        
+        # Filter roles to only show ones the current user can manage
+        if user:
+            self.fields['roles'].queryset = get_accessible_roles(user)
+        else:
+            self.fields['roles'].queryset = Role.objects.filter(is_active=True)
+            
         if self.instance and self.instance.pk:
             # Set full name from first and last name
             self.fields['full_name'].initial = self.instance.get_full_name()
-            # Set initial roles
-            self.fields['roles'].initial = Role.objects.filter(group__user=self.instance)
+            
+            # Set initial roles, but only include roles that current user can manage
+            if user:
+                accessible_roles = get_accessible_roles(user)
+                self.fields['roles'].initial = accessible_roles.filter(group__user=self.instance)
+            else:
+                self.fields['roles'].initial = Role.objects.filter(group__user=self.instance)
+    
+    def clean_roles(self):
+        roles = self.cleaned_data.get('roles', [])
+        user = getattr(self, 'user', None)
+        
+        # Skip validation for superusers or if no user is provided
+        if not user or user.is_superuser:
+            return roles
+        
+        # Get all accessible roles for the current user
+        accessible_roles = set(get_accessible_roles(user).values_list('id', flat=True))
+        
+        # Check if all selected roles are accessible
+        for role in roles:
+            if role.id not in accessible_roles:
+                raise forms.ValidationError(
+                    f"You do not have permission to assign the role '{role.name}'. "
+                    f"You can only assign roles that contain permissions you have."
+                )
+        
+        return roles
     
     def clean_email(self):
         email = self.cleaned_data.get('email')

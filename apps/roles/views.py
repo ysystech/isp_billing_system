@@ -13,13 +13,15 @@ from django.views.decorators.http import require_http_methods
 from .models import Role, PermissionCategory, PermissionCategoryMapping
 from .forms import RoleForm, RolePermissionsForm
 from .decorators import require_permission
+from .helpers.permissions import get_accessible_roles, can_manage_role
 
 
 @login_required
 @permission_required('roles.view_role', raise_exception=True)
 def role_list(request):
     """List all roles with user counts."""
-    roles = Role.objects.annotate(
+    # Only show roles the user has permission to manage
+    roles = get_accessible_roles(request.user).annotate(
         user_count_anno=Count('group__user', distinct=True)
     ).order_by('name')
     
@@ -52,6 +54,12 @@ def role_create(request):
 def role_detail(request, pk):
     """View role details."""
     role = get_object_or_404(Role, pk=pk)
+    
+    # Check if user can access this role
+    if not request.user.is_superuser and not can_manage_role(request.user, role):
+        messages.error(request, f'You do not have permission to view the role "{role.name}".')
+        return redirect('roles:role_list')
+    
     permissions = role.permissions.select_related('content_type').order_by(
         'content_type__app_label', 
         'codename'
@@ -70,6 +78,11 @@ def role_detail(request, pk):
 def role_edit(request, pk):
     """Edit role basic information."""
     role = get_object_or_404(Role, pk=pk)
+    
+    # Check if user can access this role
+    if not request.user.is_superuser and not can_manage_role(request.user, role):
+        messages.error(request, f'You do not have permission to edit the role "{role.name}".')
+        return redirect('roles:role_list')
     
     if role.is_system and not request.user.is_superuser:
         messages.error(request, 'System roles can only be edited by superusers.')
@@ -96,6 +109,11 @@ def role_delete(request, pk):
     """Delete a role."""
     role = get_object_or_404(Role, pk=pk)
     
+    # Check if user can access this role
+    if not request.user.is_superuser and not can_manage_role(request.user, role):
+        messages.error(request, f'You do not have permission to delete the role "{role.name}".')
+        return redirect('roles:role_list')
+    
     if role.is_system:
         messages.error(request, 'System roles cannot be deleted.')
         return redirect('roles:role_list')
@@ -121,6 +139,11 @@ def role_permissions(request, pk):
     """Manage role permissions."""
     role = get_object_or_404(Role, pk=pk)
     
+    # Check if user can access this role
+    if not request.user.is_superuser and not can_manage_role(request.user, role):
+        messages.error(request, f'You do not have permission to manage permissions for the role "{role.name}".')
+        return redirect('roles:role_list')
+    
     if role.is_system and not request.user.is_superuser:
         messages.error(request, 'System role permissions can only be edited by superusers.')
         return redirect('roles:role_detail', pk=role.pk)
@@ -138,6 +161,20 @@ def role_permissions(request, pk):
         selected_permissions = request.POST.getlist('permissions')
         selected_permission_ids = [int(p) for p in selected_permissions]
         
+        # Ensure user is not assigning permissions they don't have
+        if not request.user.is_superuser:
+            user_permissions = set(request.user.get_all_permissions())
+            permissions_to_assign = Permission.objects.filter(id__in=selected_permission_ids)
+            
+            for perm in permissions_to_assign:
+                perm_name = f"{perm.content_type.app_label}.{perm.codename}"
+                if perm_name not in user_permissions:
+                    messages.error(
+                        request, 
+                        f'You cannot assign the permission "{perm_name}" because you do not have it.'
+                    )
+                    return redirect('roles:role_permissions', pk=role.pk)
+        
         # Update role permissions
         permissions = Permission.objects.filter(id__in=selected_permission_ids)
         role.group.permissions.set(permissions)
@@ -150,13 +187,16 @@ def role_permissions(request, pk):
     for category in categories:
         category_perms = []
         for mapping in category.permission_mappings.all():
-            category_perms.append({
-                'id': mapping.permission.id,
-                'display_name': mapping.display_name,
-                'description': mapping.description,
-                'codename': mapping.permission.codename,
-                'is_selected': mapping.permission.id in current_permission_ids,
-            })
+            # Skip permissions the user doesn't have (unless superuser)
+            perm_name = f"{mapping.permission.content_type.app_label}.{mapping.permission.codename}"
+            if request.user.is_superuser or perm_name in request.user.get_all_permissions():
+                category_perms.append({
+                    'id': mapping.permission.id,
+                    'display_name': mapping.display_name,
+                    'description': mapping.description,
+                    'codename': mapping.permission.codename,
+                    'is_selected': mapping.permission.id in current_permission_ids,
+                })
         
         if category_perms:
             permission_data.append({

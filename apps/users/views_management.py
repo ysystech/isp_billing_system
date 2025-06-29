@@ -69,7 +69,7 @@ def user_management_list(request):
 def user_management_create(request):
     """Create a new user."""
     if request.method == 'POST':
-        form = UserManagementCreateForm(request.POST)
+        form = UserManagementCreateForm(request.POST, user=request.user)
         if form.is_valid():
             user = form.save()
             messages.success(request, f'User "{user.get_full_name()}" created successfully.')
@@ -82,7 +82,7 @@ def user_management_create(request):
                 )
             return redirect('users:user_management_list')
     else:
-        form = UserManagementCreateForm()
+        form = UserManagementCreateForm(user=request.user)
     
     return render(request, 'users/user_management_form.html', {
         'form': form,
@@ -98,7 +98,7 @@ def user_management_update(request, pk):
     user = get_object_or_404(CustomUser, pk=pk, is_superuser=False)
     
     if request.method == 'POST':
-        form = UserManagementUpdateForm(request.POST, instance=user)
+        form = UserManagementUpdateForm(request.POST, instance=user, user=request.user)
         if form.is_valid():
             user = form.save()
             messages.success(request, f'User "{user.get_full_name()}" updated successfully.')
@@ -111,7 +111,7 @@ def user_management_update(request, pk):
                 )
             return redirect('users:user_management_list')
     else:
-        form = UserManagementUpdateForm(instance=user)
+        form = UserManagementUpdateForm(instance=user, user=request.user)
     
     return render(request, 'users/user_management_form.html', {
         'form': form,
