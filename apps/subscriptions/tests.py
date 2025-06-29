@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.test import TestCase
+from apps.utils.test_base import TenantTestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
@@ -9,16 +10,17 @@ from apps.subscriptions.forms import SubscriptionPlanForm
 User = get_user_model()
 
 
-class SubscriptionPlanModelTest(TestCase):
+class SubscriptionPlanModelTest(TenantTestCase):
     """Test cases for the SubscriptionPlan model."""
     
     def setUp(self):
+        super().setUp()
         self.plan = SubscriptionPlan.objects.create(
             name="Basic Plan",
             description="Basic internet plan for home users",
             speed=100,
             price=Decimal('1000.00')
-        )
+        , tenant=self.tenant)
     
     def test_create_subscription_plan(self):
         """Test creating a subscription plan."""
@@ -44,10 +46,10 @@ class SubscriptionPlanModelTest(TestCase):
                 name="Basic Plan",  # Duplicate name
                 speed=50,
                 price=Decimal('500.00')
-            )
+            , tenant=self.tenant)
 
 
-class SubscriptionPlanFormTest(TestCase):
+class SubscriptionPlanFormTest(TenantTestCase):
     """Test cases for the SubscriptionPlanForm."""
     
     def test_valid_form(self):
@@ -87,15 +89,16 @@ class SubscriptionPlanFormTest(TestCase):
         self.assertIn('speed', form.errors)
 
 
-class SubscriptionPlanViewTest(TestCase):
+class SubscriptionPlanViewTest(TenantTestCase):
     """Test cases for subscription plan views."""
     
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username='testuser@example.com',
             email='testuser@example.com',
             password='testpass123'
-        )
+        , tenant=self.tenant)
         self.client.login(username='testuser@example.com', password='testpass123')
         
         self.plan = SubscriptionPlan.objects.create(
@@ -103,7 +106,7 @@ class SubscriptionPlanViewTest(TestCase):
             description="Test description",
             speed=200,
             price=Decimal('1500.00')
-        )
+        , tenant=self.tenant)
     
     def test_list_view(self):
         """Test the subscription plan list view."""
@@ -173,7 +176,7 @@ class SubscriptionPlanViewTest(TestCase):
             name="Enterprise Plan",
             speed=1000,
             price=Decimal('5000.00')
-        )
+        , tenant=self.tenant)
         
         url = reverse('subscriptions:subscription_plan_list')
         response = self.client.get(url, {'search': 'Enterprise'})

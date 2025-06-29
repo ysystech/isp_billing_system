@@ -107,8 +107,10 @@ def ticket_create(request):
                 customer = Customer.objects.get(pk=customer_id)
                 form.initial['customer'] = customer
                 # Also load their installations
-                form.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(tenant=request.tenant, 
+                form.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(
+                    tenant=request.tenant, 
                     customer=customer
+                )
                 
             except Customer.DoesNotExist:
                 pass
@@ -163,7 +165,7 @@ def ticket_detail(request, pk):
 @permission_required('tickets.edit_ticket', raise_exception=True)
 def ticket_update(request, pk):
     """Update ticket details."""
-    ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk
+    ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == 'POST':
         form = TicketForm(request.POST, instance=ticket, user=request.user, tenant=request.tenant)
@@ -189,8 +191,10 @@ def ticket_update(request, pk):
     else:
         form = TicketForm(instance=ticket, user=request.user, tenant=request.tenant)
         # Load customer installations
-        form.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(tenant=request.tenant, 
+        form.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(
+            tenant=request.tenant, 
             customer=ticket.customer
+        )
         
     
     context = {
@@ -208,7 +212,7 @@ def ticket_update(request, pk):
 @require_POST
 def ticket_quick_assign(request, pk):
     """Quick assign ticket to a technician."""
-    ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk
+    ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk)
     technician_id = request.POST.get('technician_id')
     
     if technician_id:
@@ -243,7 +247,7 @@ def ticket_quick_assign(request, pk):
 @require_POST
 def ticket_update_status(request, pk):
     """Quick update ticket status."""
-    ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk
+    ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk)
     new_status = request.POST.get('status')
     
     if new_status in dict(Ticket.STATUS_CHOICES):
@@ -282,8 +286,10 @@ def ajax_search_customers(request):
     query = request.GET.get('q', '')
     
     if len(query) >= 2:
-        customers = Customer.objects.filter(tenant=request.tenant, 
-            Q(first_name__icontains=query |
+        customers = Customer.objects.filter(
+            tenant=request.tenant
+        ).filter(
+            Q(first_name__icontains=query) |
             Q(last_name__icontains=query) |
             Q(email__icontains=query) |
             Q(phone_primary__icontains=query)
@@ -313,7 +319,7 @@ def ajax_get_customer_installations(request):
     if customer_id:
         installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
             customer_id=customer_id
-        .select_related('nap', 'router')
+        ).select_related('nap', 'router')
         
         results = []
         for installation in installations:

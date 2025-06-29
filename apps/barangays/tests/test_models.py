@@ -1,19 +1,21 @@
 from django.test import TestCase
+from apps.utils.test_base import TenantTestCase
 from django.contrib.auth import get_user_model
 from apps.barangays.models import Barangay
 
 User = get_user_model()
 
 
-class BarangayModelTest(TestCase):
+class BarangayModelTest(TenantTestCase):
     """Test the Barangay model"""
     
     def setUp(self):
+        super().setUp()
         self.barangay = Barangay.objects.create(
             name="Barangay Carmen",
             code="CARM",
             description="Central business district"
-        )
+        , tenant=self.tenant)
     
     def test_barangay_creation(self):
         """Test barangay is created with correct attributes"""
@@ -29,9 +31,9 @@ class BarangayModelTest(TestCase):
     def test_unique_name(self):
         """Test that barangay names must be unique"""
         with self.assertRaises(Exception):
-            Barangay.objects.create(name="Barangay Carmen")
+            Barangay.objects.create(name="Barangay Carmen", tenant=self.tenant)
     
     def test_unique_code(self):
         """Test that barangay codes must be unique"""
         with self.assertRaises(Exception):
-            Barangay.objects.create(name="Another Barangay", code="CARM")
+            Barangay.objects.create(name="Another Barangay", code="CARM", tenant=self.tenant)

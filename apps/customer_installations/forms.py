@@ -83,9 +83,10 @@ class CustomerInstallationForm(forms.ModelForm):
             # Filter customers by tenant
             if self.instance and self.instance.pk:
                 self.fields['customer'].queryset = Customer.objects.filter(
+                    models.Q(installation__isnull=True) | models.Q(installation=self.instance),
                     tenant=self.tenant,
-                    models.Q(installation__isnull=True) | models.Q(installation=self.instance)
-                ).filter(status='active')
+                    status='active'
+                )
             else:
                 self.fields['customer'].queryset = Customer.objects.filter(
                     tenant=self.tenant,

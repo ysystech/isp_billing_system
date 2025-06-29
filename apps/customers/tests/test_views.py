@@ -1,4 +1,5 @@
-from django.test import TestCase, Client
+from django.test import TestCase
+from apps.utils.test_base import TenantTestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
@@ -8,8 +9,9 @@ from apps.customers.models import Customer
 User = get_user_model()
 
 
-class CustomerViewTest(TestCase):
+class CustomerViewTest(TenantTestCase):
     def setUp(self):
+        super().setUp()
         self.client = Client()
         self.user = User.objects.create_user(
             username="testadmin",
@@ -17,7 +19,7 @@ class CustomerViewTest(TestCase):
             password="testpass123",
             is_superuser=True,
             is_staff=True
-        )
+        , tenant=self.tenant)
         self.client.login(username="testadmin", password="testpass123")
         
         self.customer = Customer.objects.create(
@@ -27,7 +29,7 @@ class CustomerViewTest(TestCase):
             phone_primary="+639123456789",
             street_address="123 Test St",
             barangay="Test Barangay"
-        )
+        , tenant=self.tenant)
 
     def test_customer_list_view(self):
         url = reverse("customers:customer_list")

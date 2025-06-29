@@ -1,4 +1,5 @@
 from django.test import TestCase
+from apps.utils.test_base import TenantTestCase
 from django.utils import timezone
 from decimal import Decimal
 from datetime import timedelta
@@ -11,21 +12,22 @@ from apps.customer_installations.models import CustomerInstallation
 from .models import CustomerSubscription
 
 
-class CustomerSubscriptionModelTest(TestCase):
+class CustomerSubscriptionModelTest(TenantTestCase):
     def setUp(self):
+        super().setUp()
         # Create test user
         self.user = CustomUser.objects.create_user(
             email='test@example.com',
             password='testpass123',
             first_name='Test',
             last_name='User'
-        )
+        , tenant=self.tenant)
         
         # Create test barangay
         self.barangay = Barangay.objects.create(
             name='Test Barangay',
             is_active=True
-        )
+        , tenant=self.tenant)
         
         # Create test customer
         self.customer = Customer.objects.create(
@@ -35,7 +37,7 @@ class CustomerSubscriptionModelTest(TestCase):
             phone_primary='09123456789',
             street_address='123 Test St',
             barangay=self.barangay
-        )
+        , tenant=self.tenant)
         
         # Create test installation
         self.installation = CustomerInstallation.objects.create(
@@ -43,7 +45,7 @@ class CustomerSubscriptionModelTest(TestCase):
             installation_date=timezone.now().date(),
             installation_technician=self.user,
             status='ACTIVE'
-        )
+        , tenant=self.tenant)
         
         # Create test plan
         self.plan = SubscriptionPlan.objects.create(
@@ -52,7 +54,7 @@ class CustomerSubscriptionModelTest(TestCase):
             speed=10,
             price=Decimal('1000.00'),
             day_count=30
-        )
+        , tenant=self.tenant)
     
     def test_one_month_subscription_calculation(self):
         """Test one month subscription calculation."""

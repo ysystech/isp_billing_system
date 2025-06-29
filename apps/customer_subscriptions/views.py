@@ -141,7 +141,7 @@ def subscription_detail(request, pk):
 @permission_required('customer_subscriptions.cancel_subscription', raise_exception=True)
 def subscription_cancel(request, pk):
     """Cancel a subscription."""
-    subscription = get_object_or_404(CustomerSubscription.objects.filter(tenant=request.tenant), pk=pk
+    subscription = get_object_or_404(CustomerSubscription.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == 'POST':
         subscription.status = 'CANCELLED'
@@ -247,18 +247,20 @@ def api_get_plan_price(request):
 def active_subscriptions(request):
     """View all active subscriptions per customer."""
     # Get all active installations with current active subscriptions
-    active_installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
+    active_installations = CustomerInstallation.objects.filter(
+        tenant=request.tenant, 
         status='ACTIVE'
-    .select_related(
+    ).select_related(
         'customer',
         'installation_technician',
         'nap__splitter__lcp'
     ).prefetch_related(
         Prefetch(
             'subscriptions',
-            queryset=CustomerSubscription.objects.filter(tenant=request.tenant, 
+            queryset=CustomerSubscription.objects.filter(
+                tenant=request.tenant, 
                 status='ACTIVE'
-            .select_related('subscription_plan').order_by('-end_date'),
+            ).select_related('subscription_plan').order_by('-end_date'),
             to_attr='active_subscriptions'
         )
     )
@@ -307,9 +309,10 @@ def active_subscriptions(request):
 def customer_payment_history(request, customer_id):
     """View all payment history for a specific customer."""
     # Get all installations for this customer
-    installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
+    installations = CustomerInstallation.objects.filter(
+        tenant=request.tenant, 
         customer_id=customer_id
-    .prefetch_related(
+    ).prefetch_related(
         Prefetch(
             'subscriptions',
             queryset=CustomerSubscription.objects.select_related(
@@ -365,10 +368,10 @@ def generate_receipt(request, subscription_id):
     # Generate receipt number (format: AR-YYYY-MMDD-XXXX)
     receipt_date = subscription.created_at
     receipt_count = CustomerSubscription.objects.filter(tenant=request.tenant, 
-        created_at__date=receipt_date.date(,
+        created_at__date=receipt_date.date(),
         created_at__lt=receipt_date
     ).count() + 1
-    receipt_number = f"AR-{receipt_date.strftime('%Y-%m%d')}-{receipt_count:04d}"
+    receipt_number = f"AR-{receipt_date.strftime('%Y-%m-%d')}-{receipt_count:04d}"
     
     context = {
         'subscription': subscription,

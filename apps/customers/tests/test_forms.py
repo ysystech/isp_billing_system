@@ -1,10 +1,11 @@
 from django.test import TestCase
+from apps.utils.test_base import TenantTestCase
 
 from apps.customers.forms import CustomerForm, CustomerSearchForm
 from apps.customers.models import Customer
 
 
-class CustomerFormTest(TestCase):
+class CustomerFormTest(TenantTestCase):
     def test_customer_form_valid_data(self):
         form_data = {
             "first_name": "John",
@@ -34,7 +35,7 @@ class CustomerFormTest(TestCase):
             phone_primary="+639123456789",
             street_address="123 Test St",
             barangay="Test Barangay"
-        )
+        , tenant=self.tenant)
         
         # Try to create another with same email
         form_data = {

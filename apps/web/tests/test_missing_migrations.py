@@ -2,9 +2,10 @@ from io import StringIO
 
 from django.core.management import call_command
 from django.test import TestCase
+from apps.utils.test_base import TenantTestCase
 
 
-class PendingMigrationsTests(TestCase):
+class PendingMigrationsTests(TenantTestCase):
     # This tests that there are no pending database migrations that haven't been added.
     # for more on the approach and motivation, see https://adamj.eu/tech/2024/06/23/django-test-pending-migrations/
     def test_no_pending_migrations(self):

@@ -88,7 +88,7 @@ def lcp_create(request):
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def lcp_edit(request, pk):
-    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=pk
+    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == 'POST':
         form = LCPForm(request.POST, instance=lcp)
@@ -114,7 +114,7 @@ def lcp_edit(request, pk):
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
 def lcp_delete(request, pk):
-    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=pk
+    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == 'POST':
         code = lcp.code
@@ -133,7 +133,7 @@ def lcp_delete(request, pk):
 @login_required
 @permission_required('lcp.add_lcp', raise_exception=True)
 def splitter_create(request, lcp_pk):
-    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=lcp_pk
+    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=lcp_pk)
     
     if request.method == 'POST':
         form = SplitterForm(request.POST)
@@ -282,7 +282,7 @@ from django.views.decorators.http import require_http_methods
 @require_http_methods(["GET"])
 def api_get_lcps(request):
     """Get all active LCPs for dropdown selection."""
-    lcps = LCP.objects.filter(tenant=request.tenant, is_active=True.values('id', 'name', 'code').order_by('code')
+    lcps = LCP.objects.filter(tenant=request.tenant, is_active=True).values('id', 'name', 'code').order_by('code')
     return JsonResponse(list(lcps), safe=False)
 
 
@@ -291,7 +291,7 @@ def api_get_lcps(request):
 @require_http_methods(["GET"])
 def api_get_splitters(request, lcp_id):
     """Get all splitters for a specific LCP."""
-    splitters = Splitter.objects.filter(tenant=request.tenant, lcp_id=lcp_id.annotate(
+    splitters = Splitter.objects.filter(tenant=request.tenant, lcp_id=lcp_id).annotate(
         nap_count=Count('naps')
     )
     
@@ -317,7 +317,7 @@ def api_get_splitters(request, lcp_id):
 @require_http_methods(["GET"])
 def api_get_naps(request, splitter_id):
     """Get all NAPs for a specific splitter."""
-    naps = NAP.objects.filter(tenant=request.tenant, splitter_id=splitter_id, is_active=True
+    naps = NAP.objects.filter(tenant=request.tenant, splitter_id=splitter_id, is_active=True)
     
     # Build the response with calculated properties
     nap_list = []

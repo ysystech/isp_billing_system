@@ -1,4 +1,5 @@
 from django.test import TestCase
+from apps.utils.test_base import TenantTestCase
 from django.urls import reverse
 from django.utils import timezone
 from apps.users.models import CustomUser
@@ -10,8 +11,9 @@ from apps.routers.models import Router
 from .models import Ticket, TicketComment
 
 
-class TicketModelTest(TestCase):
+class TicketModelTest(TenantTestCase):
     def setUp(self):
+        super().setUp()
         # Create test user
         self.user = CustomUser.objects.create_user(
             email='staff@test.com',
@@ -19,17 +21,17 @@ class TicketModelTest(TestCase):
             first_name='Staff',
             last_name='User',
             is_staff=True
-        )
+        , tenant=self.tenant)
         
         # Create test customer
-        self.barangay = Barangay.objects.create(name='Test Barangay')
+        self.barangay = Barangay.objects.create(name='Test Barangay', tenant=self.tenant)
         self.customer = Customer.objects.create(
             first_name='John',
             last_name='Doe',
             email='john@test.com',
             phone_primary='09123456789',
             barangay=self.barangay
-        )
+        , tenant=self.tenant)
         
         # Create test installation
         self.lcp = LCP.objects.create(
@@ -37,12 +39,12 @@ class TicketModelTest(TestCase):
             code='LCP001',
             location='Test Location',
             barangay=self.barangay
-        )
+        , tenant=self.tenant)
         self.splitter = Splitter.objects.create(
             lcp=self.lcp,
             code='SPL001',
             type='1:8'
-        )
+        , tenant=self.tenant)
         self.nap = NAP.objects.create(
             splitter=self.splitter,
             splitter_port=1,
@@ -50,18 +52,18 @@ class TicketModelTest(TestCase):
             name='Test NAP',
             location='Test NAP Location',
             port_capacity=8
-        )
+        , tenant=self.tenant)
         self.router = Router.objects.create(
             serial_number='RTR001',
             model='Test Router'
-        )
+        , tenant=self.tenant)
         self.installation = CustomerInstallation.objects.create(
             customer=self.customer,
             router=self.router,
             nap=self.nap,
             nap_port=1,
             installation_date=timezone.now().date()
-        )
+        , tenant=self.tenant)
     
     def test_ticket_creation(self):
         ticket = Ticket.objects.create(
@@ -73,7 +75,7 @@ class TicketModelTest(TestCase):
             priority='high',
             source='phone',
             reported_by=self.user
-        )
+        , tenant=self.tenant)
         
         self.assertTrue(ticket.ticket_number.startswith('TKT-'))
         self.assertEqual(ticket.status, 'pending')
@@ -87,14 +89,14 @@ class TicketModelTest(TestCase):
             title='Test 1',
             description='Test',
             reported_by=self.user
-        )
+        , tenant=self.tenant)
         ticket2 = Ticket.objects.create(
             customer=self.customer,
             customer_installation=self.installation,
             title='Test 2',
             description='Test',
             reported_by=self.user
-        )
+        , tenant=self.tenant)
         
         year = timezone.now().year
         self.assertEqual(ticket1.ticket_number, f'TKT-{year}-0001')
@@ -107,7 +109,7 @@ class TicketModelTest(TestCase):
             title='Test Ticket',
             description='Test',
             reported_by=self.user
-        )
+        , tenant=self.tenant)
         
         # Resolve ticket
         ticket.status = 'resolved'
@@ -118,25 +120,26 @@ class TicketModelTest(TestCase):
         self.assertEqual(ticket.status, 'resolved')
 
 
-class TicketViewTest(TestCase):
+class TicketViewTest(TenantTestCase):
     def setUp(self):
+        super().setUp()
         # Create test users
         self.staff_user = CustomUser.objects.create_user(
             email='staff@test.com',
             password='testpass123',
             is_staff=True
-        )
+        , tenant=self.tenant)
         self.client.login(email='staff@test.com', password='testpass123')
         
         # Set up test data (same as model test)
-        self.barangay = Barangay.objects.create(name='Test Barangay')
+        self.barangay = Barangay.objects.create(name='Test Barangay', tenant=self.tenant)
         self.customer = Customer.objects.create(
             first_name='John',
             last_name='Doe',
             email='john@test.com',
             phone_primary='09123456789',
             barangay=self.barangay
-        )
+        , tenant=self.tenant)
         
         # Create installation
         self.lcp = LCP.objects.create(
@@ -144,12 +147,12 @@ class TicketViewTest(TestCase):
             code='LCP001',
             location='Test Location',
             barangay=self.barangay
-        )
+        , tenant=self.tenant)
         self.splitter = Splitter.objects.create(
             lcp=self.lcp,
             code='SPL001',
             type='1:8'
-        )
+        , tenant=self.tenant)
         self.nap = NAP.objects.create(
             splitter=self.splitter,
             splitter_port=1,
@@ -157,18 +160,18 @@ class TicketViewTest(TestCase):
             name='Test NAP',
             location='Test NAP Location',
             port_capacity=8
-        )
+        , tenant=self.tenant)
         self.router = Router.objects.create(
             serial_number='RTR001',
             model='Test Router'
-        )
+        , tenant=self.tenant)
         self.installation = CustomerInstallation.objects.create(
             customer=self.customer,
             router=self.router,
             nap=self.nap,
             nap_port=1,
             installation_date=timezone.now().date()
-        )
+        , tenant=self.tenant)
     
     def test_ticket_list_view(self):
         response = self.client.get(reverse('tickets:ticket_list'))

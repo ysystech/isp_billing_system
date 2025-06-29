@@ -41,11 +41,12 @@ def network_map_data(request):
     
     # Get LCPs with coordinates
     if show_lcps:
-        lcps = LCP.objects.filter(tenant=request.tenant, 
+        lcps = LCP.objects.filter(
+            tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             is_active=True
-        .annotate(
+        ).annotate(
             splitter_count=Count('splitters'),
             nap_count=Count('splitters__naps', distinct=True)
         )
@@ -66,11 +67,12 @@ def network_map_data(request):
     
     # Get Splitters with coordinates
     if show_splitters:
-        splitters = Splitter.objects.filter(tenant=request.tenant, 
+        splitters = Splitter.objects.filter(
+            tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             is_active=True
-        .select_related('lcp').annotate(
+        ).select_related('lcp').annotate(
             nap_count=Count('naps')
         )
         
@@ -91,11 +93,12 @@ def network_map_data(request):
     
     # Get NAPs with coordinates  
     if show_naps:
-        naps = NAP.objects.filter(tenant=request.tenant, 
+        naps = NAP.objects.filter(
+            tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             is_active=True
-        .select_related('splitter__lcp')
+        ).select_related('splitter__lcp')
         
         for nap in naps:
             data['naps'].append({
@@ -114,11 +117,12 @@ def network_map_data(request):
     
     # Get Customers with coordinates
     if show_customers:
-        customers = Customer.objects.filter(tenant=request.tenant, 
+        customers = Customer.objects.filter(
+            tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             status='active'
-        .select_related('barangay')
+        ).select_related('barangay')
         
         for customer in customers:
             data['customers'].append({
@@ -130,15 +134,14 @@ def network_map_data(request):
                 'barangay': customer.barangay.name,
             })
     
-    return JsonResponse(data)
-    
     # Get Installations with coordinates
     if show_installations:
-        installations = CustomerInstallation.objects.filter(tenant=request.tenant, 
+        installations = CustomerInstallation.objects.filter(
+            tenant=request.tenant, 
             latitude__isnull=False,
             longitude__isnull=False,
             status='ACTIVE'
-        .select_related('customer__barangay', 'router')
+        ).select_related('customer__barangay', 'router')
         
         for installation in installations:
             data['installations'].append({

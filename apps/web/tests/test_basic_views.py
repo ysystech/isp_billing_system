@@ -1,8 +1,9 @@
 from django.test import TestCase
+from apps.utils.test_base import TenantTestCase
 from django.urls import reverse
 
 
-class TestBasicViews(TestCase):
+class TestBasicViews(TenantTestCase):
     def test_landing_page(self):
         self._assert_200(reverse("web:home"))
 

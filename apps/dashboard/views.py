@@ -41,17 +41,17 @@ def dashboard(request):
     # Get customer statistics
     customer_stats = {
         "total": Customer.objects.count(),
-        "active": Customer.objects.filter(tenant=request.tenant, status=Customer.ACTIVE.count(),
-        "inactive": Customer.objects.filter(tenant=request.tenant, status=Customer.INACTIVE.count(),
-        "suspended": Customer.objects.filter(tenant=request.tenant, status=Customer.SUSPENDED.count(),
+        "active": Customer.objects.filter(tenant=request.tenant, status=Customer.ACTIVE).count(),
+        "inactive": Customer.objects.filter(tenant=request.tenant, status=Customer.INACTIVE).count(),
+        "suspended": Customer.objects.filter(tenant=request.tenant, status=Customer.SUSPENDED).count(),
     }
     
     # Get barangay statistics
     barangay_stats = {
         "total": Barangay.objects.count(),
-        "active": Barangay.objects.filter(tenant=request.tenant, is_active=True.count(),
-        "with_customers": Barangay.objects.filter(tenant=request.tenant, customers__isnull=False.distinct().count(),
-    }
+        "active": Barangay.objects.filter(tenant=request.tenant, is_active=True).count(),
+        "with_customers": Barangay.objects.filter(tenant=request.tenant, customers__isnull=False).distinct().count(),
+    }))
     
     # Get router statistics
     router_stats = {
@@ -61,9 +61,9 @@ def dashboard(request):
     # Get subscription plan statistics
     subscription_plan_stats = {
         "total": SubscriptionPlan.objects.count(),
-        "active": SubscriptionPlan.objects.filter(tenant=request.tenant, is_active=True.count(),
-        "inactive": SubscriptionPlan.objects.filter(tenant=request.tenant, is_active=False.count(),
-    }
+        "active": SubscriptionPlan.objects.filter(tenant=request.tenant, is_active=True).count(),
+        "inactive": SubscriptionPlan.objects.filter(tenant=request.tenant, is_active=False).count(),
+    }))
     
     # Get user statistics (excluding superusers)
     user_stats = {
@@ -75,8 +75,8 @@ def dashboard(request):
     # Get installation statistics
     installation_stats = {
         "total_installations": CustomerInstallation.objects.count(),
-        "active_installations": CustomerInstallation.objects.filter(tenant=request.tenant, status='ACTIVE'.count(),
-    }
+        "active_installations": CustomerInstallation.objects.filter(tenant=request.tenant, status='ACTIVE').count(),
+    })
     
     return TemplateResponse(
         request,

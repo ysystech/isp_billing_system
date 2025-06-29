@@ -58,7 +58,7 @@ def role_create(request):
 @permission_required('roles.view_role', raise_exception=True)
 def role_detail(request, pk):
     """View role details."""
-    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk
+    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk)
     
     # Check if user can access this role
     if not request.user.is_superuser and not can_manage_role(request.user, role):
@@ -82,7 +82,7 @@ def role_detail(request, pk):
 @permission_required('roles.change_role', raise_exception=True)
 def role_edit(request, pk):
     """Edit role basic information."""
-    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk
+    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk)
     
     # Check if user can access this role
     if not request.user.is_superuser and not can_manage_role(request.user, role):
@@ -112,7 +112,7 @@ def role_edit(request, pk):
 @permission_required('roles.delete_role', raise_exception=True)
 def role_delete(request, pk):
     """Delete a role."""
-    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk
+    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk)
     
     # Check if user can access this role
     if not request.user.is_superuser and not can_manage_role(request.user, role):
@@ -142,7 +142,7 @@ def role_delete(request, pk):
 @permission_required('roles.change_role', raise_exception=True)
 def role_permissions(request, pk):
     """Manage role permissions."""
-    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk
+    role = get_object_or_404(Role.objects.filter(tenant=request.tenant), pk=pk)
     
     # Check if user can access this role
     if not request.user.is_superuser and not can_manage_role(request.user, role):

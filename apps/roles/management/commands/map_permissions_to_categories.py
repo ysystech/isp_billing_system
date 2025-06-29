@@ -258,7 +258,7 @@ class Command(BaseCommand):
                     if permissions_qs.count() > 1:
                         # If multiple permissions exist, prefer the one with the matching model name
                         permission = permissions_qs.filter(
-                            content_type__model=app_label.rstrip('s')  # Simple pluralization handling
+                            content_type__model=app_label).rstrip('s')  # Simple pluralization handling
                         ).first() or permissions_qs.first()
                     else:
                         permission = permissions_qs.first()

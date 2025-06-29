@@ -1,4 +1,5 @@
 from django.test import TestCase
+from apps.utils.test_base import TenantTestCase
 from django.contrib.auth import get_user_model
 from apps.routers.models import Router
 from apps.customers.models import Customer
@@ -7,15 +8,16 @@ from apps.barangays.models import Barangay
 User = get_user_model()
 
 
-class RouterModelTest(TestCase):
+class RouterModelTest(TenantTestCase):
     """Test the Router model"""
     
     def setUp(self):
+        super().setUp()
         self.router = Router.objects.create(
             brand="TP-Link",
             model="Archer C6",
             serial_number="TL123456789"
-        )
+        , tenant=self.tenant)
     
     def test_router_creation(self):
         """Test router is created with correct attributes"""
@@ -32,7 +34,7 @@ class RouterModelTest(TestCase):
         router = Router.objects.create(
             brand="Mikrotik",
             serial_number="MT987654321"
-        )
+        , tenant=self.tenant)
         self.assertEqual(str(router), "Mikrotik - MT987654321")
     
     def test_unique_serial_number(self):
@@ -42,13 +44,13 @@ class RouterModelTest(TestCase):
                 brand="Mikrotik",
                 model="RB750",
                 serial_number="TL123456789"  # Same serial
-            )
+            , tenant=self.tenant)
     
     def test_optional_fields(self):
         """Test that model is optional"""
         router = Router.objects.create(
             brand="Ubiquiti",
             serial_number="UB123456789"
-        )
+        , tenant=self.tenant)
         self.assertEqual(router.model, "")
         self.assertEqual(router.notes, "")

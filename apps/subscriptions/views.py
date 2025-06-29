@@ -80,7 +80,7 @@ def subscription_plan_create(request):
 @permission_required('subscriptions.change_subscriptionplan', raise_exception=True)
 def subscription_plan_update(request, pk):
     """Update an existing subscription plan."""
-    plan = get_object_or_404(SubscriptionPlan.objects.filter(tenant=request.tenant), pk=pk
+    plan = get_object_or_404(SubscriptionPlan.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == 'POST':
         form = SubscriptionPlanForm(request.POST, instance=plan)
@@ -115,7 +115,7 @@ def subscription_plan_update(request, pk):
 @require_http_methods(["DELETE"])
 def subscription_plan_delete(request, pk):
     """Delete a subscription plan."""
-    plan = get_object_or_404(SubscriptionPlan.objects.filter(tenant=request.tenant), pk=pk
+    plan = get_object_or_404(SubscriptionPlan.objects.filter(tenant=request.tenant), pk=pk)
     
     # Check if plan has any active subscriptions (will be implemented later)
     # For now, just delete the plan
@@ -138,7 +138,7 @@ def subscription_plan_delete(request, pk):
 @permission_required('subscriptions.view_subscriptionplan_list', raise_exception=True)
 def subscription_plan_detail(request, pk):
     """View details of a subscription plan."""
-    plan = get_object_or_404(SubscriptionPlan.objects.filter(tenant=request.tenant), pk=pk
+    plan = get_object_or_404(SubscriptionPlan.objects.filter(tenant=request.tenant), pk=pk)
     
     return render(request, 'subscriptions/subscription_plan_detail.html', {
         'plan': plan

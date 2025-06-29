@@ -1,4 +1,5 @@
-from django.test import TestCase, Client
+from django.test import TestCase
+from apps.utils.test_base import TenantTestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from apps.tenants.models import Tenant
@@ -6,10 +7,11 @@ from apps.tenants.models import Tenant
 User = get_user_model()
 
 
-class TenantPhase1Tests(TestCase):
+class TenantPhase1Tests(TenantTestCase):
     """Test Phase 1: Core Infrastructure"""
     
     def setUp(self):
+        super().setUp()
         self.client = Client()
         
     def test_tenant_model_exists(self):
@@ -26,7 +28,7 @@ class TenantPhase1Tests(TestCase):
             username="testuser",
             email="test@example.com",
             password="testpass123"
-        )
+        , tenant=self.tenant)
         self.assertTrue(hasattr(user, 'tenant'))
         self.assertTrue(hasattr(user, 'is_tenant_owner'))
         self.assertIsNone(user.tenant)

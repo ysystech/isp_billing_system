@@ -48,7 +48,7 @@ def router_list(request):
 @permission_required('routers.view_router_list', raise_exception=True)
 def router_detail(request, pk):
     """View router details"""
-    router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk
+    router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk)
     
     context = {
         "router": router,
@@ -92,7 +92,7 @@ def router_create(request):
 @permission_required('routers.change_router', raise_exception=True)
 def router_update(request, pk):
     """Update a router"""
-    router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk
+    router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == "POST":
         form = RouterForm(request.POST, instance=router)
@@ -129,7 +129,7 @@ def router_update(request, pk):
 @require_http_methods(["DELETE"])
 def router_delete(request, pk):
     """Delete a router"""
-    router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk
+    router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk)
     
     router_str = str(router)
     router.delete()
