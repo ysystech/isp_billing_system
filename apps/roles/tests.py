@@ -11,7 +11,7 @@ from apps.utils.test_base import TenantTestCase
 User = get_user_model()
 
 
-class PermissionMappingTest(TestCase):
+class PermissionMappingTest(TenantTestCase):
     """Test that all permissions are properly mapped to categories."""
     
     def setUp(self):
@@ -194,7 +194,7 @@ class RolePermissionTest(TenantTestCase):
         self.assertNotEqual(duplicate_role.tenant, self.role.tenant)
 
 
-class PermissionCategoryTest(TestCase):
+class PermissionCategoryTest(TenantTestCase):
     """Test permission categories."""
     
     def setUp(self):

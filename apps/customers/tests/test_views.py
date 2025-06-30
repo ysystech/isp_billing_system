@@ -1,7 +1,8 @@
-from django.test import TestCase
-from apps.utils.test_base import TenantTestCase, Client
+from django.test import TestCase, Client
+from apps.utils.test_base import TenantTestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from apps.barangays.models import Barangay
 
 from apps.customers.models import Customer
 
@@ -13,14 +14,15 @@ class CustomerViewTest(TenantTestCase):
     def setUp(self):
         super().setUp()
         self.client = Client()
-        self.user = User.objects.create_user(
-            username="testadmin",
-            email="admin@test.com",
-            password="testpass123",
-            is_superuser=True,
-            is_staff=True
-        , tenant=self.tenant)
-        self.client.login(username="testadmin", password="testpass123")
+        
+        # Create a barangay for testing
+        self.barangay = Barangay.objects.create(
+            name="Test Barangay",
+            tenant=self.tenant
+        )
+        
+        # Use the tenant owner from TenantTestCase
+        self.client.login(username="testowner", password="testpass123")
         
         self.customer = Customer.objects.create(
             first_name="Test",
@@ -28,8 +30,9 @@ class CustomerViewTest(TenantTestCase):
             email="test@customer.com",
             phone_primary="+639123456789",
             street_address="123 Test St",
-            barangay="Test Barangay"
-        , tenant=self.tenant)
+            barangay=self.barangay,
+            tenant=self.tenant
+        )
 
     def test_customer_list_view(self):
         url = reverse("customers:customer_list")
@@ -57,9 +60,9 @@ class CustomerViewTest(TenantTestCase):
             "email": "new@customer.com",
             "phone_primary": "+639987654321",
             "street_address": "456 New St",
-            "barangay": "New Barangay",
+            "barangay": self.barangay.pk,
             "status": "active",
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(Customer.objects.filter(email="new@customer.com").exists())
+        self.assertTrue(Customer.objects.filter(email="new@customer.com", tenant=self.tenant).exists())

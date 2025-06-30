@@ -1,6 +1,7 @@
 from django.test import TestCase
 from apps.utils.test_base import TenantTestCase
 from django.contrib.auth import get_user_model
+from apps.barangays.models import Barangay
 
 from apps.customers.models import Customer
 
@@ -11,13 +12,18 @@ User = get_user_model()
 class CustomerModelTest(TenantTestCase):
     def setUp(self):
         super().setUp()
+        # Create a barangay for testing
+        self.barangay = Barangay.objects.create(
+            name="Barangay 1",
+            tenant=self.tenant
+        )
         self.customer_data = {
             "first_name": "Juan",
             "last_name": "Dela Cruz",
             "email": "juan@example.com",
             "phone_primary": "+639123456789",
             "street_address": "123 Main St",
-            "barangay": "Barangay 1",
+            "barangay": self.barangay,
         }
 
     def test_create_customer(self):
@@ -62,8 +68,9 @@ class CustomerModelTest(TenantTestCase):
         user = User.objects.create_user(
             username="juan123",
             email="juan@example.com",
-            password="testpass123"
-        , tenant=self.tenant)
+            password="testpass123",
+            tenant=self.tenant
+        )
         
         customer_data = self.customer_data.copy()
         customer_data["user"] = user

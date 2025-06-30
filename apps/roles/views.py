@@ -18,11 +18,14 @@ from .helpers.permissions import get_accessible_roles, can_manage_role
 
 
 @login_required
+@tenant_required
 @permission_required('roles.view_role', raise_exception=True)
 def role_list(request):
     """List all roles with user counts."""
-    # Only show roles the user has permission to manage
-    roles = get_accessible_roles(request.user).annotate(
+    # Only show roles from the current tenant
+    roles = get_accessible_roles(request.user).filter(
+        tenant=request.tenant
+    ).annotate(
         user_count_anno=Count('group__user', distinct=True)
     ).order_by('name')
     

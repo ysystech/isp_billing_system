@@ -1,11 +1,20 @@
 from django.test import TestCase
 from apps.utils.test_base import TenantTestCase
+from apps.barangays.models import Barangay
 
 from apps.customers.forms import CustomerForm, CustomerSearchForm
 from apps.customers.models import Customer
 
 
 class CustomerFormTest(TenantTestCase):
+    def setUp(self):
+        super().setUp()
+        # Create a barangay for testing
+        self.barangay = Barangay.objects.create(
+            name="Test Barangay",
+            tenant=self.tenant
+        )
+    
     def test_customer_form_valid_data(self):
         form_data = {
             "first_name": "John",
@@ -13,14 +22,14 @@ class CustomerFormTest(TenantTestCase):
             "email": "john@example.com",
             "phone_primary": "+639123456789",
             "street_address": "123 Main St",
-            "barangay": "Barangay 1",
+            "barangay": self.barangay.pk,
             "status": "active",
         }
-        form = CustomerForm(data=form_data)
+        form = CustomerForm(data=form_data, tenant=self.tenant)
         self.assertTrue(form.is_valid())
 
     def test_customer_form_missing_required_fields(self):
-        form = CustomerForm(data={})
+        form = CustomerForm(data={}, tenant=self.tenant)
         self.assertFalse(form.is_valid())
         self.assertIn("first_name", form.errors)
         self.assertIn("last_name", form.errors)
@@ -34,8 +43,9 @@ class CustomerFormTest(TenantTestCase):
             email="existing@example.com",
             phone_primary="+639123456789",
             street_address="123 Test St",
-            barangay="Test Barangay"
-        , tenant=self.tenant)
+            barangay=self.barangay,
+            tenant=self.tenant
+        )
         
         # Try to create another with same email
         form_data = {
@@ -44,10 +54,10 @@ class CustomerFormTest(TenantTestCase):
             "email": "existing@example.com",
             "phone_primary": "+639987654321",
             "street_address": "456 New St",
-            "barangay": "New Barangay",
+            "barangay": self.barangay.pk,
             "status": "active",
         }
-        form = CustomerForm(data=form_data)
+        form = CustomerForm(data=form_data, tenant=self.tenant)
         self.assertFalse(form.is_valid())
         self.assertIn("email", form.errors)
 

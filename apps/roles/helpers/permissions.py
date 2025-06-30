@@ -15,15 +15,18 @@ def get_accessible_roles(user):
     Returns:
         QuerySet of Role objects that the user can access
     """
-    if user.is_superuser:
-        return Role.objects.all()  # Superusers can see all roles
+    # Start with roles from the user's tenant only
+    base_query = Role.objects.filter(tenant=user.tenant)
+    
+    if user.is_superuser or getattr(user, 'is_tenant_owner', False):
+        return base_query  # Superusers and tenant owners can see all roles in their tenant
     
     # Get all the user's permissions as a set
     user_permissions = set(user.get_all_permissions())
     
     # Filter roles to include only those where all permissions are a subset of the user's permissions
     accessible_roles = []
-    for role in Role.objects.filter(is_active=True):
+    for role in base_query.filter(is_active=True):
         # Get all permissions in this role
         role_permissions = {f"{perm.content_type.app_label}.{perm.codename}" 
                            for perm in role.permissions}
@@ -33,7 +36,7 @@ def get_accessible_roles(user):
             accessible_roles.append(role.id)
     
     # Return queryset of accessible roles
-    return Role.objects.filter(id__in=accessible_roles)
+    return base_query.filter(id__in=accessible_roles)
 
 
 def can_manage_role(user, role):

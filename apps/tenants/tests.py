@@ -1,5 +1,5 @@
-from django.test import TestCase
-from apps.utils.test_base import TenantTestCase, Client
+from django.test import TestCase, Client
+from apps.utils.test_base import TenantTestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from apps.tenants.models import Tenant
