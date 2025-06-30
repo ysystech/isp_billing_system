@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models import Q, Count
@@ -14,6 +14,7 @@ from apps.barangays.forms import BarangayForm
 
 @login_required
 @tenant_required
+@permission_required('barangays.view_barangay_list', raise_exception=True)
 def barangay_list(request):
     """List all barangays with search and pagination"""
     barangays = Barangay.objects.filter(tenant=request.tenant).annotate(
@@ -57,6 +58,7 @@ def barangay_list(request):
 
 @login_required
 @tenant_required
+@permission_required('barangays.view_barangay_list', raise_exception=True)
 def barangay_detail(request, pk):
     """View barangay details"""
     barangay = get_object_or_404(
@@ -81,6 +83,7 @@ def barangay_detail(request, pk):
 
 @login_required
 @tenant_required
+@permission_required('barangays.add_barangay', raise_exception=True)
 def barangay_create(request):
     """Create a new barangay"""
     if request.method == "POST":
@@ -118,6 +121,7 @@ def barangay_create(request):
 
 @login_required
 @tenant_required
+@permission_required('barangays.change_barangay', raise_exception=True)
 def barangay_update(request, pk):
     """Update a barangay"""
     barangay = get_object_or_404(Barangay.objects.filter(tenant=request.tenant), pk=pk)
@@ -159,6 +163,7 @@ def barangay_update(request, pk):
 
 @login_required
 @tenant_required
+@permission_required('barangays.delete_barangay', raise_exception=True)
 @require_http_methods(["DELETE"])
 def barangay_delete(request, pk):
     """Delete a barangay (soft delete by setting is_active=False)"""

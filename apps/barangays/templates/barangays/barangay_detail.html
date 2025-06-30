@@ -16,22 +16,26 @@
       <h1 class="text-3xl font-bold">{{ barangay.name }}</h1>
     </div>
     <div class="flex gap-2">
+      {% if perms.barangays.change_barangay %}
       <a href="{% url 'barangays:update' barangay.pk %}" 
          class="btn btn-primary">
         <i class="fas fa-edit mr-2"></i>Edit
       </a>
-      {% if barangay.total_customers == 0 %}
-      <button class="btn btn-error"
-              hx-delete="{% url 'barangays:delete' barangay.pk %}"
-              hx-confirm="Are you sure you want to delete this barangay?">
-        <i class="fas fa-trash mr-2"></i>Delete
-      </button>
-      {% else %}
-      <button class="btn btn-warning"
-              hx-delete="{% url 'barangays:delete' barangay.pk %}"
-              hx-confirm="This barangay has customers. It will be deactivated instead of deleted. Continue?">
-        <i class="fas fa-ban mr-2"></i>Deactivate
-      </button>
+      {% endif %}
+      {% if perms.barangays.delete_barangay %}
+        {% if barangay.total_customers == 0 %}
+        <button class="btn btn-error"
+                hx-delete="{% url 'barangays:delete' barangay.pk %}"
+                hx-confirm="Are you sure you want to delete this barangay?">
+          <i class="fas fa-trash mr-2"></i>Delete
+        </button>
+        {% else %}
+        <button class="btn btn-warning"
+                hx-delete="{% url 'barangays:delete' barangay.pk %}"
+                hx-confirm="This barangay has customers. It will be deactivated instead of deleted. Continue?">
+          <i class="fas fa-ban mr-2"></i>Deactivate
+        </button>
+        {% endif %}
       {% endif %}
     </div>
   </div>

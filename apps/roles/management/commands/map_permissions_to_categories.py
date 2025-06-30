@@ -112,7 +112,7 @@ class Command(BaseCommand):
                 ('dashboard', 'view_subscription_overview', 'Subscription Overview', 'View subscription overview widget'),
                 ('dashboard', 'view_financial_overview', 'Financial Overview', 'View financial overview widget'),
                 ('dashboard', 'view_technical_overview', 'Technical Overview', 'View technical overview widget'),
-            ],            'customers': [
+            ],'customers': [
                 # Customer-specific permissions - simplified to essential permissions only
                 ('customers', 'view_customer_list', 'View Customer List', 'Access customer listing page'),
                 ('customers', 'view_customer_detail', 'View Customer Details', 'View detailed customer information including coordinates and sensitive data'),

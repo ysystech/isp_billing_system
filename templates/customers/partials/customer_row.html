@@ -34,7 +34,7 @@
         </svg>
       </a>
       {% endif %}
-      {% if user|has_permission:"customers.change_customer" %}
+      {% if user|has_permission:"customers.change_customer_basic" %}
       <a href="{% url 'customers:customer_update' customer.pk %}" 
          class="btn btn-ghost btn-xs"
          title="Edit">

@@ -33,10 +33,12 @@
         <td>{{ barangay.created_at|date:"M d, Y" }}</td>
         <td>
           <div class="flex gap-2">
+            {% if perms.barangays.change_barangay %}
             <a href="{% url 'barangays:update' barangay.pk %}"
                class="btn btn-sm btn-ghost">
               <i class="fas fa-edit"></i>
             </a>
+            {% endif %}
           </div>
         </td>
       </tr>

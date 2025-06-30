@@ -112,7 +112,7 @@ def lcp_edit(request, pk):
 
 
 @login_required
-@permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
+@permission_required('lcp.delete_lcp', raise_exception=True)
 @tenant_required
 def lcp_delete(request, pk):
     lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=pk)

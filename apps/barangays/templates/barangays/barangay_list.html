@@ -7,10 +7,12 @@
 <div class="app-card">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold">Barangays</h1>
+    {% if perms.barangays.add_barangay %}
     <a href="{% url 'barangays:create' %}" 
        class="btn btn-primary">
       <i class="fas fa-plus mr-2"></i>Add New Barangay
     </a>
+    {% endif %}
   </div>
 
   <!-- Search and Filters -->

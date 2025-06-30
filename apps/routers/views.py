@@ -13,6 +13,7 @@ from apps.routers.forms import RouterForm
 
 
 @login_required
+@tenant_required
 @permission_required('routers.view_router_list', raise_exception=True)
 def router_list(request):
     """List all routers with search and pagination"""
@@ -46,6 +47,7 @@ def router_list(request):
 
 
 @login_required
+@tenant_required
 @permission_required('routers.view_router_list', raise_exception=True)
 def router_detail(request, pk):
     """View router details"""
@@ -142,6 +144,7 @@ def router_update(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('routers.delete_router', raise_exception=True)
 @require_http_methods(["DELETE"])
 def router_delete(request, pk):
@@ -158,6 +161,7 @@ def router_delete(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('routers.view_router_list', raise_exception=True)
 def router_quick_stats(request):
     """Get quick statistics for routers (for dashboard)"""

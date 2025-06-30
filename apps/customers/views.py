@@ -99,7 +99,7 @@ def customer_create(request):
 
 @login_required
 @tenant_required
-@permission_required('customers.update_customer', raise_exception=True)
+@permission_required('customers.change_customer_basic', raise_exception=True)
 def customer_update(request, pk):
     """Update an existing customer"""
     customer = get_object_or_404(Customer.objects.filter(tenant=request.tenant), pk=pk)
@@ -123,7 +123,7 @@ def customer_update(request, pk):
 
 @login_required
 @tenant_required
-@permission_required('customers.delete_customer', raise_exception=True)
+@permission_required('customers.remove_customer', raise_exception=True)
 def customer_delete(request, pk):
     """Delete a customer"""
     customer = get_object_or_404(Customer.objects.filter(tenant=request.tenant), pk=pk)

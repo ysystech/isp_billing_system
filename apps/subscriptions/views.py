@@ -11,6 +11,7 @@ from .forms import SubscriptionPlanForm, SubscriptionPlanSearchForm
 
 
 @login_required
+@tenant_required
 @permission_required('subscriptions.view_subscriptionplan_list', raise_exception=True)
 def subscription_plan_list(request):
     """List all subscription plans with search and filter functionality."""
@@ -46,6 +47,7 @@ def subscription_plan_list(request):
 
 
 @login_required
+@tenant_required
 @permission_required('subscriptions.add_subscriptionplan', raise_exception=True)
 def subscription_plan_create(request):
     """Create a new subscription plan."""
@@ -77,6 +79,7 @@ def subscription_plan_create(request):
 
 
 @login_required
+@tenant_required
 @permission_required('subscriptions.change_subscriptionplan', raise_exception=True)
 def subscription_plan_update(request, pk):
     """Update an existing subscription plan."""
@@ -111,6 +114,7 @@ def subscription_plan_update(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('subscriptions.delete_subscriptionplan', raise_exception=True)
 @require_http_methods(["DELETE"])
 def subscription_plan_delete(request, pk):
@@ -135,6 +139,7 @@ def subscription_plan_delete(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('subscriptions.view_subscriptionplan_list', raise_exception=True)
 def subscription_plan_detail(request, pk):
     """View details of a subscription plan."""
