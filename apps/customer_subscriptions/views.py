@@ -164,7 +164,11 @@ def api_get_latest_subscription(request):
         return JsonResponse({'error': 'No installation ID provided'}, status=400)
     
     try:
-        installation = CustomerInstallation.objects.get(pk=installation_id)
+        # Filter by tenant to ensure tenant isolation
+        installation = CustomerInstallation.objects.get(
+            pk=installation_id,
+            tenant=request.tenant
+        )
         latest_sub = CustomerSubscription.get_latest_subscription(installation)
         
         if latest_sub and latest_sub.end_date > timezone.now():
@@ -197,7 +201,11 @@ def api_calculate_preview(request):
         if not all([plan_id, subscription_type]):
             return JsonResponse({'error': 'Missing required fields'}, status=400)
         
-        plan = SubscriptionPlan.objects.get(pk=plan_id)
+        # Filter by tenant to ensure tenant isolation
+        plan = SubscriptionPlan.objects.get(
+            pk=plan_id,
+            tenant=request.tenant
+        )
         
         # Calculate preview
         preview = CustomerSubscription.calculate_preview(
@@ -232,7 +240,11 @@ def api_get_plan_price(request):
         return JsonResponse({'error': 'No plan ID provided'}, status=400)
     
     try:
-        plan = SubscriptionPlan.objects.get(pk=plan_id)
+        # Filter by tenant to ensure tenant isolation
+        plan = SubscriptionPlan.objects.get(
+            pk=plan_id,
+            tenant=request.tenant
+        )
         return JsonResponse({
             'price': float(plan.price),
             'name': plan.name,

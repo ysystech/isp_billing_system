@@ -40,7 +40,7 @@ def dashboard(request):
     
     # Get customer statistics
     customer_stats = {
-        "total": Customer.objects.count(),
+        "total": Customer.objects.filter(tenant=request.tenant).count(),
         "active": Customer.objects.filter(tenant=request.tenant, status=Customer.ACTIVE).count(),
         "inactive": Customer.objects.filter(tenant=request.tenant, status=Customer.INACTIVE).count(),
         "suspended": Customer.objects.filter(tenant=request.tenant, status=Customer.SUSPENDED).count(),
@@ -48,35 +48,35 @@ def dashboard(request):
     
     # Get barangay statistics
     barangay_stats = {
-        "total": Barangay.objects.count(),
+        "total": Barangay.objects.filter(tenant=request.tenant).count(),
         "active": Barangay.objects.filter(tenant=request.tenant, is_active=True).count(),
         "with_customers": Barangay.objects.filter(tenant=request.tenant, customers__isnull=False).distinct().count(),
-    }))
+    }
     
     # Get router statistics
     router_stats = {
-        "total": Router.objects.count(),
+        "total": Router.objects.filter(tenant=request.tenant).count(),
     }
     
     # Get subscription plan statistics
     subscription_plan_stats = {
-        "total": SubscriptionPlan.objects.count(),
+        "total": SubscriptionPlan.objects.filter(tenant=request.tenant).count(),
         "active": SubscriptionPlan.objects.filter(tenant=request.tenant, is_active=True).count(),
         "inactive": SubscriptionPlan.objects.filter(tenant=request.tenant, is_active=False).count(),
-    }))
+    }
     
     # Get user statistics (excluding superusers)
     user_stats = {
-        "total": CustomUser.objects.filter(is_superuser=False).count(),
-        "active": CustomUser.objects.filter(is_active=True, is_superuser=False).count(),
-        "inactive": CustomUser.objects.filter(is_active=False, is_superuser=False).count(),
+        "total": CustomUser.objects.filter(tenant=request.tenant, is_superuser=False).count(),
+        "active": CustomUser.objects.filter(tenant=request.tenant, is_active=True, is_superuser=False).count(),
+        "inactive": CustomUser.objects.filter(tenant=request.tenant, is_active=False, is_superuser=False).count(),
     }
     
     # Get installation statistics
     installation_stats = {
-        "total_installations": CustomerInstallation.objects.count(),
+        "total_installations": CustomerInstallation.objects.filter(tenant=request.tenant).count(),
         "active_installations": CustomerInstallation.objects.filter(tenant=request.tenant, status='ACTIVE').count(),
-    })
+    }
     
     return TemplateResponse(
         request,
@@ -103,5 +103,27 @@ class UserSignupStatsView(APIView):
 
     @extend_schema(request=None, responses=UserSignupStatsSerializer(many=True))
     def get(self, request):
-        serializer = UserSignupStatsSerializer(get_user_signups(), many=True)
+        # Get tenant from request
+        tenant = getattr(request, 'tenant', None)
+        if not tenant:
+            return Response({"error": "Tenant not found"}, status=400)
+        
+        # Get signup stats for this tenant
+        start = timezone.now().date() - timedelta(days=90)
+        end = timezone.now().date() + timedelta(days=1)
+        
+        # Filter users by tenant
+        data = (
+            CustomUser.objects.filter(
+                tenant=tenant,
+                date_joined__gte=start, 
+                date_joined__lte=end
+            )
+            .annotate(date=models.functions.TruncDate("date_joined"))
+            .values("date")
+            .annotate(count=models.Count("id"))
+            .order_by("date")
+        )
+        
+        serializer = UserSignupStatsSerializer(data, many=True)
         return Response(serializer.data)

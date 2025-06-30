@@ -340,7 +340,11 @@ def api_get_naps(request, splitter_id):
 @require_http_methods(["GET"])
 def api_get_nap_hierarchy(request, nap_id):
     """Get the full hierarchy for a specific NAP (for edit mode)."""
-    nap = get_object_or_404(NAP.objects.select_related('splitter__lcp'), id=nap_id)
+    nap = get_object_or_404(
+        NAP.objects.select_related('splitter__lcp'), 
+        id=nap_id,
+        tenant=request.tenant
+    )
     
     hierarchy = {
         'lcp_id': nap.splitter.lcp.id,

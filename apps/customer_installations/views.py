@@ -145,7 +145,11 @@ def installation_delete(request, pk):
 def get_nap_ports(request, nap_id):
     """API endpoint to get NAP port availability"""
     try:
-        nap = NAP.objects.get(id=nap_id)
+        # Filter by tenant to ensure tenant isolation
+        nap = NAP.objects.get(
+            id=nap_id,
+            tenant=request.tenant
+        )
         
         # Get all occupied ports
         occupied_ports = CustomerInstallation.objects.filter(
@@ -157,7 +161,11 @@ def get_nap_ports(request, nap_id):
         ports = []
         for port_num in range(1, nap.port_capacity + 1):
             if port_num in occupied_ports:
-                installation = CustomerInstallation.objects.get(nap=nap, nap_port=port_num)
+                installation = CustomerInstallation.objects.get(
+                    nap=nap, 
+                    nap_port=port_num,
+                    tenant=request.tenant
+                )
                 ports.append({
                     'number': port_num,
                     'available': False,
