@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from django.apps import apps
 from apps.audit_logs.models import AuditLogEntry
 from apps.audit_logs.middleware import get_current_request
+from apps.tenants.context import get_current_tenant
 
 
 # List of models to track
@@ -28,6 +29,23 @@ TRACKED_MODELS = [
 
 def create_audit_log(user, obj, action_flag, change_message=''):
     """Create an audit log entry with metadata"""
+    # Handle background tasks - get user from system user or tenant context
+    if not user:
+        # Try to get tenant from context (background tasks)
+        tenant = get_current_tenant()
+        if tenant:
+            # Get or create a system user for this tenant
+            from apps.users.models import CustomUser
+            user, _ = CustomUser.objects.get_or_create(
+                username=f"system_{tenant.id}",
+                defaults={
+                    'email': f"system@{tenant.name.lower().replace(' ', '')}.local",
+                    'tenant': tenant,
+                    'is_staff': False,
+                    'is_active': False,
+                }
+            )
+    
     if user and user.is_authenticated:
         # Skip audit logging if user doesn't have a tenant yet (during registration)
         if hasattr(user, 'tenant') and not user.tenant:
@@ -43,20 +61,39 @@ def create_audit_log(user, obj, action_flag, change_message=''):
             change_message=change_message
         )
         
-        # Get request metadata
+        # Get request metadata or use background task defaults
         request = get_current_request()
+        tenant = None
+        ip_address = None
+        user_agent = None
+        request_method = None
+        session_key = None
+        
         if request and hasattr(request, 'audit_metadata'):
-            # Skip creating audit metadata if no tenant is available
-            if hasattr(request, 'tenant') and request.tenant:
-                # Create extended audit log entry
-                AuditLogEntry.objects.create(
-                    log_entry=log_entry,
-                    ip_address=request.audit_metadata.get('ip_address'),
-                    user_agent=request.audit_metadata.get('user_agent'),
-                    request_method=request.audit_metadata.get('request_method'),
-                    session_key=request.audit_metadata.get('session_key') or None,
-                    tenant=request.tenant
-                )
+            # Request context available
+            if hasattr(request, 'tenant'):
+                tenant = request.tenant
+            ip_address = request.audit_metadata.get('ip_address')
+            user_agent = request.audit_metadata.get('user_agent')
+            request_method = request.audit_metadata.get('request_method')
+            session_key = request.audit_metadata.get('session_key')
+        else:
+            # Background task context
+            tenant = get_current_tenant()
+            ip_address = '127.0.0.1'  # Local for background tasks
+            user_agent = 'Celery Background Task'
+            request_method = 'TASK'
+            
+        if tenant:
+            # Create extended audit log entry
+            AuditLogEntry.objects.create(
+                log_entry=log_entry,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                request_method=request_method,
+                session_key=session_key,
+                tenant=tenant
+            )
 
 
 @receiver(post_save)

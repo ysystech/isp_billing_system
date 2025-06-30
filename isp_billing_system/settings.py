@@ -432,15 +432,20 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 from celery import schedules
 
 SCHEDULED_TASKS = {
-    # Update expired subscriptions every 30 minutes
-    "update-expired-subscriptions": {
-        "task": "apps.customer_subscriptions.tasks.update_expired_subscriptions",
+    # Update expired subscriptions every 30 minutes for all tenants
+    "update-expired-subscriptions-all-tenants": {
+        "task": "apps.customer_subscriptions.tasks.update_expired_subscriptions_all_tenants",
         "schedule": schedules.crontab(minute="*/30"),  # Every 30 minutes
     },
-    # Send expiration reminders daily at 9 AM
-    "send-expiration-reminders": {
-        "task": "apps.customer_subscriptions.tasks.send_expiration_reminders",
+    # Send expiration reminders daily at 9 AM for all tenants
+    "send-expiration-reminders-all-tenants": {
+        "task": "apps.customer_subscriptions.tasks.send_expiration_reminders_all_tenants",
         "schedule": schedules.crontab(minute=0, hour=9),  # Daily at 9 AM
+    },
+    # Cleanup inactive tenants weekly on Sunday at 2 AM
+    "cleanup-inactive-tenants": {
+        "task": "apps.tenants.tasks.cleanup_inactive_tenants",
+        "schedule": schedules.crontab(minute=0, hour=2, day_of_week=0),  # Sunday 2 AM
     },
 }
 
