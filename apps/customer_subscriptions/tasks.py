@@ -30,7 +30,8 @@ class UpdateExpiredSubscriptionsTask(TenantAwareTask):
             end_date__lt=now
         )
         
-        updated_count = 0        for subscription in expired_subscriptions:
+        updated_count = 0
+        for subscription in expired_subscriptions:
             subscription.status = 'EXPIRED'
             subscription.save()
             updated_count += 1
@@ -60,7 +61,8 @@ class SendExpirationRemindersTask(TenantAwareTask):
         from datetime import timedelta
         
         tenant = get_current_tenant()
-        if not tenant:            logger.error("No tenant context available for send_expiration_reminders")
+        if not tenant:
+            logger.error("No tenant context available for send_expiration_reminders")
             return "Error: No tenant context"
         
         now = timezone.now()

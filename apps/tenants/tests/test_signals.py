@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from apps.tenants.models import Tenant
+from apps.users.models import CustomUser
 from apps.utils.test_base import TenantTestCase
 
 User = get_user_model()
@@ -56,6 +57,12 @@ class TenantSignalTests(TenantTestCase):
             name="Temporary ISP",
             is_active=True
         )
+        
+        # Get the tenant ID before deletion
+        tenant_id = temp_tenant.id
+        
+        # Delete the system user first to avoid ProtectedError
+        CustomUser.objects.filter(tenant=temp_tenant).delete()
         
         with patch('apps.tenants.signals.logger') as mock_logger:
             # Delete the tenant
