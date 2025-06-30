@@ -28,15 +28,30 @@ def _string_to_date(date_str: str) -> datetime.date:
 
 
 @login_required
+@tenant_required
 @staff_member_required
 def dashboard(request):
     end_str = request.GET.get("end")
     end = _string_to_date(end_str) if end_str else timezone.now().date() + timedelta(days=1)
     start_str = request.GET.get("start")
     start = _string_to_date(start_str) if start_str else end - timedelta(days=90)
-    serializer = UserSignupStatsSerializer(get_user_signups(start, end), many=True)
+    
+    # Get user signups for this tenant
+    signup_data = (
+        CustomUser.objects.filter(
+            tenant=request.tenant,
+            date_joined__gte=start,
+            date_joined__lte=end
+        )
+        .annotate(date=models.functions.TruncDate("date_joined"))
+        .values("date")
+        .annotate(count=models.Count("id"))
+        .order_by("date")
+    )
+    
+    serializer = UserSignupStatsSerializer(signup_data, many=True)
     form = DateRangeForm(initial={"start": start, "end": end})
-    start_value = CustomUser.objects.filter(date_joined__lt=start).count()
+    start_value = CustomUser.objects.filter(tenant=request.tenant, date_joined__lt=start).count()
     
     # Get customer statistics
     customer_stats = {

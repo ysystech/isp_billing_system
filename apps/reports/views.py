@@ -20,6 +20,7 @@ from apps.lcp.models import NAP
 
 
 @login_required
+@tenant_required
 @permission_required('reports.view_reports_dashboard', raise_exception=True)
 def reports_dashboard(request):
     """Main reports dashboard showing available reports."""
@@ -30,6 +31,7 @@ def reports_dashboard(request):
 
 
 @login_required
+@tenant_required
 @permission_required('reports.view_daily_collection_report', raise_exception=True)
 def daily_collection_report(request):
     """Daily collection report showing today's payments."""
@@ -130,6 +132,7 @@ def daily_collection_report(request):
 
 
 @login_required
+@tenant_required
 @permission_required('reports.view_subscription_expiry_report', raise_exception=True)
 def subscription_expiry_report(request):
     """Report showing subscriptions due to expire."""
@@ -244,6 +247,7 @@ def subscription_expiry_report(request):
 
 
 @login_required
+@tenant_required
 @permission_required('reports.view_monthly_revenue_report', raise_exception=True)
 def monthly_revenue_report(request):
     """Monthly revenue analysis report."""
@@ -392,6 +396,7 @@ def monthly_revenue_report(request):
 
 
 @login_required
+@tenant_required
 @permission_required('reports.view_ticket_analysis_report', raise_exception=True)
 def ticket_analysis_report(request):
     """Ticket analysis report for service quality insights."""
@@ -648,6 +653,7 @@ def technician_performance_report(request):
 
 
 @login_required
+@tenant_required
 @permission_required('reports.view_customer_acquisition_report', raise_exception=True)
 def customer_acquisition_report(request):
     """Customer acquisition report for growth tracking."""
@@ -762,6 +768,7 @@ def customer_acquisition_report(request):
 
 
 @login_required
+@tenant_required
 @permission_required('reports.view_payment_behavior_report', raise_exception=True)
 def payment_behavior_report(request):
     """Payment behavior report for financial planning."""
@@ -903,6 +910,7 @@ def payment_behavior_report(request):
 
 
 @login_required
+@tenant_required
 @permission_required('reports.view_area_performance_dashboard', raise_exception=True)
 def area_performance_dashboard(request):
     """Area performance dashboard for geographic business insights."""
