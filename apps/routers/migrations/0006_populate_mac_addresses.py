@@ -49,6 +49,4 @@ class Migration(migrations.Migration):
         ('routers', '0005_alter_router_options'),
     ]
 
-    operations = [
-        migrations.RunPython(populate_mac_addresses, reverse_populate_mac_addresses),
-    ]
+    operations = []

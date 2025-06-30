@@ -24,6 +24,4 @@ class Migration(migrations.Migration):
         ('users', '0003_customuser_user_type'),
     ]
 
-    operations = [
-        migrations.RunPython(convert_admin_to_cashier, reverse_conversion),
-    ]
+    operations = []

@@ -81,9 +81,6 @@ class Migration(migrations.Migration):
             ),
         ),
         
-        # Convert the data
-        migrations.RunPython(convert_barangay_data, reverse_convert_barangay_data),
-        
         # Remove the old field
         migrations.RemoveField(
             model_name="customer",

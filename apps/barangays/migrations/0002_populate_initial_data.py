@@ -34,6 +34,4 @@ class Migration(migrations.Migration):
         ("barangays", "0001_initial"),
     ]
 
-    operations = [
-        migrations.RunPython(populate_barangays, reverse_populate_barangays),
-    ]
+    operations = []
