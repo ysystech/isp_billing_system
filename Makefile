@@ -40,7 +40,10 @@ migrate: ## Run DB migrations in the container
 	@docker compose run --rm web python manage.py migrate
 
 set-defaults: ## Set the default settings
-	@docker compose run --rm web python manage.py setup_report_permissions
+	@docker compose run --rm web python manage.py initial_setup --domain=localhost:8000 --name='ISP Billing'
+
+set-defaults-production: ## Set the default settings
+	@docker compose run --rm web python manage.py initial_setup --domain=billing.example.com --name='ISP Billing'
 
 shell: ## Get a Django shell
 	@docker compose run --rm web python manage.py shell
