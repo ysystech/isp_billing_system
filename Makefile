@@ -39,6 +39,9 @@ migrations: ## Create DB migrations in the container
 migrate: ## Run DB migrations in the container
 	@docker compose run --rm web python manage.py migrate
 
+set-defaults: ## Set the default settings
+	@docker compose run --rm web python manage.py setup_report_permissions
+
 shell: ## Get a Django shell
 	@docker compose run --rm web python manage.py shell
 
@@ -48,7 +51,7 @@ dbshell: ## Get a Database shell
 test: ## Run Django tests
 	@docker compose run --rm web python manage.py test ${ARGS}
 
-init: setup-env start-bg migrations migrate  ## Quickly get up and running (start containers and bootstrap DB and front end)
+init: setup-env start-bg migrations migrate set-defaults  ## Quickly get up and running (start containers and bootstrap DB and front end)
 
 pip_compile_cmd = uv pip compile --no-strip-extras
 pip-compile: ## Compiles your requirements.in file to requirements.txt
