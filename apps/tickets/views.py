@@ -15,10 +15,13 @@ from apps.users.models import CustomUser
 
 
 @login_required
+@tenant_required
 @permission_required('tickets.view_ticket_list', raise_exception=True)
 def ticket_list(request):
     """List all tickets with filtering and search."""
-    tickets = Ticket.objects.select_related(
+    tickets = Ticket.objects.filter(
+        tenant=request.tenant
+    ).select_related(
         'customer', 'customer_installation', 'reported_by', 'assigned_to'
     ).prefetch_related('comments')
     
@@ -71,6 +74,7 @@ def ticket_list(request):
 
 
 @login_required
+@tenant_required
 @permission_required('tickets.create_ticket', raise_exception=True)
 def ticket_create(request):
     """Create a new ticket."""
@@ -89,6 +93,7 @@ def ticket_create(request):
                 TicketComment.objects.create(
                     ticket=ticket,
                     user=request.user,
+                    tenant=request.tenant,  # Add tenant
                     comment=f"Ticket created: {initial_comment}"
                 )
             
@@ -125,11 +130,12 @@ def ticket_create(request):
 
 
 @login_required
+@tenant_required
 @permission_required('tickets.view_ticket_list', raise_exception=True)
 def ticket_detail(request, pk):
     """View ticket details and add comments."""
     ticket = get_object_or_404(
-        Ticket.objects.select_related(
+        Ticket.objects.filter(tenant=request.tenant).select_related(
             'customer', 'customer_installation', 'reported_by', 'assigned_to'
         ),
         pk=pk
@@ -145,6 +151,7 @@ def ticket_detail(request, pk):
             comment = comment_form.save(commit=False)
             comment.ticket = ticket
             comment.user = request.user
+            comment.tenant = request.tenant  # Add tenant
             comment.save()
             messages.success(request, 'Comment added successfully!')
             return redirect('tickets:ticket_detail', pk=ticket.pk)
@@ -162,6 +169,7 @@ def ticket_detail(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('tickets.edit_ticket', raise_exception=True)
 def ticket_update(request, pk):
     """Update ticket details."""
@@ -183,6 +191,7 @@ def ticket_update(request, pk):
                 TicketComment.objects.create(
                     ticket=ticket,
                     user=request.user,
+                    tenant=request.tenant,  # Add tenant
                     comment=f"Status changed from {old_status} to {ticket.status}"
                 )
             
@@ -208,6 +217,7 @@ def ticket_update(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('tickets.edit_ticket', raise_exception=True)
 @require_POST
 def ticket_quick_assign(request, pk):
@@ -232,6 +242,7 @@ def ticket_quick_assign(request, pk):
                 TicketComment.objects.create(
                     ticket=ticket,
                     user=request.user,
+                    tenant=request.tenant,  # Add tenant
                     comment=f"Assigned to {technician.get_full_name()}"
                 )
             
@@ -243,6 +254,7 @@ def ticket_quick_assign(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('tickets.change_ticket_status', raise_exception=True)
 @require_POST
 def ticket_update_status(request, pk):
@@ -267,6 +279,7 @@ def ticket_update_status(request, pk):
         TicketComment.objects.create(
             ticket=ticket,
             user=request.user,
+            tenant=request.tenant,  # Add tenant
             comment=f"Status changed from {old_status} to {new_status}"
         )
         
@@ -280,6 +293,7 @@ def ticket_update_status(request, pk):
 # AJAX endpoints for dynamic form behavior
 
 @login_required
+@tenant_required
 @permission_required('tickets.view_ticket_list', raise_exception=True)
 def ajax_search_customers(request):
     """AJAX endpoint to search customers."""
@@ -311,6 +325,7 @@ def ajax_search_customers(request):
 
 
 @login_required
+@tenant_required
 @permission_required('tickets.view_ticket_list', raise_exception=True)
 def ajax_get_customer_installations(request):
     """AJAX endpoint to get customer installations."""

@@ -158,6 +158,10 @@ class TicketCommentForm(forms.ModelForm):
                 'placeholder': 'Add your comment...'
             })
         }
+    
+    def __init__(self, *args, **kwargs):
+        self.tenant = kwargs.pop('tenant', None)
+        super().__init__(*args, **kwargs)
 
 
 class TicketFilterForm(forms.Form):
@@ -176,7 +180,7 @@ class TicketFilterForm(forms.Form):
     )
     
     assigned_to = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(is_staff=True),
+        queryset=CustomUser.objects.none(),  # Will be set in __init__
         required=False,
         empty_label='All Technicians',
         widget=forms.Select(attrs={'class': 'select select-bordered'})
@@ -189,3 +193,19 @@ class TicketFilterForm(forms.Form):
             'placeholder': 'Search tickets...'
         })
     )
+    
+    def __init__(self, *args, **kwargs):
+        self.tenant = kwargs.pop('tenant', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filter assigned_to queryset by tenant
+        if self.tenant:
+            self.fields['assigned_to'].queryset = CustomUser.objects.filter(
+                tenant=self.tenant,
+                is_staff=True
+            ).order_by('first_name', 'last_name')
+        else:
+            # If no tenant, show all staff users (fallback)
+            self.fields['assigned_to'].queryset = CustomUser.objects.filter(
+                is_staff=True
+            ).order_by('first_name', 'last_name')

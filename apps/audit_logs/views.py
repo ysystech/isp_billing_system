@@ -22,6 +22,7 @@ ACTION_FLAGS = {
 
 
 @login_required
+@tenant_required
 @permission_required('admin.view_logentry', raise_exception=True)
 def audit_log_list(request):
     """List all audit log entries with filtering"""
@@ -122,6 +123,7 @@ def audit_log_list(request):
 
 
 @login_required
+@tenant_required
 @permission_required('admin.view_logentry', raise_exception=True)
 def export_audit_logs(request):
     """Export audit logs to CSV"""

@@ -134,7 +134,7 @@
                   </svg>
                 </a>
                 {% endif %}
-                {% if ticket.status != 'resolved' and ticket.status != 'cancelled' and user|has_permission:"tickets.change_ticket_status" %}
+                {% if ticket.status != 'resolved' and ticket.status != 'cancelled' and user|has_permission:"tickets.edit_ticket" %}
                   <a href="{% url 'tickets:ticket_update' pk=ticket.pk %}" 
                      class="btn btn-sm btn-ghost" title="Edit">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

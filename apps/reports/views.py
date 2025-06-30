@@ -539,6 +539,7 @@ def ticket_analysis_report(request):
 
 
 @login_required
+@tenant_required
 @permission_required('reports.view_technician_performance_report', raise_exception=True)
 def technician_performance_report(request):
     """Technician performance report for staff efficiency tracking."""
@@ -550,8 +551,11 @@ def technician_performance_report(request):
     days = int(request.GET.get('days', 30))
     start_date = end_date - timedelta(days=days)
     
-    # Get all staff users
-    technicians = CustomUser.objects.filter(is_staff=True).order_by('first_name', 'last_name')
+    # Get all staff users in the same tenant
+    technicians = CustomUser.objects.filter(
+        tenant=request.tenant,
+        is_staff=True
+    ).order_by('first_name', 'last_name')
     
     technician_stats = []
     for tech in technicians:
@@ -613,9 +617,15 @@ def technician_performance_report(request):
     for i in range(min(days, 30)):  # Limit to 30 days for performance
         day_date = end_date - timedelta(days=i)
         
-        day_installations = CustomerInstallation.objects.filter(tenant=request.tenant, installation_date=day_date.count())
+        day_installations = CustomerInstallation.objects.filter(
+            tenant=request.tenant, 
+            installation_date=day_date
+        ).count()
         
-        day_tickets = Ticket.objects.filter(tenant=request.tenant, created_at__date=day_date.count())
+        day_tickets = Ticket.objects.filter(
+            tenant=request.tenant, 
+            created_at__date=day_date
+        ).count()
         
         daily_activity.append({
             'date': day_date.strftime('%Y-%m-%d'),

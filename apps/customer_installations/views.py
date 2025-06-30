@@ -15,10 +15,13 @@ from apps.customers.models import Customer
 
 
 @login_required
+@tenant_required
 @permission_required('customer_installations.view_installation_list', raise_exception=True)
 def installation_list(request):
     """List all customer installations with search and filter."""
-    installations = CustomerInstallation.objects.select_related(
+    installations = CustomerInstallation.objects.filter(
+        tenant=request.tenant
+    ).select_related(
         'customer', 'router', 'installation_technician'
     ).order_by('-installation_date')
     
@@ -49,11 +52,14 @@ def installation_list(request):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_installations.view_installation_list', raise_exception=True)
 def installation_detail(request, pk):
     """Display installation details."""
     installation = get_object_or_404(
-        CustomerInstallation.objects.select_related(
+        CustomerInstallation.objects.filter(
+            tenant=request.tenant
+        ).select_related(
             'customer', 'router', 'installation_technician'
         ),
         pk=pk
@@ -68,6 +74,7 @@ def installation_detail(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_installations.create_installation', raise_exception=True)
 def installation_create(request):
     """Create a new customer installation."""
@@ -75,6 +82,7 @@ def installation_create(request):
         form = CustomerInstallationForm(request.POST, tenant=request.tenant)
         if form.is_valid():
             installation = form.save(commit=False)
+            installation.tenant = request.tenant  # Set the tenant
             installation.is_active = True
             installation.save()
             
@@ -97,6 +105,7 @@ def installation_create(request):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_installations.change_installation_status', raise_exception=True)
 def installation_update(request, pk):
     """Update an existing installation."""
@@ -123,6 +132,7 @@ def installation_update(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_installations.delete_customerinstallation', raise_exception=True)
 @require_http_methods(["POST"])
 def installation_delete(request, pk):
@@ -141,6 +151,7 @@ def installation_delete(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_installations.view_installation_list', raise_exception=True)
 def get_nap_ports(request, nap_id):
     """API endpoint to get NAP port availability"""

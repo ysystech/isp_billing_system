@@ -173,7 +173,7 @@ class Command(BaseCommand):
                 ('tickets', 'add_ticket_comment', 'Add Comments', 'Add comments to tickets'),
                 ('tickets', 'remove_ticket', 'Delete Ticket', 'Delete ticket records'),
                 ('tickets', 'export_ticket_data', 'Export Ticket Data', 'Export ticket data and reports'),
-            ],            'reports': [
+            ],'reports': [
                 # Reports and analytics permissions - simplified to 11 permissions
                 ('reports', 'view_reports_dashboard', 'Access Reports', 'Access reports dashboard'),
                 ('reports', 'view_daily_collection_report', 'Daily Collection', 'View daily collection report'),

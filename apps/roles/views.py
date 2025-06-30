@@ -207,9 +207,13 @@ def role_permissions(request, pk):
     permission_data = []
     for category in categories:
         category_perms = []
+        print("====================")
+        print(category.name)
+        
         for mapping in category.permission_mappings.all():
             # Skip permissions the user doesn't have (unless superuser or tenant owner)
             perm_name = f"{mapping.permission.content_type.app_label}.{mapping.permission.codename}"
+            print(mapping.display_name)
             if (request.user.is_superuser or 
                 getattr(request.user, 'is_tenant_owner', False) or 
                 perm_name in request.user.get_all_permissions()):
@@ -222,6 +226,9 @@ def role_permissions(request, pk):
                 })
         
         if category_perms:
+            if category.name == 'User Management':
+                continue
+
             permission_data.append({
                 'category': category,
                 'permissions': category_perms,

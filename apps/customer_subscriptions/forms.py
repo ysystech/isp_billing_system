@@ -12,7 +12,7 @@ class CustomerSubscriptionForm(forms.ModelForm):
     
     # Override fields for better UI
     customer_installation = forms.ModelChoiceField(
-        queryset=CustomerInstallation.objects.filter(status='ACTIVE'),
+        queryset=CustomerInstallation.objects.none(),  # Will be filtered by tenant in __init__
         widget=forms.Select(attrs={
             'class': 'select select-bordered w-full',
             'onchange': 'checkExistingSubscription()'
@@ -21,7 +21,7 @@ class CustomerSubscriptionForm(forms.ModelForm):
     )
     
     subscription_plan = forms.ModelChoiceField(
-        queryset=SubscriptionPlan.objects.filter(is_active=True),
+        queryset=SubscriptionPlan.objects.none(),  # Will be filtered by tenant in __init__
         widget=forms.Select(attrs={
             'class': 'select select-bordered w-full',
             'onchange': 'updateAmountAndPreview()'
@@ -76,7 +76,19 @@ class CustomerSubscriptionForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        self.tenant = kwargs.pop('tenant', None)  # Add tenant handling
         super().__init__(*args, **kwargs)
+        
+        # Filter querysets by tenant if provided
+        if self.tenant:
+            self.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(
+                tenant=self.tenant,
+                status='ACTIVE'
+            )
+            self.fields['subscription_plan'].queryset = SubscriptionPlan.objects.filter(
+                tenant=self.tenant,
+                is_active=True
+            )
         
         # Set initial start date to now
         if not self.instance.pk:

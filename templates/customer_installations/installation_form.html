@@ -496,6 +496,11 @@ function updatePortOptions() {
 
 // Load hierarchy for pre-selected NAP (edit mode)
 function loadHierarchyForNap(napId) {
+    // Store the original NAP ID and port number
+    const originalNapId = napId;
+    const napPortInput = document.getElementById('id_nap_port');
+    const originalPortNumber = napPortInput.value;
+    
     fetch(`/lcp/api/nap/${napId}/hierarchy/`)
         .then(response => response.json())
         .then(data => {
@@ -512,7 +517,25 @@ function loadHierarchyForNap(napId) {
                 // Load NAPs and set selected
                 updateNapOptions();
                 setTimeout(() => {
+                    // Set the NAP value back to the original
+                    const napSelect = document.getElementById('id_nap');
+                    napSelect.value = originalNapId;
+                    
+                    // Load ports and set the original port
                     updatePortOptions();
+                    
+                    // Set the port value after a short delay to ensure the grid is loaded
+                    setTimeout(() => {
+                        napPortInput.value = originalPortNumber;
+                        // Highlight the selected port in the grid
+                        if (originalPortNumber) {
+                            const selectedPortBtn = document.querySelector(`#ports-container .btn:nth-child(${originalPortNumber})`);
+                            if (selectedPortBtn && selectedPortBtn.classList.contains('btn-outline')) {
+                                selectedPortBtn.classList.remove('btn-outline');
+                                selectedPortBtn.classList.add('btn-success');
+                            }
+                        }
+                    }, 300);
                 }, 500);
             }, 500);
         })

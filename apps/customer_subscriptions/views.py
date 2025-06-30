@@ -18,6 +18,7 @@ from apps.subscriptions.models import SubscriptionPlan
 
 
 @login_required
+@tenant_required
 @permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def subscription_list(request):
     """List all customer subscriptions with filtering."""
@@ -66,6 +67,7 @@ def subscription_list(request):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_subscriptions.create_subscription', raise_exception=True)
 def subscription_create(request):
     """Create a new subscription with preview."""
@@ -112,6 +114,7 @@ def subscription_create(request):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def subscription_detail(request, pk):
     """View subscription details."""
@@ -138,6 +141,7 @@ def subscription_detail(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_subscriptions.cancel_subscription', raise_exception=True)
 def subscription_cancel(request, pk):
     """Cancel a subscription."""
@@ -155,6 +159,7 @@ def subscription_cancel(request, pk):
 # API Endpoints for AJAX functionality
 
 @login_required
+@tenant_required
 @permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def api_get_latest_subscription(request):
     """Get the latest subscription for an installation."""
@@ -189,6 +194,7 @@ def api_get_latest_subscription(request):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_subscriptions.create_subscription', raise_exception=True)
 def api_calculate_preview(request):
     """Calculate subscription preview based on amount and type."""
@@ -231,6 +237,7 @@ def api_calculate_preview(request):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def api_get_plan_price(request):
     """Get the price of a subscription plan."""
@@ -255,6 +262,7 @@ def api_get_plan_price(request):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def active_subscriptions(request):
     """View all active subscriptions per customer."""
@@ -317,7 +325,8 @@ def active_subscriptions(request):
 
 
 @login_required
-@permission_required('customer_subscriptions.view_payment_history', raise_exception=True)
+@tenant_required
+@permission_required('customer_subscriptions.view_subscription_list', raise_exception=True)
 def customer_payment_history(request, customer_id):
     """View all payment history for a specific customer."""
     # Get all installations for this customer
@@ -364,6 +373,7 @@ def customer_payment_history(request, customer_id):
 
 
 @login_required
+@tenant_required
 @permission_required('customer_subscriptions.generate_receipt', raise_exception=True)
 def generate_receipt(request, subscription_id):
     """Generate official receipt for a subscription payment."""
