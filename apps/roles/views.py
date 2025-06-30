@@ -35,6 +35,7 @@ def role_list(request):
 
 
 @login_required
+@tenant_required
 @permission_required('roles.add_role', raise_exception=True)
 def role_create(request):
     """Create a new role."""
@@ -58,6 +59,7 @@ def role_create(request):
 
 
 @login_required
+@tenant_required
 @permission_required('roles.view_role', raise_exception=True)
 def role_detail(request, pk):
     """View role details."""
@@ -82,6 +84,7 @@ def role_detail(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('roles.change_role', raise_exception=True)
 def role_edit(request, pk):
     """Edit role basic information."""
@@ -112,6 +115,7 @@ def role_edit(request, pk):
     })
 
 @login_required
+@tenant_required
 @permission_required('roles.delete_role', raise_exception=True)
 def role_delete(request, pk):
     """Delete a role."""
@@ -142,6 +146,7 @@ def role_delete(request, pk):
 
 
 @login_required
+@tenant_required
 @permission_required('roles.change_role', raise_exception=True)
 def role_permissions(request, pk):
     """Manage role permissions."""
@@ -170,7 +175,8 @@ def role_permissions(request, pk):
         selected_permission_ids = [int(p) for p in selected_permissions]
         
         # Ensure user is not assigning permissions they don't have
-        if not request.user.is_superuser:
+        # Tenant owners can assign any permission within their tenant
+        if not request.user.is_superuser and not getattr(request.user, 'is_tenant_owner', False):
             user_permissions = set(request.user.get_all_permissions())
             permissions_to_assign = Permission.objects.filter(id__in=selected_permission_ids)
             
@@ -190,14 +196,23 @@ def role_permissions(request, pk):
         messages.success(request, f'Permissions updated for role "{role.name}".')
         return redirect('roles:role_detail', pk=role.pk)
     
+    # Debug output
+    print(f"User: {request.user.email}")
+    print(f"Is Superuser: {request.user.is_superuser}")
+    print(f"Is Tenant Owner: {getattr(request.user, 'is_tenant_owner', False)}")
+    print(f"Total categories: {categories.count()}")
+    print(f"User permissions count: {len(request.user.get_all_permissions())}")
+    
     # Prepare permission data for template
     permission_data = []
     for category in categories:
         category_perms = []
         for mapping in category.permission_mappings.all():
-            # Skip permissions the user doesn't have (unless superuser)
+            # Skip permissions the user doesn't have (unless superuser or tenant owner)
             perm_name = f"{mapping.permission.content_type.app_label}.{mapping.permission.codename}"
-            if request.user.is_superuser or perm_name in request.user.get_all_permissions():
+            if (request.user.is_superuser or 
+                getattr(request.user, 'is_tenant_owner', False) or 
+                perm_name in request.user.get_all_permissions()):
                 category_perms.append({
                     'id': mapping.permission.id,
                     'display_name': mapping.display_name,

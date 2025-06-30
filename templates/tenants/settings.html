@@ -1,0 +1,44 @@
+{% extends "web/app/app_base.html" %}
+{% load form_tags %}
+{% load i18n %}
+{% block app %}
+<section class="app-card">
+    <h1 class="pg-title">{% translate "Company Settings" %}</h1>
+    
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold mb-2">{% translate "Company Information" %}</h2>
+        <p class="text-gray-600">{% translate "Manage your company's information and settings." %}</p>
+    </div>
+
+    <form method="post" class="max-w-2xl">
+        {% csrf_token %}
+        
+        {% render_field form.name %}
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">{% translate "Status" %}</label>
+            <p class="text-gray-600">
+                {% if tenant.is_active %}
+                    <span class="badge badge-success">{% translate "Active" %}</span>
+                {% else %}
+                    <span class="badge badge-error">{% translate "Inactive" %}</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">{% translate "Created" %}</label>
+            <p class="text-gray-600">{{ tenant.created_at|date:"F d, Y" }}</p>
+        </div>
+
+        <div class="flex gap-4">
+            <button type="submit" class="btn btn-primary">
+                {% translate "Save Changes" %}
+            </button>
+            <a href="{% url 'web:home' %}" class="btn btn-outline">
+                {% translate "Cancel" %}
+            </a>
+        </div>
+    </form>
+</section>
+{% endblock %}

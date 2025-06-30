@@ -33,6 +33,7 @@ urlpatterns = [
     path("admin/login/", RedirectView.as_view(pattern_name="account_login")),
     path("admin/", admin.site.urls),
     # path("dashboard/", include("apps.dashboard.urls")),  # Dashboard functionality moved to home page
+    path("tenants/", include("apps.tenants.urls")),
     path("barangays/", include("apps.barangays.urls")),
     path("routers/", include("apps.routers.urls")),
     path("customers/", include("apps.customers.urls")),

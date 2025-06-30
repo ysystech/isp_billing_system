@@ -10,10 +10,7 @@
     <h1 class="text-3xl font-bold">Routers</h1>
     {% if user|has_permission:"routers.add_router" %}
     <a href="{% url 'routers:create' %}" 
-       class="btn btn-primary"
-       hx-get="{% url 'routers:create' %}"
-       hx-target="#modal-container"
-       hx-trigger="click">
+       class="btn btn-primary">
       <i class="fas fa-plus mr-2"></i>Add New Router
     </a>
     {% endif %}
@@ -41,7 +38,4 @@
     {% include "routers/partials/router_list.html" %}
   </div>
 </div>
-
-<!-- Modal Container -->
-<div id="modal-container"></div>
 {% endblock %}

@@ -50,7 +50,12 @@ def can_manage_role(user, role):
     Returns:
         bool: True if the user can manage the role, False otherwise
     """
+    # Superusers can manage any role
     if user.is_superuser:
+        return True
+    
+    # Tenant owners can manage any role in their tenant
+    if getattr(user, 'is_tenant_owner', False) and role.tenant == user.tenant:
         return True
     
     # Get all the user's permissions as a set

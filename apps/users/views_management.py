@@ -5,31 +5,27 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
 
+from apps.tenants.mixins import tenant_required
 from .models import CustomUser
 from .forms import UserManagementCreateForm, UserManagementUpdateForm, UserSearchForm
 
 
 @login_required
 @permission_required('users.view_customuser', raise_exception=True)
+@tenant_required
 def user_management_list(request):
-    """List all non-superuser users with search and filter functionality."""
+    """List all non-superuser users within the same tenant with search and filter functionality."""
     # Set default is_active to 'true' if not provided
     get_data = request.GET.copy()
     if 'is_active' not in get_data:
         get_data['is_active'] = 'true'
     
     form = UserSearchForm(get_data)
-    # Exclude superusers from the list
-    users = CustomUser.objects.filter(is_superuser=False)
-    
-    # Debug info
-    print(f"Current user: {request.user.username} (ID: {request.user.id})")
-    print(f"Current user has delete permission: {request.user.has_perm('users.delete_customuser')}")
-    
-    # Print all permissions for current user
-    print("All permissions for current user:")
-    for perm in request.user.get_all_permissions():
-        print(f"  - {perm}")
+    # Filter by tenant and exclude superusers
+    users = CustomUser.objects.filter(
+        tenant=request.tenant,
+        is_superuser=False
+    )
     
     # Apply search filter
     if form.is_valid():
@@ -66,12 +62,22 @@ def user_management_list(request):
 
 @login_required
 @permission_required('users.add_customuser', raise_exception=True)
+@tenant_required
 def user_management_create(request):
     """Create a new user."""
     if request.method == 'POST':
         form = UserManagementCreateForm(request.POST, user=request.user)
         if form.is_valid():
-            user = form.save()
+            # Save the user but don't commit yet to set tenant
+            user = form.save(commit=False)
+            user.tenant = request.tenant  # Set the tenant
+            user.save()
+            
+            # Now handle the roles (many-to-many relationship)
+            selected_roles = form.cleaned_data.get('roles', [])
+            for role in selected_roles:
+                user.groups.add(role.group)
+            
             messages.success(request, f'User "{user.get_full_name()}" created successfully.')
             
             # Return HTMX response
@@ -93,9 +99,10 @@ def user_management_create(request):
 
 @login_required
 @permission_required('users.change_customuser', raise_exception=True)
+@tenant_required
 def user_management_update(request, pk):
     """Update an existing user."""
-    user = get_object_or_404(CustomUser, pk=pk, is_superuser=False)
+    user = get_object_or_404(CustomUser, pk=pk, tenant=request.tenant, is_superuser=False)
     
     if request.method == 'POST':
         form = UserManagementUpdateForm(request.POST, instance=user, user=request.user)
@@ -124,9 +131,10 @@ def user_management_update(request, pk):
 @login_required
 @permission_required('users.delete_customuser', raise_exception=True)
 @require_http_methods(["DELETE"])
+@tenant_required
 def user_management_delete(request, pk):
     """Deactivate a user (soft delete)."""
-    user = get_object_or_404(CustomUser, pk=pk, is_superuser=False)
+    user = get_object_or_404(CustomUser, pk=pk, tenant=request.tenant, is_superuser=False)
     
     # Prevent users from deleting themselves
     if user.id == request.user.id:
@@ -157,9 +165,10 @@ def user_management_delete(request, pk):
 
 @login_required
 @permission_required('users.view_customuser', raise_exception=True)
+@tenant_required
 def user_management_detail(request, pk):
     """View details of a user."""
-    user = get_object_or_404(CustomUser, pk=pk, is_superuser=False)
+    user = get_object_or_404(CustomUser, pk=pk, tenant=request.tenant, is_superuser=False)
     
     return render(request, 'users/user_management_detail.html', {
         'user_obj': user  # Using user_obj to avoid conflict with request.user

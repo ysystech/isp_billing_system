@@ -10,6 +10,9 @@
   </div>
   
   <p>Debug: permission_data has {{ permission_data|length }} categories</p>
+  <p>Debug: Current user is_superuser: {{ request.user.is_superuser }}</p>
+  <p>Debug: Current user is_tenant_owner: {{ request.user.is_tenant_owner }}</p>
+  <p>Debug: Current user permissions count: {{ request.user.get_all_permissions|length }}</p>
   
   <form method="post" class="space-y-6">
     {% csrf_token %}

@@ -28,10 +28,7 @@
           <div class="flex gap-2">
             {% if user|has_permission:"routers.change_router" %}
             <a href="{% url 'routers:update' router.pk %}"
-               class="btn btn-sm btn-ghost"
-               hx-get="{% url 'routers:update' router.pk %}"
-               hx-target="#modal-container"
-               hx-trigger="click">
+               class="btn btn-sm btn-ghost">
               <i class="fas fa-edit"></i>
             </a>
             {% endif %}

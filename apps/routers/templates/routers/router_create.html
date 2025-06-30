@@ -1,33 +1,81 @@
 {% extends "web/app/app_base.html" %}
 {% load static %}
+{% load form_tags %}
 
 {% block title %}Create Router - {{ block.super }}{% endblock %}
 
 {% block app %}
-<div class="app-card">
-  <div class="max-w-4xl mx-auto">
-    <div class="text-sm breadcrumbs mb-4">
+<section class="app-card max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="breadcrumbs text-sm mb-2">
       <ul>
         <li><a href="{% url 'routers:list' %}">Routers</a></li>
-        <li>Create New</li>
+        <li>Create New Router</li>
       </ul>
     </div>
+    <h1 class="pg-title">Create New Router</h1>
+  </div>
+
+  <!-- Form -->
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
     
-    <h1 class="text-3xl font-bold mb-6">Create New Router</h1>
-    
-    <div class="card bg-base-100 shadow-xl">
+    {% if form.non_field_errors %}
+    <div class="alert alert-error">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <!-- Router Information -->
+    <div class="card bg-base-100 shadow-sm">
       <div class="card-body">
-        <form method="post" action="{% url 'routers:create' %}">
-          {% csrf_token %}
-          {% include "routers/partials/router_form_fields.html" %}
-          
-          <div class="card-actions justify-end mt-6">
-            <a href="{% url 'routers:list' %}" class="btn btn-ghost">Cancel</a>
-            <button type="submit" class="btn btn-primary">Create Router</button>
+        <h2 class="card-title text-lg mb-4">Router Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {% render_field form.brand %}
           </div>
-        </form>
+          <div>
+            {% render_field form.model %}
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
+
+    <!-- Technical Details -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Technical Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {% render_field form.serial_number %}
+          </div>
+          <div>
+            {% render_field form.mac_address %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Information -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Additional Information</h2>
+        <div>
+          {% render_field form.notes %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'routers:list' %}" class="btn btn-ghost">
+        Cancel
+      </a>
+      <button type="submit" class="btn btn-primary">
+        Create Router
+      </button>
+    </div>
+  </form>
+</section>
 {% endblock %}

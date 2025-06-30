@@ -18,11 +18,11 @@
           {% csrf_token %}
           {{ form.non_field_errors }}
           {% render_field form.email %}
+          {% render_field form.company_name %}
           {% render_field form.password1 %}
           {% if form.password2 %}
             {% render_field form.password2 %}
           {% endif %}
-          {% render_field form.phone_number_x %}
           {% render_field form.terms_agreement %}
           {% if turnstile_key %}
           <div class="cf-turnstile" data-sitekey="{{ turnstile_key }}" data-response-field-name="turnstile_token"></div>

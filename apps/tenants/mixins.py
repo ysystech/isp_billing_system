@@ -56,3 +56,21 @@ def tenant_required(view_func):
         return view_func(request, *args, **kwargs)
     
     return wrapped_view
+def tenant_owner_required(view_func):
+    """
+    Decorator for function-based views that ensures user is a tenant owner.
+    """
+    def wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            from django.contrib.auth.views import redirect_to_login
+            return redirect_to_login(request.get_full_path())
+        
+        if not hasattr(request.user, 'tenant') or not request.user.tenant:
+            raise PermissionDenied("You must belong to a tenant to access this resource.")
+        
+        if not request.user.is_tenant_owner:
+            raise PermissionDenied("Only tenant owners can access this resource.")
+        
+        return view_func(request, *args, **kwargs)
+    
+    return wrapped_view

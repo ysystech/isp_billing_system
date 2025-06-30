@@ -9,6 +9,21 @@
       {% translate "Dashboard" %}
     </a>
   </li>
+  
+  {% if is_tenant_owner %}
+  <li class="menu-title">
+    <span>{% translate "Company Settings" %}</span>
+  </li>
+  <ul class="menu-list">
+    <li>
+      <a href="{% url 'tenants:settings' %}" {% if active_tab == 'tenant-settings' %}class="menu-active"{% endif %}>
+        <i class="fa fa-building h-4 w-4"></i>
+        {% translate "Company Info" %}
+      </a>
+    </li>
+  </ul>
+  {% endif %}
+  
   {% if user|has_any_permission:"customers.view_customer_list,barangays.view_barangay_list,subscriptions.view_subscriptionplan_list,routers.view_router_list,lcp.view_lcp_list,network.view_network_map" %}
   <li class="menu-title">
     <span>{% translate "Admin Setup" %}</span>

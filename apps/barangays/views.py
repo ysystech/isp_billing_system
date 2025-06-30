@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import IntegrityError
 from django.db.models import Q, Count
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -83,20 +84,29 @@ def barangay_detail(request, pk):
 def barangay_create(request):
     """Create a new barangay"""
     if request.method == "POST":
-        form = BarangayForm(request.POST)
+        form = BarangayForm(request.POST, tenant=request.tenant)
         if form.is_valid():
-            barangay = form.save(commit=False)
-            barangay.tenant = request.tenant
-            barangay.save()
-            messages.success(request, f"Barangay '{barangay.name}' created successfully!")
-            
-            if request.headers.get("HX-Request"):
-                response = HttpResponse("")
-                response["HX-Redirect"] = f"/barangays/{barangay.pk}/"
-                return response
-            return redirect("barangays:detail", pk=barangay.pk)
+            try:
+                barangay = form.save(commit=False)
+                barangay.tenant = request.tenant
+                barangay.save()
+                messages.success(request, f"Barangay '{barangay.name}' created successfully!")
+                
+                if request.headers.get("HX-Request"):
+                    response = HttpResponse("")
+                    response["HX-Redirect"] = f"/barangays/{barangay.pk}/"
+                    return response
+                return redirect("barangays:detail", pk=barangay.pk)
+            except IntegrityError as e:
+                # Handle any database integrity errors
+                if 'name' in str(e):
+                    form.add_error('name', 'A barangay with this name already exists.')
+                elif 'code' in str(e):
+                    form.add_error('code', 'A barangay with this code already exists.')
+                else:
+                    form.add_error(None, 'An error occurred while saving the barangay. Please check your input.')
     else:
-        form = BarangayForm()
+        form = BarangayForm(tenant=request.tenant)
     
     context = {"form": form, "active_tab": "barangays"}
     
@@ -113,18 +123,27 @@ def barangay_update(request, pk):
     barangay = get_object_or_404(Barangay.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == "POST":
-        form = BarangayForm(request.POST, instance=barangay)
+        form = BarangayForm(request.POST, instance=barangay, tenant=request.tenant)
         if form.is_valid():
-            barangay = form.save()
-            messages.success(request, f"Barangay '{barangay.name}' updated successfully!")
-            
-            if request.headers.get("HX-Request"):
-                response = HttpResponse("")
-                response["HX-Redirect"] = f"/barangays/{barangay.pk}/"
-                return response
-            return redirect("barangays:detail", pk=barangay.pk)
+            try:
+                barangay = form.save()
+                messages.success(request, f"Barangay '{barangay.name}' updated successfully!")
+                
+                if request.headers.get("HX-Request"):
+                    response = HttpResponse("")
+                    response["HX-Redirect"] = f"/barangays/{barangay.pk}/"
+                    return response
+                return redirect("barangays:detail", pk=barangay.pk)
+            except IntegrityError as e:
+                # Handle any database integrity errors
+                if 'name' in str(e):
+                    form.add_error('name', 'A barangay with this name already exists.')
+                elif 'code' in str(e):
+                    form.add_error('code', 'A barangay with this code already exists.')
+                else:
+                    form.add_error(None, 'An error occurred while saving the barangay. Please check your input.')
     else:
-        form = BarangayForm(instance=barangay)
+        form = BarangayForm(instance=barangay, tenant=request.tenant)
     
     context = {
         "form": form,

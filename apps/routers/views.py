@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
+from django.db import IntegrityError
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
@@ -60,25 +61,33 @@ def router_detail(request, pk):
 
 @login_required
 @permission_required('routers.add_router', raise_exception=True)
+@tenant_required
 def router_create(request):
     """Create a new router"""
     if request.method == "POST":
-        form = RouterForm(request.POST)
+        form = RouterForm(request.POST, tenant=request.tenant)
         if form.is_valid():
-            router = form.save(commit=False)
-
-            router.tenant = request.tenant
-
-            router.save()
-            messages.success(request, f"Router '{router}' created successfully!")
-            
-            if request.headers.get("HX-Request"):
-                response = HttpResponse("")
-                response["HX-Redirect"] = f"/routers/{router.pk}/"
-                return response
-            return redirect("routers:detail", pk=router.pk)
+            try:
+                router = form.save(commit=False)
+                router.tenant = request.tenant
+                router.save()
+                messages.success(request, f"Router '{router}' created successfully!")
+                
+                if request.headers.get("HX-Request"):
+                    response = HttpResponse("")
+                    response["HX-Redirect"] = f"/routers/{router.pk}/"
+                    return response
+                return redirect("routers:detail", pk=router.pk)
+            except IntegrityError as e:
+                # Handle any database integrity errors
+                if 'serial_number' in str(e):
+                    form.add_error('serial_number', 'A router with this serial number already exists.')
+                elif 'mac_address' in str(e):
+                    form.add_error('mac_address', 'A router with this MAC address already exists.')
+                else:
+                    form.add_error(None, 'An error occurred while saving the router. Please check your input.')
     else:
-        form = RouterForm()
+        form = RouterForm(tenant=request.tenant)
     
     context = {"form": form, "active_tab": "routers"}
     
@@ -90,27 +99,35 @@ def router_create(request):
 
 @login_required
 @permission_required('routers.change_router', raise_exception=True)
+@tenant_required
 def router_update(request, pk):
     """Update a router"""
     router = get_object_or_404(Router.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == "POST":
-        form = RouterForm(request.POST, instance=router)
+        form = RouterForm(request.POST, instance=router, tenant=request.tenant)
         if form.is_valid():
-            router = form.save(commit=False)
-
-            router.tenant = request.tenant
-
-            router.save()
-            messages.success(request, f"Router '{router}' updated successfully!")
-            
-            if request.headers.get("HX-Request"):
-                response = HttpResponse("")
-                response["HX-Redirect"] = f"/routers/{router.pk}/"
-                return response
-            return redirect("routers:detail", pk=router.pk)
+            try:
+                router = form.save(commit=False)
+                router.tenant = request.tenant
+                router.save()
+                messages.success(request, f"Router '{router}' updated successfully!")
+                
+                if request.headers.get("HX-Request"):
+                    response = HttpResponse("")
+                    response["HX-Redirect"] = f"/routers/{router.pk}/"
+                    return response
+                return redirect("routers:detail", pk=router.pk)
+            except IntegrityError as e:
+                # Handle any database integrity errors
+                if 'serial_number' in str(e):
+                    form.add_error('serial_number', 'A router with this serial number already exists.')
+                elif 'mac_address' in str(e):
+                    form.add_error('mac_address', 'A router with this MAC address already exists.')
+                else:
+                    form.add_error(None, 'An error occurred while saving the router. Please check your input.')
     else:
-        form = RouterForm(instance=router)
+        form = RouterForm(instance=router, tenant=request.tenant)
     
     context = {
         "form": form,

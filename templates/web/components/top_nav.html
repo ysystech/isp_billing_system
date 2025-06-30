@@ -23,6 +23,11 @@
       <a class="tab {% if request.path == '/' %}tab-active{% endif %}" href="{% url 'web:home' %}">
         <div>{{project_meta.NAME}}</div>
       </a>
+      {% if current_tenant %}
+      <div class="tab tab-active pointer-events-none">
+        <div class="text-primary font-semibold">{{ tenant_name }}</div>
+      </div>
+      {% endif %}
     </div>
   </div>
   <div class="navbar-end">

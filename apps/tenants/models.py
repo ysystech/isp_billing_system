@@ -4,7 +4,7 @@ from apps.utils.models import BaseModel
 
 class Tenant(BaseModel):
     """Multi-tenant organization/company"""
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
     created_by = models.OneToOneField(
         'users.CustomUser',

@@ -86,7 +86,7 @@ def customer_create(request):
             customer.tenant = request.tenant
             customer.save()
             messages.success(request, f"Customer {customer.get_full_name()} created successfully!")
-            return redirect("customers:detail", pk=customer.pk)
+            return redirect("customers:customer_detail", pk=customer.pk)
     else:
         form = CustomerForm(tenant=request.tenant)
     
@@ -109,7 +109,7 @@ def customer_update(request, pk):
         if form.is_valid():
             customer = form.save()
             messages.success(request, f"Customer {customer.get_full_name()} updated successfully!")
-            return redirect("customers:detail", pk=customer.pk)
+            return redirect("customers:customer_detail", pk=customer.pk)
     else:
         form = CustomerForm(instance=customer, tenant=request.tenant)
     
@@ -132,7 +132,7 @@ def customer_delete(request, pk):
         customer_name = customer.get_full_name()
         customer.delete()
         messages.success(request, f"Customer {customer_name} deleted successfully!")
-        return redirect("customers:list")
+        return redirect("customers:customer_list")
     
     return render(request, "customers/confirm_delete.html", {
         "customer": customer,

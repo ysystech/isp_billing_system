@@ -11,8 +11,9 @@ from apps.tenants.mixins import tenant_required
 
 @login_required
 @permission_required('lcp.view_lcp_list', raise_exception=True)
+@tenant_required
 def lcp_list(request):
-    lcps = LCP.objects.select_related('barangay').annotate(
+    lcps = LCP.objects.filter(tenant=request.tenant).select_related('barangay').annotate(
         splitter_count=Count('splitters'),
         nap_count=Count('splitters__naps')
     ).order_by('code')
@@ -50,8 +51,9 @@ def lcp_list(request):
 
 @login_required
 @permission_required('lcp.view_lcp_detail', raise_exception=True)
+@tenant_required
 def lcp_detail(request, pk):
-    lcp = get_object_or_404(LCP.objects.select_related('barangay'), pk=pk)
+    lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant).select_related('barangay'), pk=pk)
     splitters = lcp.splitters.annotate(nap_count=Count('naps')).order_by('code')
     
     context = {
@@ -64,19 +66,18 @@ def lcp_detail(request, pk):
 
 @login_required
 @permission_required('lcp.add_lcp', raise_exception=True)
+@tenant_required
 def lcp_create(request):
     if request.method == 'POST':
-        form = LCPForm(request.POST)
+        form = LCPForm(request.POST, tenant=request.tenant)
         if form.is_valid():
             lcp = form.save(commit=False)
-
             lcp.tenant = request.tenant
-
             lcp.save()
             messages.success(request, f'LCP {lcp.code} created successfully!')
             return redirect('lcp:lcp_detail', pk=lcp.pk)
     else:
-        form = LCPForm()
+        form = LCPForm(tenant=request.tenant)
     
     context = {
         'form': form,
@@ -87,21 +88,20 @@ def lcp_create(request):
 
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
+@tenant_required
 def lcp_edit(request, pk):
     lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=pk)
     
     if request.method == 'POST':
-        form = LCPForm(request.POST, instance=lcp)
+        form = LCPForm(request.POST, instance=lcp, tenant=request.tenant)
         if form.is_valid():
             lcp = form.save(commit=False)
-
             lcp.tenant = request.tenant
-
             lcp.save()
             messages.success(request, f'LCP {lcp.code} updated successfully!')
             return redirect('lcp:lcp_detail', pk=lcp.pk)
     else:
-        form = LCPForm(instance=lcp)
+        form = LCPForm(instance=lcp, tenant=request.tenant)
     
     context = {
         'form': form,
@@ -113,6 +113,7 @@ def lcp_edit(request, pk):
 
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
+@tenant_required
 def lcp_delete(request, pk):
     lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=pk)
     
@@ -132,6 +133,7 @@ def lcp_delete(request, pk):
 # Splitter views
 @login_required
 @permission_required('lcp.add_lcp', raise_exception=True)
+@tenant_required
 def splitter_create(request, lcp_pk):
     lcp = get_object_or_404(LCP.objects.filter(tenant=request.tenant), pk=lcp_pk)
     
@@ -140,6 +142,7 @@ def splitter_create(request, lcp_pk):
         if form.is_valid():
             splitter = form.save(commit=False)
             splitter.lcp = lcp
+            splitter.tenant = request.tenant  # Set the tenant
             splitter.save()
             messages.success(request, f'Splitter {splitter.code} created successfully!')
             return redirect('lcp:lcp_detail', pk=lcp.pk)
@@ -156,8 +159,9 @@ def splitter_create(request, lcp_pk):
 
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
+@tenant_required
 def splitter_edit(request, pk):
-    splitter = get_object_or_404(Splitter.objects.select_related('lcp'), pk=pk)
+    splitter = get_object_or_404(Splitter.objects.filter(tenant=request.tenant).select_related('lcp'), pk=pk)
     
     if request.method == 'POST':
         form = SplitterForm(request.POST, instance=splitter)
@@ -183,8 +187,9 @@ def splitter_edit(request, pk):
 
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
+@tenant_required
 def splitter_delete(request, pk):
-    splitter = get_object_or_404(Splitter.objects.select_related('lcp'), pk=pk)
+    splitter = get_object_or_404(Splitter.objects.filter(tenant=request.tenant).select_related('lcp'), pk=pk)
     lcp = splitter.lcp
     
     if request.method == 'POST':
@@ -203,14 +208,16 @@ def splitter_delete(request, pk):
 # NAP views
 @login_required
 @permission_required('lcp.add_lcp', raise_exception=True)
+@tenant_required
 def nap_create(request, splitter_pk):
-    splitter = get_object_or_404(Splitter.objects.select_related('lcp'), pk=splitter_pk)
+    splitter = get_object_or_404(Splitter.objects.filter(tenant=request.tenant).select_related('lcp'), pk=splitter_pk)
     
     if request.method == 'POST':
         form = NAPForm(request.POST, splitter=splitter)
         if form.is_valid():
             nap = form.save(commit=False)
             nap.splitter = splitter
+            nap.tenant = request.tenant  # Set the tenant
             nap.save()
             messages.success(request, f'NAP {nap.code} created successfully!')
             return redirect('lcp:lcp_detail', pk=splitter.lcp.pk)
@@ -227,8 +234,9 @@ def nap_create(request, splitter_pk):
 
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
+@tenant_required
 def nap_edit(request, pk):
-    nap = get_object_or_404(NAP.objects.select_related('splitter__lcp'), pk=pk)
+    nap = get_object_or_404(NAP.objects.filter(tenant=request.tenant).select_related('splitter__lcp'), pk=pk)
     
     if request.method == 'POST':
         form = NAPForm(request.POST, instance=nap, splitter=nap.splitter)
@@ -254,8 +262,9 @@ def nap_edit(request, pk):
 
 @login_required
 @permission_required('lcp.manage_lcp_infrastructure', raise_exception=True)
+@tenant_required
 def nap_delete(request, pk):
-    nap = get_object_or_404(NAP.objects.select_related('splitter__lcp'), pk=pk)
+    nap = get_object_or_404(NAP.objects.filter(tenant=request.tenant).select_related('splitter__lcp'), pk=pk)
     lcp = nap.splitter.lcp
     
     if request.method == 'POST':
@@ -280,6 +289,7 @@ from django.views.decorators.http import require_http_methods
 @login_required
 @permission_required('lcp.view_lcp_list', raise_exception=True)
 @require_http_methods(["GET"])
+@tenant_required
 def api_get_lcps(request):
     """Get all active LCPs for dropdown selection."""
     lcps = LCP.objects.filter(tenant=request.tenant, is_active=True).values('id', 'name', 'code').order_by('code')
@@ -289,6 +299,7 @@ def api_get_lcps(request):
 @login_required
 @permission_required('lcp.view_lcp_list', raise_exception=True)
 @require_http_methods(["GET"])
+@tenant_required
 def api_get_splitters(request, lcp_id):
     """Get all splitters for a specific LCP."""
     splitters = Splitter.objects.filter(tenant=request.tenant, lcp_id=lcp_id).annotate(
@@ -315,6 +326,7 @@ def api_get_splitters(request, lcp_id):
 @login_required
 @permission_required('lcp.view_lcp_list', raise_exception=True)
 @require_http_methods(["GET"])
+@tenant_required
 def api_get_naps(request, splitter_id):
     """Get all NAPs for a specific splitter."""
     naps = NAP.objects.filter(tenant=request.tenant, splitter_id=splitter_id, is_active=True)
@@ -338,6 +350,7 @@ def api_get_naps(request, splitter_id):
 @login_required
 @permission_required('lcp.view_lcp_list', raise_exception=True)
 @require_http_methods(["GET"])
+@tenant_required
 def api_get_nap_hierarchy(request, nap_id):
     """Get the full hierarchy for a specific NAP (for edit mode)."""
     nap = get_object_or_404(

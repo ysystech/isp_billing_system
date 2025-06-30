@@ -159,6 +159,7 @@ TEMPLATES = [
                 # this line can be removed if not using google analytics
                 "apps.web.context_processors.google_analytics_id",
                 "apps.roles.context_processors.user_roles",
+                "apps.tenants.context_processors.tenant_context",
             ],
             "loaders": _DEFAULT_LOADERS if DEBUG else _CACHED_LOADERS,
             "builtins": [

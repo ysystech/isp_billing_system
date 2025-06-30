@@ -29,6 +29,10 @@ TRACKED_MODELS = [
 def create_audit_log(user, obj, action_flag, change_message=''):
     """Create an audit log entry with metadata"""
     if user and user.is_authenticated:
+        # Skip audit logging if user doesn't have a tenant yet (during registration)
+        if hasattr(user, 'tenant') and not user.tenant:
+            return
+            
         # Create Django's LogEntry
         log_entry = LogEntry.objects.create(
             user=user,
@@ -42,14 +46,17 @@ def create_audit_log(user, obj, action_flag, change_message=''):
         # Get request metadata
         request = get_current_request()
         if request and hasattr(request, 'audit_metadata'):
-            # Create extended audit log entry
-            AuditLogEntry.objects.create(
-                log_entry=log_entry,
-                ip_address=request.audit_metadata.get('ip_address'),
-                user_agent=request.audit_metadata.get('user_agent'),
-                request_method=request.audit_metadata.get('request_method'),
-                session_key=request.audit_metadata.get('session_key') or None,
-            )
+            # Skip creating audit metadata if no tenant is available
+            if hasattr(request, 'tenant') and request.tenant:
+                # Create extended audit log entry
+                AuditLogEntry.objects.create(
+                    log_entry=log_entry,
+                    ip_address=request.audit_metadata.get('ip_address'),
+                    user_agent=request.audit_metadata.get('user_agent'),
+                    request_method=request.audit_metadata.get('request_method'),
+                    session_key=request.audit_metadata.get('session_key') or None,
+                    tenant=request.tenant
+                )
 
 
 @receiver(post_save)

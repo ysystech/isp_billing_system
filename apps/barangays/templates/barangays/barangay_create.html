@@ -1,33 +1,76 @@
 {% extends "web/app/app_base.html" %}
 {% load static %}
+{% load form_tags %}
 
 {% block title %}Create Barangay - {{ block.super }}{% endblock %}
 
 {% block app %}
-<div class="app-card">
-  <div class="max-w-2xl mx-auto">
-    <div class="text-sm breadcrumbs mb-4">
+<section class="app-card max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="breadcrumbs text-sm mb-2">
       <ul>
         <li><a href="{% url 'barangays:list' %}">Barangays</a></li>
-        <li>Create New</li>
+        <li>Create New Barangay</li>
       </ul>
     </div>
+    <h1 class="pg-title">Create New Barangay</h1>
+  </div>
+
+  <!-- Form -->
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
     
-    <h1 class="text-3xl font-bold mb-6">Create New Barangay</h1>
-    
-    <div class="card bg-base-100 shadow-xl">
+    {% if form.non_field_errors %}
+    <div class="alert alert-error">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <!-- Basic Information -->
+    <div class="card bg-base-100 shadow-sm">
       <div class="card-body">
-        <form method="post" action="{% url 'barangays:create' %}">
-          {% csrf_token %}
-          {% include "barangays/partials/barangay_form_fields.html" %}
-          
-          <div class="card-actions justify-end mt-6">
-            <a href="{% url 'barangays:list' %}" class="btn btn-ghost">Cancel</a>
-            <button type="submit" class="btn btn-primary">Create Barangay</button>
+        <h2 class="card-title text-lg mb-4">Basic Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            {% render_field form.name %}
           </div>
-        </form>
+          <div>
+            {% render_field form.code %}
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
+
+    <!-- Details -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Details</h2>
+        <div>
+          {% render_field form.description %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Settings</h2>
+        <div>
+          {% render_field form.is_active %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-3">
+      <a href="{% url 'barangays:list' %}" class="btn btn-ghost">
+        Cancel
+      </a>
+      <button type="submit" class="btn btn-primary">
+        Create Barangay
+      </button>
+    </div>
+  </form>
+</section>
 {% endblock %}

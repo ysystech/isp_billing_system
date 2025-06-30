@@ -34,6 +34,8 @@ class RoleForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        # Pop tenant from kwargs if present (not used in this form currently)
+        self.tenant = kwargs.pop('tenant', None)
         super().__init__(*args, **kwargs)
         if self.instance.pk and self.instance.is_system:
             # System roles cannot change their name or system status
@@ -125,7 +127,15 @@ class UserRoleAssignmentForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        self.tenant = kwargs.pop('tenant', None)
         super().__init__(*args, **kwargs)
+        
+        # Filter roles by tenant if provided
+        if self.tenant:
+            self.fields['roles'].queryset = Role.objects.filter(
+                is_active=True,
+                tenant=self.tenant
+            )
         
         if self.user:
             # Set initial roles
@@ -133,6 +143,11 @@ class UserRoleAssignmentForm(forms.Form):
                 group__user=self.user,
                 is_active=True
             )
+            # Also filter by tenant if available
+            if self.user.tenant:
+                self.fields['roles'].initial = self.fields['roles'].initial.filter(
+                    tenant=self.user.tenant
+                )
     
     def save(self):
         """Save the role assignments."""

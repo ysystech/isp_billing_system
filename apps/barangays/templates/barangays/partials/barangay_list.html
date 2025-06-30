@@ -34,10 +34,7 @@
         <td>
           <div class="flex gap-2">
             <a href="{% url 'barangays:update' barangay.pk %}"
-               class="btn btn-sm btn-ghost"
-               hx-get="{% url 'barangays:update' barangay.pk %}"
-               hx-target="#modal-container"
-               hx-trigger="click">
+               class="btn btn-sm btn-ghost">
               <i class="fas fa-edit"></i>
             </a>
           </div>

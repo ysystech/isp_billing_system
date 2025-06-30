@@ -3,6 +3,14 @@ from .models import LCP, Splitter, NAP
 
 
 class LCPForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        tenant = kwargs.pop('tenant', None)
+        super().__init__(*args, **kwargs)
+        
+        if tenant:
+            # Filter barangays by tenant
+            self.fields['barangay'].queryset = self.fields['barangay'].queryset.filter(tenant=tenant)
+    
     class Meta:
         model = LCP
         fields = ['name', 'code', 'location', 'barangay', 'latitude', 'longitude', 

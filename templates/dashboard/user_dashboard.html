@@ -5,7 +5,12 @@
 {% load django_vite %}
 {% block app %}
 <section class="app-card">
-    <h1 class="pg-title">{% translate "Project Dashboard" %}</h1>
+    <div class="mb-6">
+        <h1 class="pg-title">{% translate "Dashboard" %}</h1>
+        {% if current_tenant %}
+        <p class="text-lg text-gray-600">{{ tenant_name }}</p>
+        {% endif %}
+    </div>
     
     <!-- Customer Statistics -->
     {% if customer_stats %}
