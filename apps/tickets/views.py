@@ -170,7 +170,7 @@ def ticket_detail(request, pk):
 
 @login_required
 @tenant_required
-@permission_required('tickets.edit_ticket', raise_exception=True)
+@permission_required('tickets.change_ticket', raise_exception=True)
 def ticket_update(request, pk):
     """Update ticket details."""
     ticket = get_object_or_404(Ticket.objects.filter(tenant=request.tenant), pk=pk)
@@ -218,7 +218,7 @@ def ticket_update(request, pk):
 
 @login_required
 @tenant_required
-@permission_required('tickets.edit_ticket', raise_exception=True)
+@permission_required('tickets.change_ticket', raise_exception=True)
 @require_POST
 def ticket_quick_assign(request, pk):
     """Quick assign ticket to a technician."""
