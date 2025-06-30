@@ -112,6 +112,10 @@ MIDDLEWARE = [
     "apps.audit_logs.middleware.AuditLogRequestMiddleware",
 ]
 
+# Add query logging middleware in DEBUG mode for Phase 7 verification
+if DEBUG:
+    MIDDLEWARE.append("apps.tenants.verification.query_logger.TenantQueryLoggingMiddleware")
+
 
 ROOT_URLCONF = "isp_billing_system.urls"
 
@@ -483,6 +487,11 @@ LOGGING = {
         "isp_billing_system": {
             "handlers": ["console"],
             "level": env("ISP_BILLING_SYSTEM_LOG_LEVEL", default="INFO"),
+        },
+        "tenant_queries": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
         },
     },
 }
