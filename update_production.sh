@@ -78,7 +78,7 @@ update_dependencies() {
     # Update Python packages
     echo "- Updating Python packages..."
     pip install --upgrade pip
-    pip install -r requirements/production.txt
+    pip install -r requirements/prod-requirements.txt
     
     echo -e "${GREEN}✓ Dependencies updated${NC}"
 }
