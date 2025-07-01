@@ -1,0 +1,132 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block portal_content %}
+<div class="space-y-6">
+  <!-- Welcome Section -->
+  <div class="hero bg-base-200 rounded-lg">
+    <div class="hero-content">
+      <div>
+        <h1 class="text-3xl font-bold">Welcome, {{ customer.first_name }}!</h1>
+        <p class="py-2">Account Status: 
+          <span class="badge {% if customer.is_active %}badge-success{% else %}badge-error{% endif %}">
+            {{ customer.get_status_display }}
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="stat bg-base-100 rounded-lg shadow">
+      <div class="stat-figure text-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <div class="stat-title">Active Subscriptions</div>
+      <div class="stat-value">{{ active_subscriptions.count }}</div>
+    </div>
+
+    <div class="stat bg-base-100 rounded-lg shadow">
+      <div class="stat-figure text-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      </div>
+      <div class="stat-title">Open Tickets</div>
+      <div class="stat-value">{{ recent_tickets.count }}</div>
+    </div>
+
+    <div class="stat bg-base-100 rounded-lg shadow">
+      <div class="stat-figure text-accent">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <div class="stat-title">Service Address</div>
+      <div class="stat-desc">{{ customer.barangay.name }}</div>
+    </div>
+  </div>
+
+  <!-- Active Subscriptions -->
+  {% if active_subscriptions %}
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Active Subscriptions</h2>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Speed</th>
+              <th>Monthly Fee</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in active_subscriptions %}
+            <tr>
+              <td>{{ sub.subscription_plan.name }}</td>
+              <td>{{ sub.subscription_plan.bandwidth_download }}Mbps / {{ sub.subscription_plan.bandwidth_upload }}Mbps</td>
+              <td>₱{{ sub.subscription_plan.monthly_fee }}</td>
+              <td>
+                <span class="badge {% if sub.status == 'ACTIVE' %}badge-success{% else %}badge-warning{% endif %}">
+                  {{ sub.get_status_display }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recent Tickets -->
+  {% if recent_tickets %}
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Recent Support Tickets</h2>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Ticket #</th>
+              <th>Issue</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticket in recent_tickets %}
+            <tr>
+              <td class="font-mono text-sm">{{ ticket.ticket_number|default:ticket.id }}</td>
+              <td>{{ ticket.title|truncatechars:30 }}</td>
+              <td>
+                <span class="text-sm">{{ ticket.get_category_display }}</span>
+              </td>
+              <td>
+                <span class="badge {% if ticket.status == 'resolved' %}badge-success{% elif ticket.status == 'pending' %}badge-warning{% elif ticket.status == 'in_progress' %}badge-info{% else %}badge-primary{% endif %} badge-sm">
+                  {{ ticket.get_status_display }}
+                </span>
+              </td>
+              <td>{{ ticket.created_at|date:"M d, Y" }}</td>
+              <td>
+                <a href="{% url 'customer_portal:ticket_detail' ticket.pk %}" class="btn btn-sm btn-ghost">View</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock portal_content %}

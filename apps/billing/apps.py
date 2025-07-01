@@ -1,0 +1,14 @@
+from django.apps import AppConfig
+
+
+class BillingConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.billing'
+    label = 'billing'
+
+    def ready(self):
+        # Import signal handlers
+        try:
+            from . import signals  # noqa
+        except ImportError:
+            pass

@@ -1,0 +1,110 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block portal_content %}
+<div class="space-y-6">
+  <div class="flex items-center gap-4 mb-6">
+    <a href="{% url 'customer_portal:tickets' %}" class="btn btn-ghost btn-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to Tickets
+    </a>
+  </div>
+
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold">{{ ticket.title }}</h1>
+          <p class="text-sm text-base-content/70">Ticket {{ ticket.ticket_number|default:ticket.id }}</p>
+        </div>
+        <div class="flex gap-2">
+          <span class="badge {% if ticket.priority == 'urgent' %}badge-error{% elif ticket.priority == 'high' %}badge-warning{% elif ticket.priority == 'medium' %}badge-info{% else %}badge-ghost{% endif %}">
+            {{ ticket.get_priority_display }}
+          </span>
+          <span class="badge {% if ticket.status == 'resolved' %}badge-success{% elif ticket.status == 'pending' %}badge-warning{% elif ticket.status == 'in_progress' %}badge-info{% elif ticket.status == 'assigned' %}badge-primary{% else %}badge-ghost{% endif %}">
+            {{ ticket.get_status_display }}
+          </span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-6">
+        <div>
+          <p class="font-semibold">Category</p>
+          <p>{{ ticket.get_category_display }}</p>
+        </div>
+        <div>
+          <p class="font-semibold">Created</p>
+          <p>{{ ticket.created_at|date:"M d, Y g:i A" }}</p>
+        </div>
+        <div>
+          <p class="font-semibold">Last Updated</p>
+          <p>{{ ticket.updated_at|date:"M d, Y g:i A" }}</p>
+        </div>
+      </div>
+
+      <div class="prose max-w-none">
+        <h3>Description</h3>
+        <div class="bg-base-200 p-4 rounded-lg">
+          <p>{{ ticket.description|linebreaks }}</p>
+        </div>
+      </div>
+
+      {% if ticket.status == 'resolved' and ticket.resolution %}
+      <div class="alert alert-success mt-6">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <div>
+          <h4 class="font-bold">Resolution</h4>
+          <p>{{ ticket.resolution }}</p>
+          {% if ticket.resolved_at %}
+          <p class="text-sm mt-2">Resolved on {{ ticket.resolved_at|date:"M d, Y g:i A" }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if ticket.assigned_to %}
+      <div class="mt-6">
+        <p class="text-sm text-base-content/70">
+          <span class="font-semibold">Assigned to:</span> {{ ticket.assigned_to.get_full_name }}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Status Timeline -->
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title text-lg mb-4">Status Timeline</h2>
+      <ul class="timeline timeline-vertical">
+        <li>
+          <div class="timeline-middle">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+          </div>
+          <div class="timeline-end timeline-box">
+            <div class="text-lg font-black">Ticket Created</div>
+            <time class="font-mono italic">{{ ticket.created_at|date:"M d, Y g:i A" }}</time>
+          </div>
+          <hr/>
+        </li>
+        {% if ticket.status != 'pending' %}
+        <li>
+          <hr/>
+          <div class="timeline-middle">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+          </div>
+          <div class="timeline-end timeline-box">
+            <div class="text-lg font-black">{{ ticket.get_status_display }}</div>
+            <time class="font-mono italic">{{ ticket.updated_at|date:"M d, Y g:i A" }}</time>
+          </div>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock portal_content %}

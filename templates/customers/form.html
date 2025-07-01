@@ -86,6 +86,44 @@
       </div>
     </div>
 
+    <!-- Customer Portal Access (only for new customers) -->
+    {% if not customer %}
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Customer Portal Access</h2>
+        <div class="space-y-4">
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              <span class="label-text">Create customer portal account</span>
+              <input type="checkbox" name="create_user_account" id="id_create_user_account" class="checkbox" checked />
+            </label>
+            <label class="label">
+              <span class="label-text-alt">Allow customer to log in and view their account information</span>
+            </label>
+          </div>
+          
+          <div class="form-control" id="password-option-container">
+            <label class="label cursor-pointer">
+              <span class="label-text">Set initial password (otherwise send reset link)</span>
+              <input type="checkbox" name="set_initial_password" id="id_set_initial_password" class="checkbox" />
+            </label>
+            <label class="label">
+              <span class="label-text-alt">Generate a random password that will be shown after creation</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="alert alert-info mt-4">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <div>
+            <p><strong>If "Set initial password" is checked:</strong> A random password will be generated and shown after creation.</p>
+            <p><strong>If unchecked:</strong> Customer will receive an email to set their own password.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Form Actions -->
     <div class="flex justify-end gap-3">
       <a href="{% if customer %}{% url 'customers:customer_detail' customer.pk %}{% else %}{% url 'customers:customer_list' %}{% endif %}" 
@@ -98,4 +136,34 @@
     </div>
   </form>
 </section>
+
+<script>
+// Handle customer portal options visibility
+document.addEventListener('DOMContentLoaded', function() {
+  const createAccountCheckbox = document.getElementById('id_create_user_account');
+  const passwordContainer = document.getElementById('password-option-container');
+  
+  function togglePasswordOption() {
+    if (passwordContainer) {
+      if (createAccountCheckbox && createAccountCheckbox.checked) {
+        passwordContainer.style.display = 'block';
+      } else {
+        passwordContainer.style.display = 'none';
+        const passwordCheckbox = document.getElementById('id_set_initial_password');
+        if (passwordCheckbox) {
+          passwordCheckbox.checked = false;
+        }
+      }
+    }
+  }
+  
+  // Initial state
+  togglePasswordOption();
+  
+  // Listen for changes
+  if (createAccountCheckbox) {
+    createAccountCheckbox.addEventListener('change', togglePasswordOption);
+  }
+});
+</script>
 {% endblock %}

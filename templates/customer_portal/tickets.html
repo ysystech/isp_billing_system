@@ -1,0 +1,205 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block portal_content %}
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Support Tickets</h1>
+    <button class="btn btn-primary" onclick="create_ticket_modal.showModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Create New Ticket
+    </button>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% else %}alert-info{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          {% if message.tags == 'success' %}
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          {% else %}
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          {% endif %}
+        </svg>
+        <span>{{ message }}</span>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if tickets %}
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Ticket #</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in tickets %}
+        <tr>
+          <td class="font-mono">{{ ticket.ticket_number|default:ticket.id }}</td>
+          <td>{{ ticket.title }}</td>
+          <td>
+            <span class="text-sm">{{ ticket.get_category_display }}</span>
+          </td>
+          <td>
+            <span class="badge {% if ticket.priority == 'urgent' %}badge-error{% elif ticket.priority == 'high' %}badge-warning{% elif ticket.priority == 'medium' %}badge-info{% else %}badge-ghost{% endif %} badge-sm">
+              {{ ticket.get_priority_display }}
+            </span>
+          </td>
+          <td>
+            <span class="badge {% if ticket.status == 'resolved' %}badge-success{% elif ticket.status == 'pending' %}badge-warning{% elif ticket.status == 'in_progress' %}badge-info{% elif ticket.status == 'assigned' %}badge-primary{% else %}badge-ghost{% endif %} badge-sm">
+              {{ ticket.get_status_display }}
+            </span>
+          </td>
+          <td>{{ ticket.created_at|date:"M d, Y" }}</td>
+          <td>
+            <a href="{% url 'customer_portal:ticket_detail' ticket.pk %}" class="btn btn-sm btn-ghost">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-info">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    <span>You haven't created any support tickets yet.</span>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Create Ticket Modal -->
+<dialog id="create_ticket_modal" class="modal">
+  <div class="modal-box w-11/12 max-w-2xl">
+    <h3 class="font-bold text-lg mb-4">Create New Support Ticket</h3>
+    <form method="post">
+      {% csrf_token %}
+      
+      <div class="form-control mb-4">
+        <label class="label">
+          <span class="label-text">What type of issue are you experiencing?</span>
+        </label>
+        <select name="category" class="select select-bordered w-full" required onchange="updateTitleSuggestion(this.value)">
+          <option value="" disabled selected>Select a category</option>
+          {% for value, label in category_choices %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="form-control mb-4">
+        <label class="label">
+          <span class="label-text">Brief description of the issue</span>
+        </label>
+        <input type="text" name="title" id="ticket-title" class="input input-bordered w-full" placeholder="e.g., Cannot connect to internet since this morning" required>
+      </div>
+      
+      <div class="form-control mb-4">
+        <label class="label">
+          <span class="label-text">Detailed description</span>
+          <span class="label-text-alt">Please provide as much detail as possible</span>
+        </label>
+        <textarea name="description" class="textarea textarea-bordered w-full" rows="5" placeholder="Please describe your issue in detail. Include:
+- When the problem started
+- What you were doing when it occurred
+- Any error messages you see
+- Steps you've already tried to fix it" required></textarea>
+      </div>
+      
+      <!-- Help tips based on category -->
+      <div id="category-tips" class="hidden">
+        <div class="alert alert-info mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <div>
+            <h4 class="font-bold">Quick Tips:</h4>
+            <p id="tips-content"></p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+          Submit Ticket
+        </button>
+        <button type="button" class="btn" onclick="create_ticket_modal.close()">Cancel</button>
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
+<script>
+// Category-specific tips and title suggestions
+const categoryInfo = {
+  'no_connection': {
+    tips: 'Try restarting your router by unplugging it for 30 seconds. Check if all cables are properly connected.',
+    titleSuggestion: 'No internet connection'
+  },
+  'slow_connection': {
+    tips: 'Note the speed test results if possible. Try connecting directly to the router with a cable to test.',
+    titleSuggestion: 'Internet speed is very slow'
+  },
+  'intermittent': {
+    tips: 'Note the times when connection drops occur. Check if it happens on all devices or just one.',
+    titleSuggestion: 'Internet keeps disconnecting'
+  },
+  'router_issue': {
+    tips: 'Check if router lights are normal (usually green). Note any unusual sounds or heating.',
+    titleSuggestion: 'Router problem'
+  },
+  'billing': {
+    tips: 'Have your account number ready. Specify the billing period in question.',
+    titleSuggestion: 'Billing inquiry'
+  },
+  'relocation': {
+    tips: 'Include your new address and preferred relocation date.',
+    titleSuggestion: 'Request to relocate service'
+  },
+  'upgrade': {
+    tips: 'Let us know which plan you want to upgrade to and when you want the change to take effect.',
+    titleSuggestion: 'Upgrade subscription plan'
+  },
+  'downgrade': {
+    tips: 'Let us know which plan you want to change to and the reason for downgrading.',
+    titleSuggestion: 'Downgrade subscription plan'
+  },
+  'other': {
+    tips: 'Please be as specific as possible about your request or issue.',
+    titleSuggestion: ''
+  }
+};
+
+function updateTitleSuggestion(category) {
+  const titleInput = document.getElementById('ticket-title');
+  const tipsDiv = document.getElementById('category-tips');
+  const tipsContent = document.getElementById('tips-content');
+  
+  if (category && categoryInfo[category]) {
+    // Show tips
+    tipsDiv.classList.remove('hidden');
+    tipsContent.textContent = categoryInfo[category].tips;
+    
+    // Suggest title if empty
+    if (!titleInput.value && categoryInfo[category].titleSuggestion) {
+      titleInput.placeholder = categoryInfo[category].titleSuggestion;
+    }
+  } else {
+    tipsDiv.classList.add('hidden');
+  }
+}
+</script>
+{% endblock portal_content %}

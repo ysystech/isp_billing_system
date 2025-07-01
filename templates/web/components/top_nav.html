@@ -52,6 +52,14 @@
             {% translate "Dashboard" %}
           </a>
         </li>
+        {% if user.customer_profile %}
+        <li>
+          <a href="{% url 'customer_portal:dashboard' %}">
+            <i class="fa fa-user-shield h-4 w-4"></i>
+            {% translate "Customer Portal" %}
+          </a>
+        </li>
+        {% endif %}
         <li>
           <a href="{% url 'users:user_profile' %}">
             <i class="fa fa-user h-4 w-4"></i>

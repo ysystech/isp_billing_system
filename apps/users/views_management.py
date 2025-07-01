@@ -21,10 +21,12 @@ def user_management_list(request):
         get_data['is_active'] = 'true'
     
     form = UserSearchForm(get_data)
-    # Filter by tenant and exclude superusers
+    # Filter by tenant and exclude superusers and customer users
     users = CustomUser.objects.filter(
         tenant=request.tenant,
         is_superuser=False
+    ).exclude(
+        customer_profile__isnull=False  # Exclude users with customer profiles
     )
     
     # Apply search filter
@@ -104,6 +106,11 @@ def user_management_update(request, pk):
     """Update an existing user."""
     user = get_object_or_404(CustomUser, pk=pk, tenant=request.tenant, is_superuser=False)
     
+    # Prevent editing customer users
+    if hasattr(user, 'customer_profile'):
+        messages.error(request, "Cannot edit customer portal users through user management.")
+        return redirect('users:user_management_list')
+    
     if request.method == 'POST':
         form = UserManagementUpdateForm(request.POST, instance=user, user=request.user)
         if form.is_valid():
@@ -135,6 +142,16 @@ def user_management_update(request, pk):
 def user_management_delete(request, pk):
     """Deactivate a user (soft delete)."""
     user = get_object_or_404(CustomUser, pk=pk, tenant=request.tenant, is_superuser=False)
+    
+    # Prevent deleting customer users
+    if hasattr(user, 'customer_profile'):
+        messages.error(request, "Cannot delete customer portal users through user management.")
+        if request.htmx:
+            return HttpResponse(
+                status=403,
+                headers={'HX-Redirect': '/users/management/'}
+            )
+        return redirect('users:user_management_list')
     
     # Prevent users from deleting themselves
     if user.id == request.user.id:
@@ -169,6 +186,11 @@ def user_management_delete(request, pk):
 def user_management_detail(request, pk):
     """View details of a user."""
     user = get_object_or_404(CustomUser, pk=pk, tenant=request.tenant, is_superuser=False)
+    
+    # Prevent viewing customer users
+    if hasattr(user, 'customer_profile'):
+        messages.error(request, "Cannot view customer portal users through user management.")
+        return redirect('users:user_management_list')
     
     return render(request, 'users/user_management_detail.html', {
         'user_obj': user  # Using user_obj to avoid conflict with request.user

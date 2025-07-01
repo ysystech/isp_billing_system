@@ -8,6 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 
 from apps.tenants.mixins import tenant_required
+from apps.customer_portal.forms import CustomerWithUserForm
 from .forms import CustomerForm, CustomerSearchForm
 from .models import Customer
 
@@ -68,8 +69,19 @@ def customer_detail(request, pk):
         Customer.objects.select_related("user", "barangay").filter(tenant=request.tenant), 
         pk=pk
     )
+    
+    # Check if we have new credentials to display
+    new_credentials = None
+    if 'new_customer_credentials' in request.session:
+        creds = request.session['new_customer_credentials']
+        if creds['customer_id'] == customer.id:
+            new_credentials = creds
+            # Remove from session after retrieving
+            del request.session['new_customer_credentials']
+    
     return render(request, "customers/detail.html", {
         "customer": customer,
+        "new_credentials": new_credentials,
         "active_tab": "customers",
     })
 
@@ -80,15 +92,28 @@ def customer_detail(request, pk):
 def customer_create(request):
     """Create a new customer"""
     if request.method == "POST":
-        form = CustomerForm(request.POST, tenant=request.tenant)
+        form = CustomerWithUserForm(request.POST, tenant=request.tenant)
         if form.is_valid():
             customer = form.save(commit=False)
             customer.tenant = request.tenant
-            customer.save()
+            customer = form.save()  # This will handle user creation
             messages.success(request, f"Customer {customer.get_full_name()} created successfully!")
+            
+            if customer.user and hasattr(form, 'generated_password'):
+                # Store credentials in session to display on detail page
+                request.session['new_customer_credentials'] = {
+                    'customer_id': customer.id,
+                    'username': form.generated_username,
+                    'password': form.generated_password,
+                    'email': customer.email
+                }
+                return redirect("customers:customer_detail", pk=customer.pk)
+            elif customer.user:
+                messages.info(request, "Customer will receive an email with instructions to set their password.")
+            
             return redirect("customers:customer_detail", pk=customer.pk)
     else:
-        form = CustomerForm(tenant=request.tenant)
+        form = CustomerWithUserForm(tenant=request.tenant)
     
     return render(request, "customers/form.html", {
         "form": form,

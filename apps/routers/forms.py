@@ -61,13 +61,12 @@ class RouterForm(forms.ModelForm):
             "notes",
         ]
         widgets = {
-            "brand": forms.TextInput(attrs={
-                "class": "input input-bordered w-full",
-                "placeholder": "e.g., TP-Link, Mikrotik"
+            "brand": forms.Select(attrs={
+                "class": "select select-bordered w-full"
             }),
             "model": forms.TextInput(attrs={
                 "class": "input input-bordered w-full",
-                "placeholder": "e.g., Archer C6, RB750"
+                "placeholder": "e.g., hAP ac2, Archer C6, UniFi Dream Machine"
             }),
             "serial_number": forms.TextInput(attrs={
                 "class": "input input-bordered w-full",

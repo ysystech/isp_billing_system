@@ -1,0 +1,58 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block portal_content %}
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold">My Subscriptions</h1>
+
+  {% if subscriptions %}
+  <div class="grid gap-4">
+    {% for sub in subscriptions %}
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <div class="flex justify-between items-start">
+          <div>
+            <h2 class="card-title">{{ sub.subscription_plan.name }}</h2>
+            <p class="text-sm text-base-content/70">
+              {{ sub.subscription_plan.bandwidth_download }}Mbps / {{ sub.subscription_plan.bandwidth_upload }}Mbps
+            </p>
+          </div>
+          <span class="badge {% if sub.status == 'ACTIVE' %}badge-success{% elif sub.status == 'EXPIRED' %}badge-warning{% elif sub.status == 'CANCELLED' %}badge-error{% else %}badge-ghost{% endif %} badge-lg">
+            {{ sub.get_status_display }}
+          </span>
+        </div>
+
+        <div class="divider my-2"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <p class="font-semibold">Amount Paid</p>
+            <p>₱{{ sub.amount }}</p>
+          </div>
+          <div>
+            <p class="font-semibold">Start Date</p>
+            <p>{{ sub.start_date|date:"M d, Y" }}</p>
+          </div>
+          <div>
+            <p class="font-semibold">End Date</p>
+            <p>{{ sub.end_date|date:"M d, Y"|default:"N/A" }}</p>
+          </div>
+        </div>
+
+        {% if sub.notes %}
+        <div class="mt-4">
+          <p class="text-sm text-base-content/70">{{ sub.notes }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-info">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    <span>You don't have any subscriptions yet.</span>
+  </div>
+  {% endif %}
+</div>
+{% endblock portal_content %}

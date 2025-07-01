@@ -9,17 +9,6 @@ from apps.users.models import CustomUser
 class TicketForm(forms.ModelForm):
     """Form for creating and updating tickets."""
     
-    customer_search = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'input input-bordered w-full',
-            'placeholder': 'Search by customer name, email, or phone...',
-            'x-model': 'customerSearch',
-            '@input': 'searchCustomers'
-        }),
-        help_text="Start typing to search for a customer"
-    )
-    
     class Meta:
         model = Ticket
         fields = [
@@ -29,7 +18,8 @@ class TicketForm(forms.ModelForm):
         ]
         widgets = {
             'customer': forms.Select(attrs={
-                'class': 'select select-bordered w-full'
+                'class': 'select select-bordered w-full',
+                'onchange': 'updateInstallations(this.value)'
             }),
             'customer_installation': forms.Select(attrs={
                 'class': 'select select-bordered w-full'
@@ -75,16 +65,19 @@ class TicketForm(forms.ModelForm):
         
         # Filter querysets by tenant
         if self.tenant:
-            # Filter customers by tenant
+            # Filter customers by tenant and show their full name
             self.fields['customer'].queryset = Customer.objects.filter(
                 tenant=self.tenant,
                 status='active'
-            )
+            ).order_by('last_name', 'first_name')
+            
+            # Update the display to show full name
+            self.fields['customer'].label_from_instance = lambda obj: f"{obj.get_full_name()} ({obj.email})"
             
             # Filter customer installations by tenant
             self.fields['customer_installation'].queryset = CustomerInstallation.objects.filter(
                 tenant=self.tenant
-            )
+            ).select_related('customer')
             
             # Limit assigned_to choices to staff users in the same tenant
             self.fields['assigned_to'].queryset = CustomUser.objects.filter(
@@ -94,7 +87,6 @@ class TicketForm(forms.ModelForm):
         
         # Set required fields
         self.fields['customer'].required = True
-        self.fields['customer'].widget = forms.HiddenInput()  # Make it hidden since we use search
         self.fields['customer_installation'].required = True
         self.fields['title'].required = True
         self.fields['description'].required = True

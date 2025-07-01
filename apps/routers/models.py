@@ -6,15 +6,32 @@ from apps.utils.models import TenantAwareModel
 class Router(TenantAwareModel):
     """Model for tracking routers deployed to customers"""
     
+    # Common router brands for ISPs
+    BRAND_CHOICES = [
+        ('Mikrotik', 'Mikrotik'),
+        ('TP-Link', 'TP-Link'),
+        ('Ubiquiti', 'Ubiquiti'),
+        ('Tenda', 'Tenda'),
+        ('Huawei', 'Huawei'),
+        ('Cisco', 'Cisco'),
+        ('Netgear', 'Netgear'),
+        ('Asus', 'Asus'),
+        ('D-Link', 'D-Link'),
+        ('Xiaomi', 'Xiaomi'),
+        ('Other', 'Other'),
+    ]
+    
     # Basic Information
     brand = models.CharField(
         max_length=50,
-        help_text="Router manufacturer (e.g., TP-Link, Mikrotik, Ubiquiti)"
+        choices=BRAND_CHOICES,
+        default='Mikrotik',
+        help_text="Router manufacturer"
     )
     model = models.CharField(
         max_length=100,
         blank=True,
-        help_text="Router model number"
+        help_text="Router model (e.g., hAP ac2, Archer C6)"
     )
     serial_number = models.CharField(
         max_length=100,

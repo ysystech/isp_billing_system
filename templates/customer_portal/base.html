@@ -1,0 +1,63 @@
+{% extends "web/app/app_base.html" %}
+{% load i18n %}
+
+{% block title %}Customer Portal - {{ customer.get_full_name }}{% endblock %}
+
+{% block sidebar-nav %}
+  <!-- Customer Portal Navigation -->
+  <aside class="menu p-4">
+    <p class="menu-label">Customer Portal</p>
+    <p class="text-sm text-base-content/70 mb-4">
+      Welcome, {{ customer.first_name }}!
+    </p>
+    
+    <ul class="menu menu-compact">
+      <li>
+        <a href="{% url 'customer_portal:dashboard' %}" 
+           class="{% if request.resolver_match.url_name == 'dashboard' %}menu-active{% endif %}">
+          <i class="fa fa-home h-4 w-4"></i>
+          Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'customer_portal:profile' %}"
+           class="{% if request.resolver_match.url_name == 'profile' %}menu-active{% endif %}">
+          <i class="fa fa-user h-4 w-4"></i>
+          My Profile
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'customer_portal:subscriptions' %}"
+           class="{% if request.resolver_match.url_name == 'subscriptions' %}menu-active{% endif %}">
+          <i class="fa fa-file-contract h-4 w-4"></i>
+          My Subscriptions
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'customer_portal:tickets' %}"
+           class="{% if request.resolver_match.url_name in 'tickets,ticket_detail' %}menu-active{% endif %}">
+          <i class="fa fa-life-ring h-4 w-4"></i>
+          Support Tickets
+        </a>
+      </li>
+    </ul>
+    
+    <div class="divider"></div>
+    
+    <ul class="menu menu-compact">
+      <li>
+        <a href="{% url 'account_logout' %}">
+          <i class="fa fa-sign-out h-4 w-4"></i>
+          Logout
+        </a>
+      </li>
+    </ul>
+  </aside>
+{% endblock %}
+
+{% block app %}
+  <div class="p-6">
+    {% block portal_content %}
+    {% endblock portal_content %}
+  </div>
+{% endblock %}

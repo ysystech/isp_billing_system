@@ -152,4 +152,10 @@
   </div>
   {% endif %}
 </section>
+
+<!-- Include credentials modal if we have new credentials -->
+{% include 'customers/includes/credentials_modal.html' %}
+
+<!-- Include welcome sheet for printing -->
+{% include 'customers/includes/welcome_sheet.html' %}
 {% endblock %}

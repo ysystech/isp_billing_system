@@ -1,0 +1,203 @@
+{% extends "web/app/app_base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block app %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <a href="{% url 'tickets:ticket_list' %}" class="btn btn-ghost btn-sm mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Tickets
+      </a>
+      <h1 class="text-3xl font-bold text-gray-800">{{ title }}</h1>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <!-- Customer Selection -->
+      <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+          <h2 class="card-title text-lg mb-4">Customer Information</h2>
+          
+          <!-- Customer Dropdown -->
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Customer <span class="text-error">*</span></span>
+            </label>
+            {{ form.customer }}
+            {% if form.customer.errors %}
+              <label class="label">
+                <span class="label-text-alt text-error">{{ form.customer.errors.0 }}</span>
+              </label>
+            {% endif %}
+          </div>
+
+          <!-- Customer Installation -->
+          <div class="form-control mt-4">
+            <label class="label">
+              <span class="label-text">Installation Location <span class="text-error">*</span></span>
+            </label>
+            {{ form.customer_installation }}
+            {% if form.customer_installation.errors %}
+              <label class="label">
+                <span class="label-text-alt text-error">{{ form.customer_installation.errors.0 }}</span>
+              </label>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket Details -->
+      <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+          <h2 class="card-title text-lg mb-4">Ticket Details</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Title -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Title <span class="text-error">*</span></span>
+              </label>
+              {{ form.title }}
+              {% if form.title.errors %}
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ form.title.errors.0 }}</span>
+                </label>
+              {% endif %}
+            </div>
+
+            <!-- Category -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Category</span>
+              </label>
+              {{ form.category }}
+            </div>
+
+            <!-- Priority -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Priority</span>
+              </label>
+              {{ form.priority }}
+            </div>
+
+            <!-- Source -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Source</span>
+              </label>
+              {{ form.source }}
+            </div>
+
+            <!-- Status -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Status</span>
+              </label>
+              {{ form.status }}
+            </div>
+
+            <!-- Description -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Description <span class="text-error">*</span></span>
+              </label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <label class="label">
+                  <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+                </label>
+              {% endif %}
+            </div>
+
+            <!-- Assigned To -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Assign to Technician</span>
+              </label>
+              {{ form.assigned_to }}
+            </div>
+
+            <!-- Resolution Notes (if updating) -->
+            {% if form.instance.pk %}
+              <div class="form-control md:col-span-2">
+                <label class="label">
+                  <span class="label-text">Resolution Notes</span>
+                </label>
+                {{ form.resolution_notes }}
+                {% if form.resolution_notes.errors %}
+                  <label class="label">
+                    <span class="label-text-alt text-error">{{ form.resolution_notes.errors.0 }}</span>
+                  </label>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Buttons -->
+      <div class="flex gap-4">
+        <button type="submit" class="btn btn-primary">
+          {% if form.instance.pk %}Update Ticket{% else %}Create Ticket{% endif %}
+        </button>
+        <a href="{% url 'tickets:ticket_list' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Update installations when customer changes
+function updateInstallations(customerId) {
+  if (!customerId) {
+    document.getElementById('id_customer_installation').innerHTML = '<option value="">---------</option>';
+    return;
+  }
+  
+  fetch(`{% url 'tickets:ajax_get_customer_installations' %}?customer_id=${customerId}`)
+    .then(response => response.json())
+    .then(data => {
+      const installationSelect = document.getElementById('id_customer_installation');
+      installationSelect.innerHTML = '<option value="">---------</option>';
+      
+      data.results.forEach(installation => {
+        const option = document.createElement('option');
+        option.value = installation.id;
+        option.textContent = installation.text;
+        installationSelect.appendChild(option);
+      });
+      
+      // Select first installation if only one
+      if (data.results.length === 1) {
+        installationSelect.value = data.results[0].id;
+      }
+    })
+    .catch(error => {
+      console.error('Error loading installations:', error);
+    });
+}
+
+// Initialize installations on page load if customer is already selected
+document.addEventListener('DOMContentLoaded', function() {
+  const customerSelect = document.getElementById('id_customer');
+  if (customerSelect && customerSelect.value) {
+    updateInstallations(customerSelect.value);
+  }
+});
+</script>
+{% endblock %}

@@ -87,6 +87,7 @@ PROJECT_APPS = [
     "apps.roles.apps.RolesConfig",
     "apps.network.apps.NetworkConfig",
     "apps.audit_logs.apps.AuditLogsConfig",
+    "apps.customer_portal.apps.CustomerPortalConfig",
     "apps.web",
 ]
 
@@ -110,6 +111,7 @@ MIDDLEWARE = [
     "waffle.middleware.WaffleMiddleware",
     "apps.audit_logs.middleware.AuditLogMiddleware",
     "apps.audit_logs.middleware.AuditLogRequestMiddleware",
+    "apps.customer_portal.middleware.CustomerPortalRedirectMiddleware",
 ]
 
 # Add query logging middleware in DEBUG mode for Phase 7 verification
@@ -200,7 +202,7 @@ else:
 # future changes much easier.
 AUTH_USER_MODEL = "users.CustomUser"
 LOGIN_URL = "account_login"
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "customer_portal:post_login_redirect"
 
 # Password validation
 # https://docs.djangoproject.com/en/stable/ref/settings/#auth-password-validators

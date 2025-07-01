@@ -126,7 +126,7 @@ def ticket_create(request):
         'active_tab': 'tickets',
     }
     
-    return render(request, 'tickets/ticket_form.html', context)
+    return render(request, 'tickets/ticket_form_simple.html', context)
 
 
 @login_required
@@ -213,7 +213,7 @@ def ticket_update(request, pk):
         'active_tab': 'tickets',
     }
     
-    return render(request, 'tickets/ticket_form.html', context)
+    return render(request, 'tickets/ticket_form_simple.html', context)
 
 
 @login_required
