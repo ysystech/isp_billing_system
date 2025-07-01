@@ -18,29 +18,31 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 echo -e "${GREEN}=== FiberBill Update Script ===${NC}"
 echo "Starting update process at $(date)"
 
-# Function to create backup
+# Function to create backup - COMMENTED OUT FOR TESTING PHASE
 create_backup() {
-    echo -e "\n${YELLOW}Step 1: Creating backup before update...${NC}"
+    echo -e "\n${YELLOW}Step 1: Skipping backup (testing phase)...${NC}"
+    echo -e "${YELLOW}Note: Backup process is disabled during testing phase${NC}"
+    echo -e "${YELLOW}Uncomment the backup code below for production use${NC}"
     
-    # Create backup directory if it doesn't exist
-    mkdir -p "$BACKUP_DIR"
-    
-    # Backup database
-    echo "- Backing up database..."
-    sudo -u postgres pg_dump isp_billing_system | gzip > "$BACKUP_DIR/pre_update_db_$TIMESTAMP.sql.gz"
-    
-    # Backup current code
-    echo "- Backing up current code..."
-    tar czf "$BACKUP_DIR/pre_update_code_$TIMESTAMP.tar.gz" -C /home/ubuntu isp_billing_system/ --exclude='venv' --exclude='logs' --exclude='media' --exclude='__pycache__'
-    
-    # Backup media files
-    echo "- Backing up media files..."
-    tar czf "$BACKUP_DIR/pre_update_media_$TIMESTAMP.tar.gz" -C "$APP_DIR" media/ 2>/dev/null || true
-    
-    # Backup environment file
-    cp "$APP_DIR/.env" "$BACKUP_DIR/pre_update_env_$TIMESTAMP"
-    
-    echo -e "${GREEN}✓ Backup completed${NC}"
+    # # Create backup directory if it doesn't exist
+    # mkdir -p "$BACKUP_DIR"
+    # 
+    # # Backup database
+    # echo "- Backing up database..."
+    # sudo -u postgres pg_dump isp_billing_system | gzip > "$BACKUP_DIR/pre_update_db_$TIMESTAMP.sql.gz"
+    # 
+    # # Backup current code
+    # echo "- Backing up current code..."
+    # tar czf "$BACKUP_DIR/pre_update_code_$TIMESTAMP.tar.gz" -C /home/ubuntu isp_billing_system/ --exclude='venv' --exclude='logs' --exclude='media' --exclude='__pycache__'
+    # 
+    # # Backup media files
+    # echo "- Backing up media files..."
+    # tar czf "$BACKUP_DIR/pre_update_media_$TIMESTAMP.tar.gz" -C "$APP_DIR" media/ 2>/dev/null || true
+    # 
+    # # Backup environment file
+    # cp "$APP_DIR/.env" "$BACKUP_DIR/pre_update_env_$TIMESTAMP"
+    # 
+    # echo -e "${GREEN}✓ Backup completed${NC}"
 }
 # Function to update code
 update_code() {
@@ -202,7 +204,7 @@ main() {
     
     # Confirm update
     echo -e "\n${YELLOW}This will update your FiberBill production deployment.${NC}"
-    echo "A backup will be created before any changes are made."
+    echo -e "${YELLOW}NOTE: Backup is currently disabled for testing phase.${NC}"
     read -p "Do you want to continue? (y/N) " -n 1 -r
     echo
     
