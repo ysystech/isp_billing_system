@@ -24,7 +24,7 @@ class Command(BaseCommand):
         
         # Update all admin/superuser accounts without tenants
         admins_without_tenant = User.objects.filter(
-            is_superuser=True,
+            models.Q(is_superuser=True) | models.Q(is_tenant_owner=True),
             tenant__isnull=True
         )
         

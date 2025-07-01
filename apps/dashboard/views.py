@@ -61,9 +61,9 @@ def dashboard(request):
     else:
         request.tenant = request.user.tenant
     
-    # Check if user is staff
-    if not request.user.is_staff:
-        # For non-staff users, show a simplified dashboard or redirect
+    # Check if user is staff or tenant owner
+    if not request.user.is_staff and not getattr(request.user, 'is_tenant_owner', False):
+        # For non-staff/non-owner users, show a simplified dashboard or redirect
         messages.info(request, _("You need staff privileges to access the full dashboard."))
         return redirect('users:user_profile')
     
