@@ -1,12 +1,34 @@
 {% load i18n %}
-<footer class="mt-10 mb-4">
-  <div class="text-center text-gray-700 dark:text-gray-500">
-    <p>{{project_meta.NAME}} &mdash; {% translate "Copyright" %} <span id="copyright-year">2024</span></p>
-    <small>
-      {% blocktranslate trimmed %}🦄 Built with <a class="link" href="https://www.saaspegasus.com/" target="_blank">SaaS Pegasus</a>{% endblocktranslate %}
-    </small>
+<footer class="footer footer-center p-10 bg-base-200 text-base-content rounded mt-20">
+  <div class="grid grid-flow-col gap-4">
+    <a href="#about" class="link link-hover">{% translate "About us" %}</a>
+    <a href="#services" class="link link-hover">{% translate "Services" %}</a>
+    <a href="#features" class="link link-hover">{% translate "Features" %}</a>
+    <a href="mailto:{{ project_meta.CONTACT_EMAIL }}" class="link link-hover">{% translate "Contact" %}</a>
+  </div>
+  <div>
+    <div class="grid grid-flow-col gap-4">
+      <a href="#" aria-label="Facebook" class="text-2xl hover:text-primary">
+        <i class="fab fa-facebook"></i>
+      </a>
+      <a href="#" aria-label="Twitter" class="text-2xl hover:text-primary">
+        <i class="fab fa-twitter"></i>
+      </a>
+      <a href="#" aria-label="LinkedIn" class="text-2xl hover:text-primary">
+        <i class="fab fa-linkedin"></i>
+      </a>
+      <a href="#" aria-label="YouTube" class="text-2xl hover:text-primary">
+        <i class="fab fa-youtube"></i>
+      </a>
+    </div>
+  </div>
+  <div>
+    <p class="font-bold">
+      {{project_meta.NAME}} &mdash; {{project_meta.DESCRIPTION}}
+    </p>
+    <p>{% translate "Copyright" %} © <span id="copyright-year">2025</span> - {% translate "All rights reserved" %}</p>
   </div>
 </footer>
 <script>
-    document.getElementById('copyright-year').innerText = (new Date()).getFullYear();
+  document.getElementById('copyright-year').innerText = (new Date()).getFullYear();
 </script>

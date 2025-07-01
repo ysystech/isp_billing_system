@@ -1,5 +1,5 @@
 {% load i18n %}
-<div class="navbar shadow-md">
+<div class="navbar shadow-md bg-base-100 sticky top-0 z-50 transition-all duration-300">
   <div class="navbar-start">
     <div class="dropdown">
       <div class="lg:hidden">
@@ -8,48 +8,55 @@
         </label>
       </div>
       <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow-2xs bg-base-100 rounded-box w-52 z-10">
-        {% block mobile_nav %}
-        <li>
-          <a class="{% if request.path == '/' %}active{% endif %}" href="{% url 'web:home' %}">
-            <div>{{project_meta.NAME}}</div>
-          </a>
-        </li>
-        {% endblock %}
+        <li><a href="#home">{% translate "Home" %}</a></li>
+        <li><a href="#features">{% translate "Features" %}</a></li>
+        <li><a href="#services">{% translate "Services" %}</a></li>
+        <li><a href="#about">{% translate "About" %}</a></li>
+        <li><a href="#faq">{% translate "FAQ" %}</a></li>
       </ul>
     </div>
+    <a class="btn btn-ghost normal-case text-xl font-bold text-primary" href="{% url 'web:home' %}">
+      <i class="fas fa-wifi mr-2"></i>
+      FiberBill
+    </a>
   </div>
+  
   <div class="navbar-center hidden lg:flex">
-    <div role="tablist" class="tabs p-0">
-      <a class="tab {% if request.path == '/' %}tab-active{% endif %}" href="{% url 'web:home' %}">
-        <div>{{project_meta.NAME}}</div>
-      </a>
-      {% if current_tenant %}
-      <div class="tab tab-active pointer-events-none">
-        <div class="text-primary font-semibold">{{ tenant_name }}</div>
-      </div>
-      {% endif %}
-    </div>
+    <ul class="menu menu-horizontal px-1">
+      <li><a href="#home" class="font-semibold hover:text-primary">{% translate "Home" %}</a></li>
+      <li><a href="#features" class="font-semibold hover:text-primary">{% translate "Features" %}</a></li>
+      <li><a href="#services" class="font-semibold hover:text-primary">{% translate "Services" %}</a></li>
+      <li><a href="#about" class="font-semibold hover:text-primary">{% translate "About" %}</a></li>
+      <li><a href="#faq" class="font-semibold hover:text-primary">{% translate "FAQ" %}</a></li>
+    </ul>
   </div>
+  
   <div class="navbar-end">
     {% if user.is_authenticated %}
     <div class="dropdown dropdown-end">
       <label tabindex="0" class="btn btn-ghost">
         <i class="fa fa-user-circle h-5 w-5"></i>
-        <span class="ml-2">{% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.email }}{% endif %}</span>
+        <span class="ml-2 hidden sm:inline">{% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.email }}{% endif %}</span>
         <svg class="fill-current h-4 w-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
           <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
         </svg>
       </label>
       <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-10">
         <li>
-          <a href="{% url 'users:user_profile' %}" {% if active_tab == 'profile' %}class="active"{% endif %}>
+          <a href="{% url 'dashboard:home' %}">
+            <i class="fa fa-dashboard h-4 w-4"></i>
+            {% translate "Dashboard" %}
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'users:user_profile' %}">
             <i class="fa fa-user h-4 w-4"></i>
             {% translate "Profile" %}
           </a>
         </li>
         {% if user.has_usable_password %}
         <li>
-          <a href="{% url 'account_change_password' %}" {% if 'accounts/password/change' in request.path %}class="active"{% endif %}>
+          <a href="{% url 'account_change_password' %}">
             <i class="fa fa-unlock-alt h-4 w-4"></i>
             {% translate "Change Password" %}
           </a>
@@ -57,7 +64,7 @@
         {% endif %}
         <li class="divider my-0"></li>
         <li>
-          <a href="{% url 'account_logout' %}" {% if 'accounts/logout' in request.path %}class="active"{% endif %}>
+          <a href="{% url 'account_logout' %}">
             <i class="fa fa-sign-out h-4 w-4"></i>
             {% translate "Sign out" %}
           </a>
@@ -65,11 +72,11 @@
       </ul>
     </div>
     {% else %}
-    <a href="{% url 'account_signup' %}" class="btn btn-primary">
-      {% translate "Sign Up" %}
-    </a>
-    <a href="{% url 'account_login' %}" class="btn btn-outline ml-2">
+    <a href="{% url 'account_login' %}" class="btn btn-sm sm:btn-md btn-ghost">
       {% translate "Sign In" %}
+    </a>
+    <a href="{% url 'account_signup' %}" class="btn btn-sm sm:btn-md btn-primary ml-2">
+      {% translate "Get Connected Now" %}
     </a>
     {% endif %}
   </div>

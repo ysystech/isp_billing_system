@@ -87,7 +87,7 @@ npm-dev: ## Runs npm dev in the container
 npm-type-check: ## Runs the type checker on the front end TypeScript code
 	@docker compose run --rm --no-deps vite npm run type-check
 
-upgrade: requirements migrations migrate npm-install npm-dev  ## Run after a Pegasus upgrade to update requirements, migrate the database, and rebuild the front end
+upgrade: requirements migrations migrate npm-install npm-dev  ## Run after a system upgrade to update requirements, migrate the database, and rebuild the front end
 
 build-api-client:  ## Update the JavaScript API client code.
 	@docker run --rm --network host -v $(shell pwd)/api-client:/local openapitools/openapi-generator-cli:v7.9.0 generate \

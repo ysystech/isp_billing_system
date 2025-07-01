@@ -450,15 +450,15 @@ SCHEDULED_TASKS = {
 }
 
 
-# Pegasus config
+# Project Configuration
 
 # replace any values below with specifics for your project
 PROJECT_METADATA = {
-    "NAME": gettext_lazy("ISP Billing System"),
-    "URL": "http://localhost:8000",
-    "DESCRIPTION": gettext_lazy("Billing System"),  # noqa: E501
+    "NAME": gettext_lazy("FiberBill"),
+    "URL": "https://fiberbill.com",
+    "DESCRIPTION": gettext_lazy("Prepaid Internet Management System for ISPs"),  # noqa: E501
     "IMAGE": "https://upload.wikimedia.org/wikipedia/commons/2/20/PEO-pegasus_black.svg",
-    "KEYWORDS": "SaaS, django",
+    "KEYWORDS": "ISP, billing, prepaid internet, network management, fiber optic, mikrotik, SaaS",
     "CONTACT_EMAIL": "aldesabido@gmail.com",
 }
 

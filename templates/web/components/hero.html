@@ -1,21 +1,40 @@
 {% load i18n %}
 {% load static %}
-<section>
-  <div class="grid max-w-(--breakpoint-xl) px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:px-12 lg:grid-cols-12">
-    <div class="lg:mr-auto place-self-center lg:col-span-7">
-      <h1 class="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white">
-        {{ project_meta.NAME }}
+<section class="bg-base-100">
+  <div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
+    <div class="mr-auto place-self-center lg:col-span-7" data-aos="fade-right">
+      <h1 class="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl">
+        {% translate "Prepaid Internet, Simplified Management, Happy Clients." %}
       </h1>
       <p class="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400">
-        {{ project_meta.DESCRIPTION }}
+        {% translate "Revolutionize your internet service with automated management, seamless connectivity, and effortless troubleshooting. Experience the future of prepaid internet today!" %}
       </p>
       <div class="flex flex-col mb-8 lg:mb-16 space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
-        <a href="{% url 'account_signup' %}" class="btn btn-lg btn-primary">{% translate "Get started" %}</a>
-        <a href="{% url 'account_login' %}" class="btn btn-lg">{% translate "Sign in" %}</a>
+        <a href="{% url 'account_signup' %}" class="btn btn-lg btn-primary">
+          {% translate "Get Started" %}
+        </a>
+        <a href="{% url 'account_login' %}" class="btn btn-lg btn-outline btn-primary">
+          {% translate "Sign Up" %}
+        </a>
       </div>
     </div>
-    <div class="hidden lg:mt-0 lg:col-span-5 lg:flex">
-      <img src="{% static 'images/web/rocket-laptop.svg' %}" alt="{% translate "Fly Away!" %}" >
+    <div class="hidden lg:mt-0 lg:col-span-5 lg:flex" data-aos="zoom-out" data-aos-delay="200">
+      <div class="relative w-full">
+        <div class="mockup-window border bg-base-300 shadow-2xl">
+          <div class="flex justify-center px-4 py-16 bg-base-200">
+            <div class="text-center">
+              <i class="fas fa-network-wired text-8xl text-primary mb-4"></i>
+              <h3 class="text-2xl font-bold">Network Visualization</h3>
+              <p class="text-gray-600 mt-2">Real-time network monitoring</p>
+            </div>
+          </div>
+        </div>
+        <div class="absolute -bottom-10 -left-10 mockup-code bg-primary text-primary-content shadow-xl" style="max-width: 300px;">
+          <pre data-prefix="$"><code>fiberbill install</code></pre>
+          <pre data-prefix=">" class="text-warning"><code>Installing...</code></pre>
+          <pre data-prefix=">" class="text-success"><code>Done!</code></pre>
+        </div>
+      </div>
     </div>
   </div>
 </section>
