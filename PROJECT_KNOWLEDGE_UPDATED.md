@@ -1,4 +1,4 @@
-# ISP Billing System - Project Knowledge Base (Updated - June 30, 2025)
+# ISP Billing System - Project Knowledge Base (Updated - July 1, 2025)
 =================================================================================
 
 ## Project Overview
@@ -11,6 +11,15 @@ A comprehensive billing management system originally built for a small-scale Int
 - **Target**: Complete isolation between ISP companies
 - **Recent Achievement**: Background tasks and signals now tenant-aware
 
+## Production Deployment Status
+- **Live URL**: https://fiberbill.com
+- **Deployment Date**: July 1, 2025
+- **Server**: Google Cloud Platform (GCE)
+- **Server IP**: 34.124.190.52
+- **SSL**: Let's Encrypt (auto-renewal enabled)
+- **Admin Access**: https://fiberbill.com/admin/
+- **SSH Access**: `ssh prod-billing` (configured in local SSH config)
+
 ## Technical Stack
 - **Backend**: Django 5.2.2 with Python 3.12
 - **Frontend**: Django Templates + HTMX + Alpine.js
@@ -19,14 +28,132 @@ A comprehensive billing management system originally built for a small-scale Int
 - **Cache/Queue**: Redis
 - **Task Queue**: Celery
 - **Development**: Docker Compose
+- **Production**: Gunicorn + Nginx
 - **Base Framework**: Pegasus SaaS
 - **Maps**: Leaflet.js with OpenStreetMap
 - **PDF Generation**: WeasyPrint
 - **Time Zone**: Asia/Manila (Philippine Standard Time)
 
+## Project Structure
+```
+/Users/aldesabido/pers/isp_billing_system/
+├── apps/
+│   ├── tenants/                 # Multi-tenant core
+│   │   ├── models.py           # Tenant model
+│   │   ├── middleware.py       # Request tenant context
+│   │   ├── backends.py         # Permission bypass for owners
+│   │   ├── mixins.py           # TenantRequiredMixin, @tenant_required
+│   │   ├── api_mixins.py       # API tenant filtering mixins
+│   │   ├── context.py          # Tenant context for background tasks
+│   │   ├── tasks.py            # Tenant-aware task base classes
+│   │   ├── signals.py          # Tenant lifecycle signals
+│   │   ├── test_isolation.py   # Comprehensive isolation tests
+│   │   ├── test_api_isolation.py # API isolation tests
+│   │   ├── tests/              # All tenant-related tests
+│   │   ├── management/         # Tenant commands
+│   │   └── verification/       # Phase 7 verification tools
+│   ├── audit_logs/              # Audit logging system (tenant-aware)
+│   ├── barangays/               # Barangay master list (tenant-aware)
+│   ├── customers/               # Customer management (tenant-aware)
+│   ├── dashboard/               # Dashboard views and widgets
+│   ├── lcp/                     # LCP infrastructure (tenant-aware)
+│   ├── routers/                 # Router inventory (tenant-aware)
+│   ├── subscriptions/           # Subscription plans (tenant-aware)
+│   ├── customer_installations/  # Customer installations (tenant-aware)
+│   ├── customer_subscriptions/  # Customer payments (tenant-aware)
+│   ├── network/                 # Network visualization
+│   ├── tickets/                 # Support tickets (tenant-aware)
+│   ├── reports/                 # Reporting system
+│   ├── roles/                   # RBAC roles (tenant-aware)
+│   ├── users/                   # User auth (multi-tenant updates)
+│   ├── utils/                   # Utilities including test_base.py
+│   └── web/                     # Public pages
+├── templates/                   # Django templates
+├── assets/                      # Frontend assets (Vite)
+├── requirements/                # Python dependencies
+├── deploy_fiberbill.sh         # Production deployment script
+├── update_production.sh        # Full update script with migrations
+├── quick_update.sh             # Quick update for minor changes
+├── rollback_production.sh      # Emergency rollback script
+├── UPDATE_GUIDE.md             # Update procedures documentation
+├── deployment_credentials.txt  # Production credentials (git-ignored)
+├── MULTITENANT_STATUS.md       # Current conversion status
+├── PHASE1-8_COMPLETE.md        # Phase documentation files
+└── TODO.md                      # Project TODO list
+```
+
+## Deployment Scripts and Locations
+
+### Local Scripts (Development Machine)
+All deployment and update scripts are located in: `/Users/aldesabido/pers/isp_billing_system/`
+
+1. **deploy_fiberbill.sh** - Initial deployment script
+   - Full server setup from scratch
+   - Installs all dependencies
+   - Configures SSL certificates
+   - Creates systemd services
+
+2. **update_production.sh** - Full update script
+   - Creates complete backup
+   - Updates code from Git
+   - Runs migrations
+   - Updates dependencies
+   - Rebuilds frontend
+   - Restarts services
+
+3. **quick_update.sh** - Quick update script
+   - Simple code pull
+   - Service restart only
+   - For minor changes
+
+4. **rollback_production.sh** - Emergency rollback
+   - Restores from backup
+   - Database rollback
+   - Code restoration
+
+### Production Scripts (Server)
+Scripts are copied to: `/home/ubuntu/` on the production server
+- Access via: `ssh prod-billing`
+- All scripts have execute permissions
+
+### Production Paths
+- **Application**: `/home/ubuntu/isp_billing_system/`
+- **Virtual Environment**: `/home/ubuntu/isp_billing_system/venv/`
+- **Logs**: `/home/ubuntu/isp_billing_system/logs/`
+- **Media Files**: `/home/ubuntu/isp_billing_system/media/`
+- **Static Files**: `/home/ubuntu/isp_billing_system/staticfiles/`
+- **Backups**: `/home/ubuntu/backups/`
+- **Nginx Config**: `/etc/nginx/sites-available/fiberbill`
+- **Systemd Services**: `/etc/systemd/system/isp_billing*.service`
+
+## Production Services
+
+### Systemd Services
+- `isp_billing.service` - Main Gunicorn application
+- `isp_billing_celery.service` - Celery worker
+- `isp_billing_celerybeat.service` - Celery beat scheduler
+
+### Service Management Commands
+```bash
+# Check status
+sudo systemctl status isp_billing
+sudo systemctl status nginx
+sudo systemctl status postgresql
+sudo systemctl status redis
+
+# Restart services
+sudo systemctl restart isp_billing
+sudo systemctl restart isp_billing_celery
+sudo systemctl restart isp_billing_celerybeat
+
+# View logs
+sudo journalctl -u isp_billing -f
+sudo tail -f /var/log/nginx/error.log
+```
+
 ## Multi-Tenant Architecture Implementation
 
-### Core Principles:
+### Core Principles
 1. **User-Tenant Relationship**: One user belongs to exactly one tenant (ISP company)
 2. **Tenant Owner Permissions**: Flag `is_tenant_owner` gives full permissions bypass within tenant
 3. **Registration Flow**: Creates tenant automatically from "Company Name" field
@@ -36,7 +163,7 @@ A comprehensive billing management system originally built for a small-scale Int
 7. **No Super Admin Access**: No cross-tenant access for anyone
 8. **Fresh Start**: Will delete existing data and start clean after conversion
 
-### Technical Implementation:
+### Technical Implementation
 ```python
 # Tenant Model
 class Tenant(BaseModel):
@@ -55,159 +182,7 @@ class TenantAwareModel(BaseModel):
     class Meta:
         abstract = True
         indexes = [Index(fields=['tenant'])]
-
-# All business models inherit from TenantAwareModel
 ```
-
-## Project Structure
-```
-/Users/aldesabido/pers/isp_billing_system/
-├── apps/
-│   ├── tenants/                 # Multi-tenant core
-│   │   ├── models.py           # Tenant model
-│   │   ├── middleware.py       # Request tenant context
-│   │   ├── backends.py         # Permission bypass for owners
-│   │   ├── mixins.py           # TenantRequiredMixin, @tenant_required
-│   │   ├── api_mixins.py       # API tenant filtering mixins
-│   │   ├── test_isolation.py   # Comprehensive isolation tests
-│   │   ├── test_api_isolation.py # API isolation tests
-│   │   └── management/         # Tenant commands
-│   ├── audit_logs/              # Audit logging system
-│   ├── barangays/               # Barangay master list (tenant-aware)
-│   ├── customers/               # Customer management (tenant-aware)
-│   ├── dashboard/               # Dashboard views and widgets
-│   ├── lcp/                     # LCP infrastructure (tenant-aware)
-│   ├── routers/                 # Router inventory (tenant-aware)
-│   ├── subscriptions/           # Subscription plans (tenant-aware)
-│   ├── customer_installations/  # Customer installations (tenant-aware)
-│   ├── customer_subscriptions/  # Customer payments (tenant-aware)
-│   ├── network/                 # Network visualization
-│   ├── tickets/                 # Support tickets (tenant-aware)
-│   ├── reports/                 # Reporting system
-│   ├── roles/                   # RBAC roles (tenant-aware)
-│   ├── users/                   # User auth (multi-tenant updates)
-│   ├── utils/                   # Utilities including test_base.py
-│   └── web/                     # Public pages
-├── templates/
-│   ├── components/              # Reusable components
-│   ├── network/                 # Network visualization
-│   ├── audit_logs/              # Audit log templates
-│   └── roles/                   # Role management
-├── assets/                      # Frontend assets (Vite)
-├── requirements/                # Python dependencies
-├── MULTITENANT_STATUS.md       # Current conversion status
-├── PHASE1_COMPLETE.md          # Phase 1 documentation
-├── PHASE2_COMPLETE.md          # Phase 2 documentation
-├── PHASE3_COMPLETE.md          # Phase 3 documentation
-├── PHASE4_COMPLETE.md          # Phase 4 documentation
-├── PHASE5_COMPLETE.md          # Phase 5 documentation
-├── PHASE6_COMPLETE.md          # Phase 6 documentation
-└── TODO.md                      # Project TODO list
-```
-
-## Multi-Tenant Conversion Progress
-
-### ✅ Phase 1: Core Infrastructure (COMPLETE - June 29, 2025)
-- Created Tenant model with admin interface
-- Updated User model with tenant field and is_tenant_owner flag
-- Created TenantAwareModel abstract base class
-- Implemented TenantMiddleware for request.tenant
-- Created TenantAwareBackend for permission bypass
-- Registration automatically creates tenant
-- Management commands for testing
-
-### ✅ Phase 2: Model Updates (COMPLETE - June 29, 2025)
-- Updated ALL models to inherit from TenantAwareModel
-- Created and applied migrations for tenant fields
-- Database schema fully multi-tenant
-- Models updated: Customer, Barangay, Router, SubscriptionPlan, LCP, Splitter, NAP, CustomerInstallation, CustomerSubscription, Ticket, TicketComment, Role, AuditLogEntry
-
-### ✅ Phase 3: View Layer Updates (COMPLETE - June 29, 2025)
-- Added @tenant_required decorator to all function-based views
-- Added TenantRequiredMixin to all class-based views
-- Updated all querysets to filter by tenant
-- Forms updated to pass tenant parameter
-- Fixed syntax errors from automated updates
-
-### ✅ Phase 4: Test Updates (COMPLETE - June 30, 2025)
-- Created TenantTestCase base classes
-- Updated all test files to use TenantTestCase
-- Fixed test data to use model instances
-- Created comprehensive tenant isolation tests
-- Established test patterns for multi-tenant development
-
-### ✅ Phase 5: API Updates (COMPLETE - June 30, 2025)
-- Updated all API endpoints to filter by tenant
-- Created TenantAPIFilterMixin for DRF views
-- Created TenantAwareSerializer base class
-- Added tenant validation to all APIs
-- Created comprehensive API isolation tests
-- Cross-tenant API access returns 404
-
-### ✅ Phase 6: Template Updates (COMPLETE - June 30, 2025)
-- Fixed registration page to include company name field
-- Created tenant context processor for global template access
-- Updated navigation to display tenant name
-- Created tenant settings system for tenant owners
-- Added company settings menu for tenant management
-- Fixed audit log handling during registration
-- Established UI patterns for tenant-aware templates
-
-### 📋 Phase 7: Data Isolation Verification (PLANNED)
-- Create query logging middleware (dev only)
-- Comprehensive security testing
-- Verify no data leakage
-- Check all raw SQL queries
-
-### 📋 Phase 8: Background Tasks & Signals (PLANNED)
-- Update Celery tasks for tenant awareness
-- Ensure signals respect tenant boundaries
-- Update scheduled tasks
-
-### 📋 Phase 9: Reporting System Updates (PLANNED)
-- Filter all reports by tenant
-- Remove global statistics
-- Update charts/graphs
-- Scope exports by tenant
-
-### 📋 Phase 10: Testing & Migration (PLANNED)
-- Comprehensive test suite
-- Performance testing
-- Fresh migration strategy
-- Production deployment plan
-
-## Recent Security Fixes (June 30, 2025)
-
-### 1. **Permission System Fixes**
-- Fixed customer views using incorrect permissions (`update_customer` → `change_customer_basic`)
-- Fixed customer delete using incorrect permissions (`delete_customer` → `remove_customer`)
-- Fixed LCP delete permission (`manage_lcp_infrastructure` → `delete_lcp`)
-- Fixed customer payment history permission (`view_payment_history` → `view_subscription_list`)
-
-### 2. **Missing @tenant_required Decorators Added**
-- ✅ Barangay module (all views)
-- ✅ Subscription Plans module (all views)
-- ✅ Routers module (all views)
-- ✅ Audit Logs module (all views)
-- ✅ Tickets module (all views)
-- ✅ Customer Subscriptions module (all views)
-- ✅ Customer Installations module (all views)
-- ✅ Reports module (technician performance view)
-
-### 3. **Form Tenant Parameter Fixes**
-- ✅ CustomerSubscriptionForm - Added tenant parameter handling
-- ✅ TicketFilterForm - Added tenant parameter handling
-- ✅ TicketCommentForm - Added tenant parameter handling
-
-### 4. **Data Integrity Fixes**
-- ✅ CustomerInstallation - Fixed missing tenant_id on creation
-- ✅ TicketComment - Fixed missing tenant_id in all creation points
-- ✅ CustomerInstallation form - Fixed NAP/Port selection in edit mode
-
-### 5. **Template Security Updates**
-- ✅ All modules now use permission checks to hide buttons
-- ✅ Using `{% if perms.app.permission %}` or custom permission template tags
-- ✅ Consistent UI/UX across all modules
 
 ## Development Commands
 ```bash
@@ -232,135 +207,100 @@ make test ARGS='app.tests'     # Run specific tests
 
 # Multi-tenant specific
 make manage ARGS="create_test_tenant"  # Create test tenant
+make manage ARGS="verify_tenant_isolation"  # Verify isolation
+make manage ARGS="test_phase8"  # Test Phase 8 implementation
 
 # Code quality
 make ruff-lint                 # Lint Python code
 make ruff-format              # Format Python code
 ```
 
-## Simplified Permission System
+## Production Update Workflow
 
-The system uses a simplified permission structure with these categories:
+### For Major Updates (with migrations)
+```bash
+# On local machine
+git add .
+git commit -m "Description of changes"
+git push origin main
 
-### Customer Management (6 permissions)
-- `view_customer_list` - Access customer listing page
-- `view_customer_detail` - View detailed customer information
-- `create_customer` - Create new customer records
-- `change_customer_basic` - Edit all customer information
-- `remove_customer` - Remove customer records
-- `export_customers` - Export customer data
+# On server
+ssh prod-billing
+./update_production.sh
+```
 
-### Barangay Management (4 permissions)
-- `view_barangay_list` - Access barangay listing
-- `add_barangay` - Create new barangay
-- `change_barangay` - Edit barangay information
-- `delete_barangay` - Delete barangay records
+### For Minor Updates (no migrations)
+```bash
+# Push changes to Git first, then:
+ssh prod-billing
+./quick_update.sh
+```
 
-### Router Management (4 permissions)
-- `view_router_list` - Access router listing and details
-- `add_router` - Add new router to inventory
-- `change_router` - Edit router information
-- `delete_router` - Delete router records
+### Emergency Rollback
+```bash
+ssh prod-billing
+./rollback_production.sh
+# Follow prompts to select backup
+```
 
-### Subscription Plans (4 permissions)
-- `view_subscriptionplan_list` - Access plan listing and details
-- `add_subscriptionplan` - Create new subscription plan
-- `change_subscriptionplan` - Edit subscription plans
-- `delete_subscriptionplan` - Delete subscription plans
+## Production Credentials
+- **Server SSH**: `ssh prod-billing`
+- **Admin Username**: admin
+- **Admin Password**: 722436Aa!
+- **Database**: PostgreSQL on localhost
+- **Django Secret**: Stored in production .env file
+- Full credentials saved in: `deployment_credentials.txt` (git-ignored)
 
-### LCP Infrastructure (5 permissions)
-- `view_lcp_list` - View lists of LCP, Splitter, and NAP
-- `view_lcp_detail` - View detailed LCP info
-- `add_lcp` - Create LCP, Splitter, and NAP records
-- `manage_lcp_infrastructure` - Edit LCP records and components
-- `delete_lcp` - Delete LCP and related infrastructure
+## Automated Backups
+- **Schedule**: Daily at 2 AM Philippine time
+- **Location**: `/home/ubuntu/backups/`
+- **Retention**: 7 days
+- **Includes**: Database, media files, environment config
+- **Script**: `/home/ubuntu/backup_isp_billing.sh`
 
-### Customer Installations (5 permissions)
-- `view_installation_list` - View installation list and details
-- `create_installation` - Process new installations
-- `change_installation_status` - Edit installations
-- `delete_customerinstallation` - Delete installation records
-- `export_installation_data` - Export installation data
+## Multi-Tenant Conversion Progress
 
-### Customer Subscriptions (5 permissions)
-- `view_subscription_list` - View all subscription data
-- `create_subscription` - Create new subscriptions
-- `cancel_subscription` - Manage subscriptions
-- `generate_receipt` - Generate acknowledgment receipts
-- `export_subscription_data` - Export subscription data
+### ✅ Completed Phases (1-8)
+1. **Core Infrastructure**: Tenant model, middleware, authentication
+2. **Model Updates**: All models made tenant-aware
+3. **View Layer**: All views require tenant context
+4. **Test Infrastructure**: Comprehensive test coverage
+5. **API Layer**: All APIs filter by tenant
+6. **Template Updates**: UI shows tenant context
+7. **Security Verification**: Isolation confirmed
+8. **Background Tasks**: Celery tasks tenant-aware
 
-### Support Tickets (7 permissions)
-- `view_ticket_list` - View ticket list and details
-- `create_ticket` - Create new support tickets
-- `edit_ticket` - Edit ticket information
-- `change_ticket_status` - Update ticket status
-- `add_ticket_comment` - Add comments to tickets
-- `remove_ticket` - Delete ticket records
-- `export_ticket_data` - Export ticket data
-
-### Reports & Analytics (11 permissions)
-- `view_reports_dashboard` - Access reports dashboard
-- `view_daily_collection_report` - Daily collection report
-- `view_subscription_expiry_report` - Subscription expiry report
-- `view_monthly_revenue_report` - Monthly revenue report
-- `view_ticket_analysis_report` - Ticket analysis report
-- `view_technician_performance_report` - Technician performance
-- `view_customer_acquisition_report` - Customer acquisition trends
-- `view_payment_behavior_report` - Payment behavior analysis
-- `view_area_performance_dashboard` - Area performance dashboard
-- `view_financial_dashboard` - Financial dashboard
-- `export_reports` - Export all reports
-
-## API Endpoints (All Tenant-Aware)
-
-### Customer APIs
-- `/customers/api/coordinates/` - Customer location data
-
-### Customer Subscription APIs
-- `/customer-subscriptions/api/latest-subscription/` - Latest subscription
-- `/customer-subscriptions/api/calculate-preview/` - Price calculation
-- `/customer-subscriptions/api/plan-price/` - Plan pricing
-
-### Infrastructure APIs
-- `/lcp/api/lcps/` - LCP list
-- `/lcp/api/lcp/<id>/splitters/` - Splitter list
-- `/lcp/api/splitter/<id>/naps/` - NAP list
-- `/lcp/api/nap/<id>/hierarchy/` - NAP hierarchy
-- `/installations/api/nap/<id>/ports/` - NAP port availability
-
-### Dashboard APIs
-- `/dashboard/api/user-signups/` - User signup stats (if enabled)
+### 📋 Remaining Phases (9-10)
+9. **Reporting System**: Make reports tenant-scoped
+10. **Testing & Migration**: Final testing and data migration
 
 ## Security Best Practices Implemented
 
-### 1. Backend Security
-- All views require authentication (`@login_required`)
-- All views require tenant context (`@tenant_required`)
-- All views check specific permissions (`@permission_required`)
-- All querysets filter by tenant
+### Backend Security
+- All views require authentication and tenant context
+- Tenant owners bypass permissions within their tenant
+- All querysets filter by tenant automatically
+- Background tasks maintain tenant isolation
+- No cross-tenant data access possible
+
+### Frontend Security
+- Permission checks in templates
+- Tenant context displayed in navigation
+- Actions hidden based on permissions
+
+### Data Integrity
 - Tenant field required on all business models
 - CASCADE delete ensures data cleanup
-
-### 2. Frontend Security
-- Permission checks in templates to hide unauthorized actions
-- Using Django's `perms` template variable
-- Custom permission template tags where needed
-- Consistent UI across all modules
-
-### 3. Data Integrity
-- All models set tenant field before saving
-- Forms accept and validate tenant parameter
-- Related objects inherit tenant from parent
-- No cross-tenant data access possible
+- Forms validate tenant context
+- Background tasks process each tenant separately
 
 ## Known Issues/TODOs
 
 ### Multi-Tenant Conversion
-1. **Phases 6-10**: Complete remaining conversion phases
-2. **Template Updates**: Add tenant context to UI
-3. **Background Tasks**: Update Celery for tenant awareness
-4. **Reports**: Make all reports tenant-scoped
-5. **Migration Strategy**: Plan for existing data
+1. **Phases 9-10**: Complete remaining conversion phases
+2. **Model Validation**: Add model-level FK validation
+3. **Reports**: Make all reports tenant-scoped
+4. **Migration Strategy**: Plan for existing data
 
 ### Future Multi-Tenant Features
 1. **Tenant Billing**: SaaS subscription management
@@ -371,16 +311,15 @@ The system uses a simplified permission structure with these categories:
 
 ## Summary
 
-The ISP Billing System has successfully completed 60% of its multi-tenant conversion with all core infrastructure, security measures, and UI updates in place. Recent updates have resolved all major permission issues, data integrity problems, and security vulnerabilities. The system now ensures complete tenant isolation with proper permission checks at both backend and frontend levels, and the UI properly displays tenant context throughout.
+The ISP Billing System is successfully deployed to production at https://fiberbill.com with 80% of multi-tenant conversion complete. The system features:
 
-Key achievements:
+- ✅ Live production deployment with SSL
+- ✅ Automated deployment and update scripts
+- ✅ Daily automated backups
 - ✅ Complete data isolation between tenants
-- ✅ Consistent permission system across all modules
-- ✅ All forms handle tenant context properly
-- ✅ All views enforce tenant-aware queries
-- ✅ UI respects user permissions and displays tenant context
-- ✅ Registration flow creates tenants automatically
-- ✅ Tenant settings management for tenant owners
-- ✅ No data leakage between tenants
+- ✅ Background tasks maintain tenant isolation
+- ✅ Comprehensive security and permission system
+- ✅ Emergency rollback capability
+- ✅ Production monitoring and logging
 
-The remaining work focuses on data isolation verification, background task isolation, reporting updates, and preparing for production deployment.
+The remaining work focuses on reporting system updates and preparing for full multi-tenant production deployment.
