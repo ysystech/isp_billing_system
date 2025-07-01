@@ -6,6 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.template.response import TemplateResponse
 from django.utils import timezone
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
@@ -20,6 +23,7 @@ from apps.barangays.models import Barangay
 from apps.routers.models import Router
 from apps.subscriptions.models import SubscriptionPlan
 from apps.customer_installations.models import CustomerInstallation
+from apps.tenants.models import Tenant
 
 
 def _string_to_date(date_str: str) -> datetime.date:
@@ -28,9 +32,42 @@ def _string_to_date(date_str: str) -> datetime.date:
 
 
 @login_required
-@tenant_required
-@staff_member_required
 def dashboard(request):
+    """
+    Dashboard view that handles cases where user might not have tenant or staff access
+    """
+    # Check if user has a tenant
+    if not hasattr(request.user, 'tenant') or not request.user.tenant:
+        # Try to assign user to a default tenant or create one
+        try:
+            # Get or create default tenant
+            default_tenant, created = Tenant.objects.get_or_create(
+                name="Default ISP",
+                defaults={'is_active': True}
+            )
+            
+            # Assign user to tenant
+            request.user.tenant = default_tenant
+            request.user.save()
+            
+            # Set tenant in request for this session
+            request.tenant = default_tenant
+            
+            if created:
+                messages.info(request, _("Welcome! A default company has been created for you."))
+        except Exception as e:
+            messages.error(request, _("Unable to set up your account. Please contact support."))
+            return redirect('users:user_profile')
+    else:
+        request.tenant = request.user.tenant
+    
+    # Check if user is staff
+    if not request.user.is_staff:
+        # For non-staff users, show a simplified dashboard or redirect
+        messages.info(request, _("You need staff privileges to access the full dashboard."))
+        return redirect('users:user_profile')
+    
+    # Regular dashboard logic
     end_str = request.GET.get("end")
     end = _string_to_date(end_str) if end_str else timezone.now().date() + timedelta(days=1)
     start_str = request.GET.get("start")
@@ -53,7 +90,7 @@ def dashboard(request):
     form = DateRangeForm(initial={"start": start, "end": end})
     start_value = CustomUser.objects.filter(tenant=request.tenant, date_joined__lt=start).count()
     
-    # Get customer statistics
+    # Get statistics with safe defaults
     customer_stats = {
         "total": Customer.objects.filter(tenant=request.tenant).count(),
         "active": Customer.objects.filter(tenant=request.tenant, status=Customer.ACTIVE).count(),
@@ -61,39 +98,34 @@ def dashboard(request):
         "suspended": Customer.objects.filter(tenant=request.tenant, status=Customer.SUSPENDED).count(),
     }
     
-    # Get barangay statistics
     barangay_stats = {
         "total": Barangay.objects.filter(tenant=request.tenant).count(),
         "active": Barangay.objects.filter(tenant=request.tenant, is_active=True).count(),
         "with_customers": Barangay.objects.filter(tenant=request.tenant, customers__isnull=False).distinct().count(),
     }
     
-    # Get router statistics
     router_stats = {
         "total": Router.objects.filter(tenant=request.tenant).count(),
     }
     
-    # Get subscription plan statistics
     subscription_plan_stats = {
         "total": SubscriptionPlan.objects.filter(tenant=request.tenant).count(),
         "active": SubscriptionPlan.objects.filter(tenant=request.tenant, is_active=True).count(),
         "inactive": SubscriptionPlan.objects.filter(tenant=request.tenant, is_active=False).count(),
     }
     
-    # Get user statistics (excluding superusers)
     user_stats = {
         "total": CustomUser.objects.filter(tenant=request.tenant, is_superuser=False).count(),
         "active": CustomUser.objects.filter(tenant=request.tenant, is_active=True, is_superuser=False).count(),
         "inactive": CustomUser.objects.filter(tenant=request.tenant, is_active=False, is_superuser=False).count(),
     }
     
-    # Get installation statistics
     installation_stats = {
         "total_installations": CustomerInstallation.objects.filter(tenant=request.tenant).count(),
         "active_installations": CustomerInstallation.objects.filter(tenant=request.tenant, status='ACTIVE').count(),
     }
     
-    return TemplateResponse(
+    return render(
         request,
         "dashboard/user_dashboard.html",
         context={

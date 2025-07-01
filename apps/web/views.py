@@ -5,6 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db import models
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 
 from apps.dashboard.forms import DateRangeForm
 from apps.dashboard.services import get_user_signups
@@ -23,12 +25,17 @@ def _string_to_date(date_str: str) -> datetime.date:
 
 
 def home(request):
+    """
+    Home page view that shows:
+    - Landing page for non-authenticated users
+    - Dashboard for authenticated users
+    """
     if request.user.is_authenticated:
-        # For now, redirect to the dashboard URL instead of rendering inline
-        # This avoids any potential issues with the dashboard view
-        return redirect('dashboard:home')
+        # Import dashboard view and call it directly
+        from apps.dashboard.views import dashboard as dashboard_view
+        return dashboard_view(request)
     else:
-        # Landing page data
+        # Landing page data for non-authenticated users
         landing_context = {
             "page_title": _("FiberBill - Prepaid Internet Management System"),
             "page_description": _("Revolutionize your internet service with automated management, seamless connectivity, and effortless troubleshooting."),

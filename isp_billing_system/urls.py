@@ -32,7 +32,7 @@ urlpatterns = [
     # redirect Django admin login to main login page
     path("admin/login/", RedirectView.as_view(pattern_name="account_login")),
     path("admin/", admin.site.urls),
-    # path("dashboard/", include("apps.dashboard.urls")),  # Dashboard functionality moved to home page
+    path("dashboard/", include("apps.dashboard.urls")),
     path("tenants/", include("apps.tenants.urls")),
     path("barangays/", include("apps.barangays.urls")),
     path("routers/", include("apps.routers.urls")),
